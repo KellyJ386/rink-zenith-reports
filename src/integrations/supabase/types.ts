@@ -38,6 +38,75 @@ export type Database = {
         }
         Relationships: []
       }
+      ice_depth_measurements: {
+        Row: {
+          ai_analysis: string | null
+          avg_depth: number | null
+          created_at: string
+          facility_id: string
+          id: string
+          max_depth: number | null
+          measurement_date: string
+          measurements: Json
+          min_depth: number | null
+          operator_id: string
+          rink_id: string
+          status: string
+          std_deviation: number | null
+          template_type: string
+          updated_at: string
+        }
+        Insert: {
+          ai_analysis?: string | null
+          avg_depth?: number | null
+          created_at?: string
+          facility_id: string
+          id?: string
+          max_depth?: number | null
+          measurement_date?: string
+          measurements: Json
+          min_depth?: number | null
+          operator_id: string
+          rink_id: string
+          status?: string
+          std_deviation?: number | null
+          template_type: string
+          updated_at?: string
+        }
+        Update: {
+          ai_analysis?: string | null
+          avg_depth?: number | null
+          created_at?: string
+          facility_id?: string
+          id?: string
+          max_depth?: number | null
+          measurement_date?: string
+          measurements?: Json
+          min_depth?: number | null
+          operator_id?: string
+          rink_id?: string
+          status?: string
+          std_deviation?: number | null
+          template_type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ice_depth_measurements_facility_id_fkey"
+            columns: ["facility_id"]
+            isOneToOne: false
+            referencedRelation: "facilities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ice_depth_measurements_rink_id_fkey"
+            columns: ["rink_id"]
+            isOneToOne: false
+            referencedRelation: "rinks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string
