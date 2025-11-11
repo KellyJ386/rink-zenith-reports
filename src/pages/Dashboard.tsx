@@ -63,48 +63,56 @@ const Dashboard = () => {
       description: "Track ice measurements with AI analysis",
       icon: Snowflake,
       color: "from-ice-glacier to-ice-blue",
+      path: "/ice-depth",
     },
     {
       title: "Ice Maintenance",
       description: "Resurface logs and equipment checks",
       icon: Wrench,
       color: "from-primary to-ice-glacier",
+      path: null,
     },
     {
       title: "Refrigeration Log",
       description: "Monitor compressor and condenser data",
       icon: Thermometer,
       color: "from-accent to-ice-arctic",
+      path: null,
     },
     {
       title: "Air Quality",
       description: "Track CO and NO2 levels",
       icon: Wind,
       color: "from-ice-arctic to-secondary",
+      path: null,
     },
     {
       title: "Scheduling",
       description: "Manage employee shifts and hours",
       icon: Calendar,
       color: "from-ice-blue to-primary",
+      path: null,
     },
     {
       title: "Incident Reports",
       description: "Document and track incidents",
       icon: AlertCircle,
       color: "from-destructive/80 to-destructive/60",
+      path: null,
     },
     {
       title: "Communications",
       description: "Team messaging and announcements",
       icon: MessageSquare,
       color: "from-primary to-accent",
+      path: null,
     },
     {
       title: "Safety Center",
       description: "Compliance tracking and resources",
       icon: Shield,
       color: "from-ice-glacier to-accent",
+      path: null,
     },
   ];
 
@@ -156,6 +164,7 @@ const Dashboard = () => {
               <Card
                 key={index}
                 className="group hover:shadow-[var(--shadow-ice)] transition-all duration-300 cursor-pointer hover:-translate-y-1"
+                onClick={() => module.path && navigate(module.path)}
               >
                 <CardHeader>
                   <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${module.color} flex items-center justify-center mb-3`}>
@@ -165,8 +174,12 @@ const Dashboard = () => {
                   <CardDescription>{module.description}</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <Button variant="outline" className="w-full group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
-                    Open Module
+                  <Button 
+                    variant="outline" 
+                    className="w-full group-hover:bg-primary group-hover:text-primary-foreground transition-colors"
+                    disabled={!module.path}
+                  >
+                    {module.path ? "Open Module" : "Coming Soon"}
                   </Button>
                 </CardContent>
               </Card>

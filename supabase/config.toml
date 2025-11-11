@@ -1,1 +1,4 @@
 project_id = "rxnjjnsffahnxhhbpqxg"
+
+[functions.analyze-ice-depth]
+verify_jwt = false
