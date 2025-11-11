@@ -47,6 +47,12 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        ice: {
+          blue: "hsl(var(--ice-blue))",
+          frost: "hsl(var(--frost))",
+          glacier: "hsl(var(--glacier))",
+          arctic: "hsl(var(--arctic))",
+        },
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
           foreground: "hsl(var(--sidebar-foreground))",
