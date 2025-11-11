@@ -70,7 +70,7 @@ const Dashboard = () => {
       description: "Resurface logs and equipment checks",
       icon: Wrench,
       color: "from-primary to-ice-glacier",
-      path: null,
+      path: "/ice-maintenance",
     },
     {
       title: "Refrigeration Log",

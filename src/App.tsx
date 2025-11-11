@@ -7,6 +7,8 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import IceDepthLog from "./pages/IceDepthLog";
+import IceMaintenance from "./pages/IceMaintenance";
+import AdminFormConfig from "./pages/AdminFormConfig";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient({
@@ -28,6 +30,8 @@ const App = () => (
           <Route path="/auth" element={<Auth />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/ice-depth" element={<IceDepthLog />} />
+          <Route path="/ice-maintenance" element={<IceMaintenance />} />
+          <Route path="/admin/form-config" element={<AdminFormConfig />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

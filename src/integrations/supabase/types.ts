@@ -14,6 +14,41 @@ export type Database = {
   }
   public: {
     Tables: {
+      circle_checks: {
+        Row: {
+          activity_id: string
+          check_item: string
+          created_at: string
+          id: string
+          notes: string | null
+          status: string
+        }
+        Insert: {
+          activity_id: string
+          check_item: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          status: string
+        }
+        Update: {
+          activity_id?: string
+          check_item?: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "circle_checks_activity_id_fkey"
+            columns: ["activity_id"]
+            isOneToOne: false
+            referencedRelation: "maintenance_activities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       facilities: {
         Row: {
           address: string | null
@@ -37,6 +72,59 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      form_configurations: {
+        Row: {
+          created_at: string
+          display_order: number | null
+          facility_id: string
+          field_label: string
+          field_name: string
+          field_options: Json | null
+          field_type: string
+          form_type: string
+          id: string
+          is_active: boolean | null
+          is_required: boolean | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          display_order?: number | null
+          facility_id: string
+          field_label: string
+          field_name: string
+          field_options?: Json | null
+          field_type: string
+          form_type: string
+          id?: string
+          is_active?: boolean | null
+          is_required?: boolean | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          display_order?: number | null
+          facility_id?: string
+          field_label?: string
+          field_name?: string
+          field_options?: Json | null
+          field_type?: string
+          form_type?: string
+          id?: string
+          is_active?: boolean | null
+          is_required?: boolean | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "form_configurations_facility_id_fkey"
+            columns: ["facility_id"]
+            isOneToOne: false
+            referencedRelation: "facilities"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       ice_depth_measurements: {
         Row: {
@@ -100,6 +188,85 @@ export type Database = {
           },
           {
             foreignKeyName: "ice_depth_measurements_rink_id_fkey"
+            columns: ["rink_id"]
+            isOneToOne: false
+            referencedRelation: "rinks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      maintenance_activities: {
+        Row: {
+          activity_datetime: string
+          activity_type: string
+          created_at: string
+          custom_fields: Json | null
+          edging_type: string | null
+          facility_id: string
+          id: string
+          machine_hours: number | null
+          machine_id: string | null
+          new_blade_id: string | null
+          notes: string | null
+          old_blade_hours: number | null
+          operator_id: string
+          rink_id: string | null
+          updated_at: string
+          water_used: number | null
+        }
+        Insert: {
+          activity_datetime?: string
+          activity_type: string
+          created_at?: string
+          custom_fields?: Json | null
+          edging_type?: string | null
+          facility_id: string
+          id?: string
+          machine_hours?: number | null
+          machine_id?: string | null
+          new_blade_id?: string | null
+          notes?: string | null
+          old_blade_hours?: number | null
+          operator_id: string
+          rink_id?: string | null
+          updated_at?: string
+          water_used?: number | null
+        }
+        Update: {
+          activity_datetime?: string
+          activity_type?: string
+          created_at?: string
+          custom_fields?: Json | null
+          edging_type?: string | null
+          facility_id?: string
+          id?: string
+          machine_hours?: number | null
+          machine_id?: string | null
+          new_blade_id?: string | null
+          notes?: string | null
+          old_blade_hours?: number | null
+          operator_id?: string
+          rink_id?: string | null
+          updated_at?: string
+          water_used?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "maintenance_activities_facility_id_fkey"
+            columns: ["facility_id"]
+            isOneToOne: false
+            referencedRelation: "facilities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "maintenance_activities_machine_id_fkey"
+            columns: ["machine_id"]
+            isOneToOne: false
+            referencedRelation: "resurfacing_machines"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "maintenance_activities_rink_id_fkey"
             columns: ["rink_id"]
             isOneToOne: false
             referencedRelation: "rinks"
