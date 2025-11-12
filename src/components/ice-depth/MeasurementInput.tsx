@@ -11,6 +11,8 @@ interface MeasurementInputProps {
   measurements: Record<string, number>;
   onMeasurementsChange: (measurements: Record<string, number>) => void;
   currentPointId: number;
+  unit: "in" | "mm";
+  bluetoothConnected?: boolean;
 }
 
 export const MeasurementInput = ({
@@ -18,6 +20,8 @@ export const MeasurementInput = ({
   measurements,
   onMeasurementsChange,
   currentPointId,
+  unit,
+  bluetoothConnected = false,
 }: MeasurementInputProps) => {
   const pointCount = getPointCount(templateType);
   const inputRefs = useRef<Record<number, HTMLInputElement | null>>({});
@@ -32,11 +36,23 @@ export const MeasurementInput = ({
 
   const handleMeasurementChange = (point: number, value: string) => {
     const numValue = parseFloat(value);
+    // Convert display value to mm for internal storage
+    const mmValue = unit === "in" ? numValue * 25.4 : numValue;
     onMeasurementsChange({
       ...measurements,
-      [`Point ${point}`]: isNaN(numValue) ? 0 : numValue,
+      [`Point ${point}`]: isNaN(mmValue) ? 0 : mmValue,
     });
   };
+
+  const getDisplayValue = (point: number): string => {
+    const mmValue = measurements[`Point ${point}`];
+    if (!mmValue) return "";
+    // Convert from mm to display unit
+    const displayValue = unit === "in" ? mmValue / 25.4 : mmValue;
+    return displayValue.toFixed(unit === "in" ? 3 : 2);
+  };
+
+  const getUnitLabel = () => unit === "in" ? "inches" : "mm";
 
   const isPointComplete = (point: number) => {
     const value = measurements[`Point ${point}`];
@@ -54,7 +70,7 @@ export const MeasurementInput = ({
     <Card className="shadow-[var(--shadow-ice)]">
       <CardHeader>
         <CardTitle className="flex items-center justify-between">
-          <span>Enter Measurements (inches)</span>
+          <span>Enter Measurements ({getUnitLabel()})</span>
           <span className="text-sm text-muted-foreground font-normal">
             Progress: {filledCount} / {pointCount}
           </span>
@@ -81,6 +97,11 @@ export const MeasurementInput = ({
                   <div className="flex-shrink-0 w-6 h-6 flex items-center justify-center">
                     {isComplete ? (
                       <Check className="w-5 h-5 text-green-500" />
+                    ) : isCurrent && bluetoothConnected ? (
+                      <span className="relative flex h-5 w-5">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+                        <ArrowRight className="relative inline-flex w-5 h-5 text-primary" />
+                      </span>
                     ) : isCurrent ? (
                       <ArrowRight className="w-5 h-5 text-primary animate-pulse" />
                     ) : (
@@ -105,9 +126,9 @@ export const MeasurementInput = ({
                     ref={(el) => (inputRefs.current[point] = el)}
                     id={`point-${point}`}
                     type="number"
-                    step="0.01"
-                    placeholder="0.00"
-                    value={measurements[`Point ${point}`] || ""}
+                    step={unit === "in" ? "0.001" : "0.01"}
+                    placeholder={unit === "in" ? "0.000" : "0.00"}
+                    value={getDisplayValue(point)}
                     onChange={(e) => handleMeasurementChange(point, e.target.value)}
                     disabled={isDisabled}
                     className={`text-center ${
@@ -118,7 +139,7 @@ export const MeasurementInput = ({
                   {/* Value display for completed */}
                   {isComplete && (
                     <span className="flex-shrink-0 text-sm text-green-600 font-medium">
-                      {measurements[`Point ${point}`].toFixed(2)}"
+                      {getDisplayValue(point)}{unit === "in" ? '"' : " mm"}
                     </span>
                   )}
                 </div>

@@ -19,6 +19,7 @@ interface InteractiveRinkDiagramProps {
   currentPointId: number;
   onPointClick?: (pointId: number) => void;
   onMeasurementChange?: (pointId: number, value: number) => void;
+  unit: "in" | "mm";
 }
 
 export const InteractiveRinkDiagram = ({
@@ -27,6 +28,7 @@ export const InteractiveRinkDiagram = ({
   currentPointId,
   onPointClick,
   onMeasurementChange,
+  unit,
 }: InteractiveRinkDiagramProps) => {
   const [devMode, setDevMode] = useState(false);
   const [devTemplate, setDevTemplate] = useState(templateType);
@@ -49,6 +51,14 @@ export const InteractiveRinkDiagram = ({
       fetchSavedTemplates();
     }
   }, [devMode]);
+
+  // Helper to convert mm to display unit
+  const getDisplayValue = (mmValue: number): string => {
+    if (unit === "in") {
+      return (mmValue / 25.4).toFixed(3);
+    }
+    return mmValue.toFixed(2);
+  };
 
   const fetchSavedTemplates = async () => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -474,16 +484,11 @@ export const InteractiveRinkDiagram = ({
         )}
       </div>
 
-      <div 
-        className="relative w-full" 
-        style={{ aspectRatio: "595.28 / 841.89" }}
-        onClick={handleDiagramClick}
-      >
-        {/* Base rink diagram */}
+      <div className="relative w-full bg-white dark:bg-gray-900 rounded-lg overflow-hidden shadow-[var(--shadow-ice)]">
         <img
           src={getImageSource()}
           alt={`Ice rink ${activeTemplate} measurement template`}
-          className="w-full h-full object-fill"
+          className="block w-full h-auto object-contain"
         />
       
       {/* Measurement point overlays */}
@@ -511,7 +516,7 @@ export const InteractiveRinkDiagram = ({
               >
                 {state === "complete" && hasValue ? (
                   <span className="text-xs md:text-sm font-bold">
-                    {measurementValue.toFixed(2)}
+                    {getDisplayValue(measurementValue)}
                   </span>
                 ) : (
                   <span>{point.id}</span>

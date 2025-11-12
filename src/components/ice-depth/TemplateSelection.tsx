@@ -7,6 +7,7 @@ interface TemplateSelectionProps {
   currentPointId: number;
   onPointClick?: (pointId: number) => void;
   onMeasurementChange?: (pointId: number, value: number) => void;
+  unit: "in" | "mm";
 }
 
 export const TemplateSelection = ({ 
@@ -14,7 +15,8 @@ export const TemplateSelection = ({
   measurements, 
   currentPointId,
   onPointClick,
-  onMeasurementChange
+  onMeasurementChange,
+  unit
 }: TemplateSelectionProps) => {
   return (
     <Card className="shadow-[var(--shadow-ice)]">
@@ -29,6 +31,7 @@ export const TemplateSelection = ({
             currentPointId={currentPointId}
             onPointClick={onPointClick}
             onMeasurementChange={onMeasurementChange}
+            unit={unit}
           />
         </div>
       </CardContent>
