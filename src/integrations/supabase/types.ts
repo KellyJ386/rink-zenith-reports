@@ -14,6 +14,266 @@ export type Database = {
   }
   public: {
     Tables: {
+      air_quality_actions: {
+        Row: {
+          acceptable_levels_restored_time: string | null
+          action_type: string
+          cause_and_measures: string | null
+          co_concentration: number | null
+          created_at: string
+          exceedance_time: string
+          health_authority_name: string | null
+          health_authority_notified_time: string | null
+          id: string
+          log_id: string
+          no2_concentration: number | null
+          reentry_authority: string | null
+          reentry_authorized_datetime: string | null
+        }
+        Insert: {
+          acceptable_levels_restored_time?: string | null
+          action_type: string
+          cause_and_measures?: string | null
+          co_concentration?: number | null
+          created_at?: string
+          exceedance_time: string
+          health_authority_name?: string | null
+          health_authority_notified_time?: string | null
+          id?: string
+          log_id: string
+          no2_concentration?: number | null
+          reentry_authority?: string | null
+          reentry_authorized_datetime?: string | null
+        }
+        Update: {
+          acceptable_levels_restored_time?: string | null
+          action_type?: string
+          cause_and_measures?: string | null
+          co_concentration?: number | null
+          created_at?: string
+          exceedance_time?: string
+          health_authority_name?: string | null
+          health_authority_notified_time?: string | null
+          id?: string
+          log_id?: string
+          no2_concentration?: number | null
+          reentry_authority?: string | null
+          reentry_authorized_datetime?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "air_quality_actions_log_id_fkey"
+            columns: ["log_id"]
+            isOneToOne: false
+            referencedRelation: "air_quality_logs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      air_quality_equipment: {
+        Row: {
+          equipment_name: string
+          fuel_type: string | null
+          id: string
+          log_id: string
+          notes: string | null
+        }
+        Insert: {
+          equipment_name: string
+          fuel_type?: string | null
+          id?: string
+          log_id: string
+          notes?: string | null
+        }
+        Update: {
+          equipment_name?: string
+          fuel_type?: string | null
+          id?: string
+          log_id?: string
+          notes?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "air_quality_equipment_log_id_fkey"
+            columns: ["log_id"]
+            isOneToOne: false
+            referencedRelation: "air_quality_logs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      air_quality_logs: {
+        Row: {
+          arena_status: string | null
+          co_monitor_calibration_date: string | null
+          co_monitor_model: string | null
+          co_monitor_type: string | null
+          created_at: string
+          electric_equipment_consideration: string | null
+          facility_id: string
+          id: string
+          log_date: string
+          log_time: string
+          no2_monitor_calibration_date: string | null
+          no2_monitor_model: string | null
+          no2_monitor_type: string | null
+          other_equipment_last_maintenance: string | null
+          public_signage_present: boolean | null
+          resurfacer_last_maintenance: string | null
+          staff_trained: boolean | null
+          status: string
+          submitted_by: string
+          tester_certification: string | null
+          tester_name: string | null
+          unusual_observations: string | null
+          updated_at: string
+          ventilation_last_inspection: string | null
+          ventilation_last_maintenance: string | null
+          ventilation_status: string | null
+        }
+        Insert: {
+          arena_status?: string | null
+          co_monitor_calibration_date?: string | null
+          co_monitor_model?: string | null
+          co_monitor_type?: string | null
+          created_at?: string
+          electric_equipment_consideration?: string | null
+          facility_id: string
+          id?: string
+          log_date: string
+          log_time: string
+          no2_monitor_calibration_date?: string | null
+          no2_monitor_model?: string | null
+          no2_monitor_type?: string | null
+          other_equipment_last_maintenance?: string | null
+          public_signage_present?: boolean | null
+          resurfacer_last_maintenance?: string | null
+          staff_trained?: boolean | null
+          status?: string
+          submitted_by: string
+          tester_certification?: string | null
+          tester_name?: string | null
+          unusual_observations?: string | null
+          updated_at?: string
+          ventilation_last_inspection?: string | null
+          ventilation_last_maintenance?: string | null
+          ventilation_status?: string | null
+        }
+        Update: {
+          arena_status?: string | null
+          co_monitor_calibration_date?: string | null
+          co_monitor_model?: string | null
+          co_monitor_type?: string | null
+          created_at?: string
+          electric_equipment_consideration?: string | null
+          facility_id?: string
+          id?: string
+          log_date?: string
+          log_time?: string
+          no2_monitor_calibration_date?: string | null
+          no2_monitor_model?: string | null
+          no2_monitor_type?: string | null
+          other_equipment_last_maintenance?: string | null
+          public_signage_present?: boolean | null
+          resurfacer_last_maintenance?: string | null
+          staff_trained?: boolean | null
+          status?: string
+          submitted_by?: string
+          tester_certification?: string | null
+          tester_name?: string | null
+          unusual_observations?: string | null
+          updated_at?: string
+          ventilation_last_inspection?: string | null
+          ventilation_last_maintenance?: string | null
+          ventilation_status?: string | null
+        }
+        Relationships: []
+      }
+      air_quality_measurements: {
+        Row: {
+          actions_taken: string | null
+          co_instant: number | null
+          co_one_hour_avg: number | null
+          created_at: string
+          id: string
+          location: string
+          log_id: string
+          measurement_time: string
+          measurement_type: string
+          no2_instant: number | null
+          no2_one_hour_avg: number | null
+          notes: string | null
+        }
+        Insert: {
+          actions_taken?: string | null
+          co_instant?: number | null
+          co_one_hour_avg?: number | null
+          created_at?: string
+          id?: string
+          location: string
+          log_id: string
+          measurement_time: string
+          measurement_type?: string
+          no2_instant?: number | null
+          no2_one_hour_avg?: number | null
+          notes?: string | null
+        }
+        Update: {
+          actions_taken?: string | null
+          co_instant?: number | null
+          co_one_hour_avg?: number | null
+          created_at?: string
+          id?: string
+          location?: string
+          log_id?: string
+          measurement_time?: string
+          measurement_type?: string
+          no2_instant?: number | null
+          no2_one_hour_avg?: number | null
+          notes?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "air_quality_measurements_log_id_fkey"
+            columns: ["log_id"]
+            isOneToOne: false
+            referencedRelation: "air_quality_logs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      air_quality_resurfacers: {
+        Row: {
+          fuel_type: string | null
+          id: string
+          log_id: string
+          make_model: string | null
+          unit_number: number
+        }
+        Insert: {
+          fuel_type?: string | null
+          id?: string
+          log_id: string
+          make_model?: string | null
+          unit_number: number
+        }
+        Update: {
+          fuel_type?: string | null
+          id?: string
+          log_id?: string
+          make_model?: string | null
+          unit_number?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "air_quality_resurfacers_log_id_fkey"
+            columns: ["log_id"]
+            isOneToOne: false
+            referencedRelation: "air_quality_logs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       circle_checks: {
         Row: {
           activity_id: string

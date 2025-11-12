@@ -18,6 +18,7 @@ import RefrigerationLog from "./pages/RefrigerationLog";
 import RefrigerationDashboard from "./pages/RefrigerationDashboard";
 import DailyReports from "./pages/DailyReports";
 import DailyReportsDashboard from "./pages/DailyReportsDashboard";
+import AirQualityLog from "./pages/AirQualityLog";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient({
@@ -44,6 +45,7 @@ const App = () => (
           <Route path="/refrigeration-dashboard" element={<RefrigerationDashboard />} />
           <Route path="/daily-reports" element={<DailyReports />} />
           <Route path="/daily-reports-dashboard" element={<DailyReportsDashboard />} />
+          <Route path="/air-quality" element={<AirQualityLog />} />
           <Route path="/admin" element={<Admin />}>
             <Route index element={<AdminDashboard />} />
             <Route path="facility" element={<FacilitySettings />} />

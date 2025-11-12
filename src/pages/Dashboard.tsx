@@ -93,7 +93,7 @@ const Dashboard = () => {
       description: "Track CO and NO2 levels",
       icon: Wind,
       color: "from-ice-arctic to-secondary",
-      path: null,
+      path: "/air-quality",
     },
     {
       title: "Scheduling",
