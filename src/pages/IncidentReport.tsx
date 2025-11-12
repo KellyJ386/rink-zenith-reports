@@ -219,7 +219,7 @@ export default function IncidentReport() {
         description: `Report ${incidentNumber} has been successfully submitted and notifications sent`
       });
 
-      navigate("/incident-history");
+      navigate("/admin/incidents");
     } catch (error: any) {
       toast({
         title: "Error",
@@ -242,7 +242,7 @@ export default function IncidentReport() {
         subtitle="Complete this form immediately following any incident"
         icon={<AlertCircle className="h-8 w-8 text-destructive" />}
         actions={
-          <Button variant="outline" onClick={() => navigate("/incident-history")}>
+          <Button variant="outline" onClick={() => navigate("/admin/incidents")}>
             <FileText className="h-4 w-4 mr-2" />
             Incident History
           </Button>
@@ -252,7 +252,7 @@ export default function IncidentReport() {
       <Tabs defaultValue="report" className="space-y-6">
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="report">Report New Incident</TabsTrigger>
-          <TabsTrigger value="history" onClick={() => navigate("/incident-history")}>
+          <TabsTrigger value="history" onClick={() => navigate("/admin/incidents")}>
             Incident History
           </TabsTrigger>
         </TabsList>

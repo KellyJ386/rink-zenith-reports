@@ -11,6 +11,7 @@ import {
   LogOut,
   Snowflake,
   Home,
+  AlertCircle,
 } from "lucide-react";
 
 const Admin = () => {
@@ -80,6 +81,11 @@ const Admin = () => {
       label: "Module Admin",
       path: "/admin/modules",
       icon: LayoutDashboard,
+    },
+    {
+      label: "Incident History",
+      path: "/admin/incidents",
+      icon: AlertCircle,
     },
   ];
 

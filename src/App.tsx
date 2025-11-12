@@ -49,13 +49,13 @@ const App = () => (
           <Route path="/daily-reports-dashboard" element={<DailyReportsDashboard />} />
           <Route path="/air-quality" element={<AirQualityLog />} />
           <Route path="/incident-report" element={<IncidentReport />} />
-          <Route path="/incident-history" element={<IncidentHistory />} />
           <Route path="/admin" element={<Admin />}>
             <Route index element={<AdminDashboard />} />
             <Route path="facility" element={<FacilitySettings />} />
             <Route path="users" element={<UserManagement />} />
             <Route path="reports" element={<AdminFormConfig />} />
             <Route path="modules" element={<ModuleAdministration />} />
+            <Route path="incidents" element={<IncidentHistory />} />
           </Route>
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
