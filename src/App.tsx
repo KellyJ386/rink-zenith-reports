@@ -8,6 +8,10 @@ import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import IceDepthLog from "./pages/IceDepthLog";
 import IceMaintenance from "./pages/IceMaintenance";
+import Admin from "./pages/Admin";
+import FacilitySettings from "./pages/admin/FacilitySettings";
+import UserManagement from "./pages/admin/UserManagement";
+import ModuleAdministration from "./pages/admin/ModuleAdministration";
 import AdminFormConfig from "./pages/AdminFormConfig";
 import NotFound from "./pages/NotFound";
 
@@ -31,7 +35,12 @@ const App = () => (
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/ice-depth" element={<IceDepthLog />} />
           <Route path="/ice-maintenance" element={<IceMaintenance />} />
-          <Route path="/admin/form-config" element={<AdminFormConfig />} />
+          <Route path="/admin" element={<Admin />}>
+            <Route path="facility" element={<FacilitySettings />} />
+            <Route path="users" element={<UserManagement />} />
+            <Route path="reports" element={<AdminFormConfig />} />
+            <Route path="modules" element={<ModuleAdministration />} />
+          </Route>
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
