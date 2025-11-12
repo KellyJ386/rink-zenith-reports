@@ -1,11 +1,12 @@
 import { measurementPoints, MeasurementPoint } from "./measurementPoints";
-import { Check, MapPin, Copy } from "lucide-react";
+import { Check, MapPin, Copy, Download } from "lucide-react";
 import rink24Point from "@/assets/rink-24-point.svg";
 import rink35Point from "@/assets/rink-35-point.svg";
 import rink47Point from "@/assets/rink-47-point.svg";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
 
 interface InteractiveRinkDiagramProps {
@@ -97,6 +98,48 @@ export const InteractiveRinkDiagram = ({
     toast.success("Points cleared!");
   };
 
+  const downloadFile = (content: string, filename: string, mimeType: string) => {
+    const blob = new Blob([content], { type: mimeType });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
+  const exportAsJSON = () => {
+    const data = {
+      template: devTemplate,
+      points: capturedPoints.map(p => ({
+        id: p.id,
+        x: p.x,
+        y: p.y,
+        name: `Point ${p.id}`,
+        row: 1
+      }))
+    };
+    const content = JSON.stringify(data, null, 2);
+    downloadFile(content, `${devTemplate}-coordinates.json`, 'application/json');
+    toast.success("JSON file downloaded!");
+  };
+
+  const exportAsCSV = () => {
+    const headers = "id,x,y,name,row\n";
+    const rows = capturedPoints.map(p => `${p.id},${p.x},${p.y},"Point ${p.id}",1`).join('\n');
+    const content = headers + rows;
+    downloadFile(content, `${devTemplate}-coordinates.csv`, 'text/csv');
+    toast.success("CSV file downloaded!");
+  };
+
+  const exportAsTypeScript = () => {
+    const content = `export const ${devTemplate.replace('-', '')}Points = [\n${capturedPoints.map(p => `  { id: ${p.id}, x: ${p.x}, y: ${p.y}, name: "Point ${p.id}", row: 1 }`).join(',\n')}\n] as const;\n`;
+    downloadFile(content, `${devTemplate}-coordinates.ts`, 'text/typescript');
+    toast.success("TypeScript file downloaded!");
+  };
+
   return (
     <div className="space-y-4">
       {/* Dev Mode Controls */}
@@ -127,6 +170,25 @@ export const InteractiveRinkDiagram = ({
                   <Copy className="w-4 h-4 mr-2" />
                   Copy ({capturedPoints.length})
                 </Button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" size="sm">
+                      <Download className="w-4 h-4 mr-2" />
+                      Export
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={exportAsJSON}>
+                      Export as JSON
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={exportAsCSV}>
+                      Export as CSV
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={exportAsTypeScript}>
+                      Export as TypeScript
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
                 <Button variant="outline" size="sm" onClick={clearPoints}>
                   Clear
                 </Button>
