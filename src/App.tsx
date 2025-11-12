@@ -21,6 +21,12 @@ import DailyReportsDashboard from "./pages/DailyReportsDashboard";
 import AirQualityLog from "./pages/AirQualityLog";
 import IncidentReport from "./pages/IncidentReport";
 import IncidentHistory from "./pages/IncidentHistory";
+import Schedule from "./pages/schedule/Schedule";
+import ScheduleCalendar from "./pages/schedule/ScheduleCalendar";
+import ScheduleStaff from "./pages/schedule/ScheduleStaff";
+import ScheduleAvailability from "./pages/schedule/ScheduleAvailability";
+import ScheduleTimeOff from "./pages/schedule/ScheduleTimeOff";
+import ScheduleReports from "./pages/schedule/ScheduleReports";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient({
@@ -49,6 +55,14 @@ const App = () => (
           <Route path="/daily-reports-dashboard" element={<DailyReportsDashboard />} />
           <Route path="/air-quality" element={<AirQualityLog />} />
           <Route path="/incident-report" element={<IncidentReport />} />
+          <Route path="/schedule" element={<Schedule />}>
+            <Route index element={<ScheduleCalendar />} />
+            <Route path="calendar" element={<ScheduleCalendar />} />
+            <Route path="staff" element={<ScheduleStaff />} />
+            <Route path="availability" element={<ScheduleAvailability />} />
+            <Route path="time-off" element={<ScheduleTimeOff />} />
+            <Route path="reports" element={<ScheduleReports />} />
+          </Route>
           <Route path="/admin" element={<Admin />}>
             <Route index element={<AdminDashboard />} />
             <Route path="facility" element={<FacilitySettings />} />

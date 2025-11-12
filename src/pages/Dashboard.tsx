@@ -100,7 +100,7 @@ const Dashboard = () => {
       description: "Manage employee shifts and hours",
       icon: Calendar,
       color: "from-ice-blue to-primary",
-      path: null,
+      path: "/schedule/calendar",
     },
     {
       title: "Incident Reports",
