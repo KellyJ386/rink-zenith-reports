@@ -75,6 +75,12 @@ const UserManagement = () => {
     email: "",
     password: "",
     role: "staff",
+    address: "",
+    phone_number: "",
+    date_of_birth: "",
+    email_notifications_enabled: true,
+    sms_notifications_enabled: false,
+    force_email_change: false,
   });
 
   useEffect(() => {
@@ -128,20 +134,44 @@ const UserManagement = () => {
       return;
     }
 
+    // Update profile with additional fields
+    const { error: profileError } = await supabase
+      .from("profiles")
+      .update({
+        address: formData.address,
+        phone_number: formData.phone_number,
+        date_of_birth: formData.date_of_birth || null,
+        email_notifications_enabled: formData.email_notifications_enabled,
+        sms_notifications_enabled: formData.sms_notifications_enabled,
+        force_email_change: formData.force_email_change,
+      })
+      .eq("user_id", authData.user.id);
+
     const { error: roleError } = await supabase.from("user_roles").insert({
       user_id: authData.user.id,
       role: formData.role as "admin" | "manager" | "staff",
     });
 
-    if (roleError) {
+    if (roleError || profileError) {
       toast({
         title: "Error",
-        description: "User created but role assignment failed",
+        description: "User created but additional data failed to save",
         variant: "destructive",
       });
     } else {
       toast({ title: "Success", description: "User created successfully" });
-      setFormData({ name: "", email: "", password: "", role: "staff" });
+      setFormData({ 
+        name: "", 
+        email: "", 
+        password: "", 
+        role: "staff",
+        address: "",
+        phone_number: "",
+        date_of_birth: "",
+        email_notifications_enabled: true,
+        sms_notifications_enabled: false,
+        force_email_change: false,
+      });
       setIsAddDialogOpen(false);
       loadUsers();
     }
@@ -313,7 +343,7 @@ const UserManagement = () => {
             <DialogTitle>Add New User</DialogTitle>
             <DialogDescription>Create a new user account with role assignment</DialogDescription>
           </DialogHeader>
-          <div className="space-y-4">
+          <div className="space-y-4 max-h-[60vh] overflow-y-auto">
             <div className="space-y-2">
               <Label htmlFor="name">Name</Label>
               <Input
@@ -329,6 +359,32 @@ const UserManagement = () => {
                 type="email"
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="address">Address</Label>
+              <Input
+                id="address"
+                value={formData.address}
+                onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="phone">Phone Number</Label>
+              <Input
+                id="phone"
+                type="tel"
+                value={formData.phone_number}
+                onChange={(e) => setFormData({ ...formData, phone_number: e.target.value })}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="dob">Date of Birth</Label>
+              <Input
+                id="dob"
+                type="date"
+                value={formData.date_of_birth}
+                onChange={(e) => setFormData({ ...formData, date_of_birth: e.target.value })}
               />
             </div>
             <div className="space-y-2">
@@ -352,6 +408,42 @@ const UserManagement = () => {
                   <SelectItem value="staff">Staff</SelectItem>
                 </SelectContent>
               </Select>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="email-notifications"
+                checked={formData.email_notifications_enabled}
+                onCheckedChange={(checked) => 
+                  setFormData({ ...formData, email_notifications_enabled: checked === true })
+                }
+              />
+              <Label htmlFor="email-notifications" className="cursor-pointer">
+                Accept Email Notifications
+              </Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="sms-notifications"
+                checked={formData.sms_notifications_enabled}
+                onCheckedChange={(checked) => 
+                  setFormData({ ...formData, sms_notifications_enabled: checked === true })
+                }
+              />
+              <Label htmlFor="sms-notifications" className="cursor-pointer">
+                Accept SMS Notifications
+              </Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="force-email-change"
+                checked={formData.force_email_change}
+                onCheckedChange={(checked) => 
+                  setFormData({ ...formData, force_email_change: checked === true })
+                }
+              />
+              <Label htmlFor="force-email-change" className="cursor-pointer">
+                Force Email Change on First Login
+              </Label>
             </div>
           </div>
           <DialogFooter>

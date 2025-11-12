@@ -925,26 +925,44 @@ export type Database = {
       }
       profiles: {
         Row: {
+          address: string | null
           created_at: string
+          date_of_birth: string | null
+          email_notifications_enabled: boolean | null
           facility_id: string | null
+          force_email_change: boolean | null
           id: string
           name: string
+          phone_number: string | null
+          sms_notifications_enabled: boolean | null
           updated_at: string
           user_id: string
         }
         Insert: {
+          address?: string | null
           created_at?: string
+          date_of_birth?: string | null
+          email_notifications_enabled?: boolean | null
           facility_id?: string | null
+          force_email_change?: boolean | null
           id: string
           name: string
+          phone_number?: string | null
+          sms_notifications_enabled?: boolean | null
           updated_at?: string
           user_id: string
         }
         Update: {
+          address?: string | null
           created_at?: string
+          date_of_birth?: string | null
+          email_notifications_enabled?: boolean | null
           facility_id?: string | null
+          force_email_change?: boolean | null
           id?: string
           name?: string
+          phone_number?: string | null
+          sms_notifications_enabled?: boolean | null
           updated_at?: string
           user_id?: string
         }
