@@ -1,9 +1,9 @@
 import { measurementPoints, MeasurementPoint } from "./measurementPoints";
-import { Check, MapPin, Copy, Download } from "lucide-react";
+import { Check, MapPin, Copy, Download, Upload } from "lucide-react";
 import rink24Point from "@/assets/rink-24-point.svg";
 import rink35Point from "@/assets/rink-35-point.svg";
 import rink47Point from "@/assets/rink-47-point.svg";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -25,6 +25,7 @@ export const InteractiveRinkDiagram = ({
   const [devMode, setDevMode] = useState(false);
   const [devTemplate, setDevTemplate] = useState(templateType);
   const [capturedPoints, setCapturedPoints] = useState<{ x: number; y: number; id: number }[]>([]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   
   const activeTemplate = devMode ? devTemplate : templateType;
   const points = measurementPoints[activeTemplate] || [];
@@ -140,6 +141,89 @@ export const InteractiveRinkDiagram = ({
     toast.success("TypeScript file downloaded!");
   };
 
+  const parseCSV = (content: string): { x: number; y: number; id: number }[] => {
+    const lines = content.trim().split('\n');
+    const points: { x: number; y: number; id: number }[] = [];
+    
+    for (let i = 1; i < lines.length; i++) {
+      const line = lines[i].trim();
+      if (!line) continue;
+      
+      const match = line.match(/^(\d+),([0-9.]+),([0-9.]+)/);
+      if (match) {
+        points.push({
+          id: parseInt(match[1]),
+          x: parseFloat(match[2]),
+          y: parseFloat(match[3])
+        });
+      }
+    }
+    
+    return points;
+  };
+
+  const parseTypeScript = (content: string): { x: number; y: number; id: number }[] => {
+    const points: { x: number; y: number; id: number }[] = [];
+    const matches = content.matchAll(/\{\s*id:\s*(\d+),\s*x:\s*([0-9.]+),\s*y:\s*([0-9.]+)/g);
+    
+    for (const match of matches) {
+      points.push({
+        id: parseInt(match[1]),
+        x: parseFloat(match[2]),
+        y: parseFloat(match[3])
+      });
+    }
+    
+    return points;
+  };
+
+  const handleImportFile = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const content = e.target?.result as string;
+        let importedPoints: { x: number; y: number; id: number }[] = [];
+        
+        if (file.name.endsWith('.json')) {
+          const data = JSON.parse(content);
+          if (data.template) {
+            setDevTemplate(data.template);
+          }
+          importedPoints = data.points?.map((p: any) => ({ id: p.id, x: p.x, y: p.y })) || [];
+        } else if (file.name.endsWith('.csv')) {
+          importedPoints = parseCSV(content);
+        } else if (file.name.endsWith('.ts')) {
+          importedPoints = parseTypeScript(content);
+        } else {
+          toast.error("Unsupported file format. Use JSON, CSV, or TypeScript files.");
+          return;
+        }
+
+        if (importedPoints.length > 0) {
+          setCapturedPoints(importedPoints);
+          toast.success(`Imported ${importedPoints.length} points successfully!`);
+        } else {
+          toast.error("No valid points found in file.");
+        }
+      } catch (error) {
+        console.error("Import error:", error);
+        toast.error("Failed to import file. Please check the file format.");
+      }
+    };
+    
+    reader.readAsText(file);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const triggerImport = () => {
+    fileInputRef.current?.click();
+  };
+
   return (
     <div className="space-y-4">
       {/* Dev Mode Controls */}
@@ -164,6 +248,17 @@ export const InteractiveRinkDiagram = ({
                 <SelectItem value="47-point">47-point</SelectItem>
               </SelectContent>
             </Select>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".json,.csv,.ts"
+              onChange={handleImportFile}
+              className="hidden"
+            />
+            <Button variant="outline" size="sm" onClick={triggerImport}>
+              <Upload className="w-4 h-4 mr-2" />
+              Import
+            </Button>
             {capturedPoints.length > 0 && (
               <>
                 <Button variant="outline" size="sm" onClick={copyCoordinates}>
