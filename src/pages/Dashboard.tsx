@@ -107,7 +107,7 @@ const Dashboard = () => {
       description: "Document and track incidents",
       icon: AlertCircle,
       color: "from-destructive/80 to-destructive/60",
-      path: null,
+      path: "/incident-history",
     },
     {
       title: "Communications",
