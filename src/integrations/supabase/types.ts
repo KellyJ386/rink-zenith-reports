@@ -49,6 +49,85 @@ export type Database = {
           },
         ]
       }
+      compressor_readings: {
+        Row: {
+          compressor_name: string
+          created_at: string
+          discharge_pressure: number | null
+          id: string
+          log_id: string
+          oil_level: string
+          running_hours: number | null
+          suction_pressure: number | null
+          temperature: number | null
+        }
+        Insert: {
+          compressor_name: string
+          created_at?: string
+          discharge_pressure?: number | null
+          id?: string
+          log_id: string
+          oil_level: string
+          running_hours?: number | null
+          suction_pressure?: number | null
+          temperature?: number | null
+        }
+        Update: {
+          compressor_name?: string
+          created_at?: string
+          discharge_pressure?: number | null
+          id?: string
+          log_id?: string
+          oil_level?: string
+          running_hours?: number | null
+          suction_pressure?: number | null
+          temperature?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "compressor_readings_log_id_fkey"
+            columns: ["log_id"]
+            isOneToOne: false
+            referencedRelation: "refrigeration_logs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      condenser_readings: {
+        Row: {
+          ambient_temp: number | null
+          created_at: string
+          fan_status: string
+          id: string
+          log_id: string
+          temperature: number | null
+        }
+        Insert: {
+          ambient_temp?: number | null
+          created_at?: string
+          fan_status: string
+          id?: string
+          log_id: string
+          temperature?: number | null
+        }
+        Update: {
+          ambient_temp?: number | null
+          created_at?: string
+          fan_status?: string
+          id?: string
+          log_id?: string
+          temperature?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "condenser_readings_log_id_fkey"
+            columns: ["log_id"]
+            isOneToOne: false
+            referencedRelation: "refrigeration_logs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       custom_templates: {
         Row: {
           created_at: string
@@ -345,6 +424,38 @@ export type Database = {
           },
         ]
       }
+      plant_checklist: {
+        Row: {
+          checklist_item: string
+          created_at: string
+          id: string
+          log_id: string
+          status: boolean
+        }
+        Insert: {
+          checklist_item: string
+          created_at?: string
+          id?: string
+          log_id: string
+          status: boolean
+        }
+        Update: {
+          checklist_item?: string
+          created_at?: string
+          id?: string
+          log_id?: string
+          status?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "plant_checklist_log_id_fkey"
+            columns: ["log_id"]
+            isOneToOne: false
+            referencedRelation: "refrigeration_logs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string
@@ -380,118 +491,33 @@ export type Database = {
           },
         ]
       }
-      refrigeration_checklist_template: {
-        Row: {
-          created_at: string
-          display_order: number | null
-          facility_id: string
-          id: string
-          is_active: boolean | null
-          item_text: string
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          display_order?: number | null
-          facility_id: string
-          id?: string
-          is_active?: boolean | null
-          item_text: string
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          display_order?: number | null
-          facility_id?: string
-          id?: string
-          is_active?: boolean | null
-          item_text?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "refrigeration_checklist_template_facility_id_fkey"
-            columns: ["facility_id"]
-            isOneToOne: false
-            referencedRelation: "facilities"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      refrigeration_equipment: {
-        Row: {
-          created_at: string
-          display_order: number | null
-          equipment_name: string
-          equipment_type: string
-          facility_id: string
-          id: string
-          is_active: boolean | null
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          display_order?: number | null
-          equipment_name: string
-          equipment_type: string
-          facility_id: string
-          id?: string
-          is_active?: boolean | null
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          display_order?: number | null
-          equipment_name?: string
-          equipment_type?: string
-          facility_id?: string
-          id?: string
-          is_active?: boolean | null
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "refrigeration_equipment_facility_id_fkey"
-            columns: ["facility_id"]
-            isOneToOne: false
-            referencedRelation: "facilities"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       refrigeration_logs: {
         Row: {
-          checklist_items: Json
           created_at: string
           facility_id: string
           id: string
           log_date: string
           notes: string | null
           operator_id: string
-          readings: Json
-          updated_at: string
+          shift: string
         }
         Insert: {
-          checklist_items?: Json
           created_at?: string
           facility_id: string
           id?: string
           log_date?: string
           notes?: string | null
           operator_id: string
-          readings?: Json
-          updated_at?: string
+          shift: string
         }
         Update: {
-          checklist_items?: Json
           created_at?: string
           facility_id?: string
           id?: string
           log_date?: string
           notes?: string | null
           operator_id?: string
-          readings?: Json
-          updated_at?: string
+          shift?: string
         }
         Relationships: [
           {

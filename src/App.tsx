@@ -15,8 +15,7 @@ import UserManagement from "./pages/admin/UserManagement";
 import ModuleAdministration from "./pages/admin/ModuleAdministration";
 import AdminFormConfig from "./pages/AdminFormConfig";
 import RefrigerationLog from "./pages/RefrigerationLog";
-import RefrigerationReports from "./pages/RefrigerationReports";
-import RefrigerationConfig from "./pages/admin/RefrigerationConfig";
+import RefrigerationDashboard from "./pages/RefrigerationDashboard";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient({
@@ -40,14 +39,13 @@ const App = () => (
           <Route path="/ice-depth" element={<IceDepthLog />} />
           <Route path="/ice-maintenance" element={<IceMaintenance />} />
           <Route path="/refrigeration-log" element={<RefrigerationLog />} />
-          <Route path="/refrigeration-reports" element={<RefrigerationReports />} />
+          <Route path="/refrigeration-dashboard" element={<RefrigerationDashboard />} />
           <Route path="/admin" element={<Admin />}>
             <Route index element={<AdminDashboard />} />
             <Route path="facility" element={<FacilitySettings />} />
             <Route path="users" element={<UserManagement />} />
             <Route path="reports" element={<AdminFormConfig />} />
             <Route path="modules" element={<ModuleAdministration />} />
-            <Route path="refrigeration-config" element={<RefrigerationConfig />} />
           </Route>
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
