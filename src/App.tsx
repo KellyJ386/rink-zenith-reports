@@ -9,6 +9,7 @@ import Dashboard from "./pages/Dashboard";
 import IceDepthLog from "./pages/IceDepthLog";
 import IceMaintenance from "./pages/IceMaintenance";
 import Admin from "./pages/Admin";
+import AdminDashboard from "./pages/admin/AdminDashboard";
 import FacilitySettings from "./pages/admin/FacilitySettings";
 import UserManagement from "./pages/admin/UserManagement";
 import ModuleAdministration from "./pages/admin/ModuleAdministration";
@@ -36,6 +37,7 @@ const App = () => (
           <Route path="/ice-depth" element={<IceDepthLog />} />
           <Route path="/ice-maintenance" element={<IceMaintenance />} />
           <Route path="/admin" element={<Admin />}>
+            <Route index element={<AdminDashboard />} />
             <Route path="facility" element={<FacilitySettings />} />
             <Route path="users" element={<UserManagement />} />
             <Route path="reports" element={<AdminFormConfig />} />
