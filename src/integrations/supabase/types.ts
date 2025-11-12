@@ -49,85 +49,6 @@ export type Database = {
           },
         ]
       }
-      compressor_readings: {
-        Row: {
-          compressor_name: string
-          created_at: string
-          discharge_pressure: number | null
-          id: string
-          log_id: string
-          oil_level: string
-          running_hours: number | null
-          suction_pressure: number | null
-          temperature: number | null
-        }
-        Insert: {
-          compressor_name: string
-          created_at?: string
-          discharge_pressure?: number | null
-          id?: string
-          log_id: string
-          oil_level: string
-          running_hours?: number | null
-          suction_pressure?: number | null
-          temperature?: number | null
-        }
-        Update: {
-          compressor_name?: string
-          created_at?: string
-          discharge_pressure?: number | null
-          id?: string
-          log_id?: string
-          oil_level?: string
-          running_hours?: number | null
-          suction_pressure?: number | null
-          temperature?: number | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "compressor_readings_log_id_fkey"
-            columns: ["log_id"]
-            isOneToOne: false
-            referencedRelation: "refrigeration_logs"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      condenser_readings: {
-        Row: {
-          ambient_temp: number | null
-          created_at: string
-          fan_status: string
-          id: string
-          log_id: string
-          temperature: number | null
-        }
-        Insert: {
-          ambient_temp?: number | null
-          created_at?: string
-          fan_status: string
-          id?: string
-          log_id: string
-          temperature?: number | null
-        }
-        Update: {
-          ambient_temp?: number | null
-          created_at?: string
-          fan_status?: string
-          id?: string
-          log_id?: string
-          temperature?: number | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "condenser_readings_log_id_fkey"
-            columns: ["log_id"]
-            isOneToOne: false
-            referencedRelation: "refrigeration_logs"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       custom_templates: {
         Row: {
           created_at: string
@@ -427,38 +348,6 @@ export type Database = {
           },
         ]
       }
-      plant_checklist: {
-        Row: {
-          checklist_item: string
-          created_at: string
-          id: string
-          log_id: string
-          status: boolean
-        }
-        Insert: {
-          checklist_item: string
-          created_at?: string
-          id?: string
-          log_id: string
-          status: boolean
-        }
-        Update: {
-          checklist_item?: string
-          created_at?: string
-          id?: string
-          log_id?: string
-          status?: boolean
-        }
-        Relationships: [
-          {
-            foreignKeyName: "plant_checklist_log_id_fkey"
-            columns: ["log_id"]
-            isOneToOne: false
-            referencedRelation: "refrigeration_logs"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       profiles: {
         Row: {
           created_at: string
@@ -496,28 +385,79 @@ export type Database = {
       }
       refrigeration_logs: {
         Row: {
+          ambient_temperature: number | null
+          brine_flow_rate: number | null
+          brine_temp_return: number | null
+          brine_temp_supply: number | null
+          compressor_amps: number | null
+          condenser_fan_status: string | null
+          condenser_pressure: number | null
           created_at: string
+          discharge_pressure: number | null
+          evaporator_pressure: number | null
           facility_id: string
+          ice_surface_temp: number | null
           id: string
           log_date: string
           notes: string | null
+          oil_pressure: number | null
+          oil_temperature: number | null
           operator_id: string
+          reading_number: number
+          suction_pressure: number | null
+          temperature_unit: string
+          water_temp_in: number | null
+          water_temp_out: number | null
         }
         Insert: {
+          ambient_temperature?: number | null
+          brine_flow_rate?: number | null
+          brine_temp_return?: number | null
+          brine_temp_supply?: number | null
+          compressor_amps?: number | null
+          condenser_fan_status?: string | null
+          condenser_pressure?: number | null
           created_at?: string
+          discharge_pressure?: number | null
+          evaporator_pressure?: number | null
           facility_id: string
+          ice_surface_temp?: number | null
           id?: string
           log_date?: string
           notes?: string | null
+          oil_pressure?: number | null
+          oil_temperature?: number | null
           operator_id: string
+          reading_number?: number
+          suction_pressure?: number | null
+          temperature_unit?: string
+          water_temp_in?: number | null
+          water_temp_out?: number | null
         }
         Update: {
+          ambient_temperature?: number | null
+          brine_flow_rate?: number | null
+          brine_temp_return?: number | null
+          brine_temp_supply?: number | null
+          compressor_amps?: number | null
+          condenser_fan_status?: string | null
+          condenser_pressure?: number | null
           created_at?: string
+          discharge_pressure?: number | null
+          evaporator_pressure?: number | null
           facility_id?: string
+          ice_surface_temp?: number | null
           id?: string
           log_date?: string
           notes?: string | null
+          oil_pressure?: number | null
+          oil_temperature?: number | null
           operator_id?: string
+          reading_number?: number
+          suction_pressure?: number | null
+          temperature_unit?: string
+          water_temp_in?: number | null
+          water_temp_out?: number | null
         }
         Relationships: [
           {

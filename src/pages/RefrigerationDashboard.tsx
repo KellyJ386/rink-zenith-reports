@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
@@ -18,16 +17,32 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsi
 interface LogEntry {
   id: string;
   log_date: string;
-  notes: string;
-  operator_id: string;
-  compressor_readings: any[];
-  condenser_readings: any[];
-  plant_checklist: any[];
+  reading_number: number;
+  temperature_unit: string;
+  suction_pressure: number | null;
+  discharge_pressure: number | null;
+  oil_pressure: number | null;
+  compressor_amps: number | null;
+  oil_temperature: number | null;
+  condenser_fan_status: string | null;
+  ambient_temperature: number | null;
+  condenser_pressure: number | null;
+  water_temp_in: number | null;
+  water_temp_out: number | null;
+  evaporator_pressure: number | null;
+  brine_temp_supply: number | null;
+  brine_temp_return: number | null;
+  brine_flow_rate: number | null;
+  ice_surface_temp: number | null;
+  notes: string | null;
 }
 
 interface ChartData {
   date: string;
-  [key: string]: any;
+  suctionPressure: number | null;
+  dischargePressure: number | null;
+  oilTemp: number | null;
+  brineSupply: number | null;
 }
 
 export default function RefrigerationDashboard() {
@@ -37,8 +52,6 @@ export default function RefrigerationDashboard() {
   const [loading, setLoading] = useState(false);
   const [startDate, setStartDate] = useState(format(subDays(new Date(), 7), "yyyy-MM-dd"));
   const [endDate, setEndDate] = useState(format(new Date(), "yyyy-MM-dd"));
-  const [selectedCompressor, setSelectedCompressor] = useState<string>("all");
-  const [compressorNames, setCompressorNames] = useState<string[]>([]);
   const [facilityId, setFacilityId] = useState<string>("");
 
   useEffect(() => {
@@ -60,19 +73,6 @@ export default function RefrigerationDashboard() {
 
     if (profile?.facility_id) {
       setFacilityId(profile.facility_id);
-      fetchCompressorNames(profile.facility_id);
-    }
-  };
-
-  const fetchCompressorNames = async (fId: string) => {
-    const { data } = await supabase
-      .from("compressor_readings")
-      .select("compressor_name")
-      .limit(100);
-
-    if (data) {
-      const uniqueNames = [...new Set(data.map(d => d.compressor_name))];
-      setCompressorNames(uniqueNames);
     }
   };
 
@@ -91,24 +91,9 @@ export default function RefrigerationDashboard() {
 
       if (logsError) throw logsError;
 
-      if (logsData && logsData.length > 0) {
-        const logIds = logsData.map(log => log.id);
-
-        const [compressors, condensers, checklists] = await Promise.all([
-          supabase.from("compressor_readings").select("*").in("log_id", logIds),
-          supabase.from("condenser_readings").select("*").in("log_id", logIds),
-          supabase.from("plant_checklist").select("*").in("log_id", logIds)
-        ]);
-
-        const enrichedLogs = logsData.map(log => ({
-          ...log,
-          compressor_readings: compressors.data?.filter(c => c.log_id === log.id) || [],
-          condenser_readings: condensers.data?.filter(c => c.log_id === log.id) || [],
-          plant_checklist: checklists.data?.filter(c => c.log_id === log.id) || []
-        }));
-
-        setLogs(enrichedLogs);
-        prepareChartData(enrichedLogs);
+      if (logsData) {
+        setLogs(logsData);
+        prepareChartData(logsData);
       } else {
         setLogs([]);
         setChartData([]);
@@ -122,46 +107,16 @@ export default function RefrigerationDashboard() {
   };
 
   const prepareChartData = (logsData: LogEntry[]) => {
-    const data: ChartData[] = [];
-
-    logsData.forEach(log => {
-      const dateStr = format(new Date(log.log_date), "MMM dd HH:mm");
-      
-      const compReadings = log.compressor_readings || [];
-      const condReadings = log.condenser_readings || [];
-
-      if (selectedCompressor === "all") {
-        compReadings.forEach((comp, idx) => {
-          data.push({
-            date: dateStr + ` (${comp.compressor_name})`,
-            suctionPressure: comp.suction_pressure,
-            dischargePressure: comp.discharge_pressure,
-            temperature: comp.temperature,
-            condenserTemp: condReadings[0]?.temperature || null
-          });
-        });
-      } else {
-        const filtered = compReadings.filter(c => c.compressor_name === selectedCompressor);
-        filtered.forEach(comp => {
-          data.push({
-            date: dateStr,
-            suctionPressure: comp.suction_pressure,
-            dischargePressure: comp.discharge_pressure,
-            temperature: comp.temperature,
-            condenserTemp: condReadings[0]?.temperature || null
-          });
-        });
-      }
-    });
+    const data: ChartData[] = logsData.map(log => ({
+      date: format(new Date(log.log_date), "MMM dd HH:mm"),
+      suctionPressure: log.suction_pressure,
+      dischargePressure: log.discharge_pressure,
+      oilTemp: log.oil_temperature,
+      brineSupply: log.brine_temp_supply
+    }));
 
     setChartData(data.reverse());
   };
-
-  useEffect(() => {
-    if (logs.length > 0) {
-      prepareChartData(logs);
-    }
-  }, [selectedCompressor]);
 
   const exportToCSV = () => {
     if (logs.length === 0) {
@@ -169,22 +124,18 @@ export default function RefrigerationDashboard() {
       return;
     }
 
-    const headers = ["Date", "Compressor", "Suction PSI", "Discharge PSI", "Oil Level", "Temp", "Notes"];
-    const rows: string[][] = [];
-
-    logs.forEach(log => {
-      log.compressor_readings?.forEach(comp => {
-        rows.push([
-          format(new Date(log.log_date), "yyyy-MM-dd HH:mm"),
-          comp.compressor_name,
-          comp.suction_pressure?.toString() || "",
-          comp.discharge_pressure?.toString() || "",
-          comp.oil_level,
-          comp.temperature?.toString() || "",
-          log.notes || ""
-        ]);
-      });
-    });
+    const headers = ["Date", "Reading #", "Suction PSI", "Discharge PSI", "Oil PSI", "Amps", "Oil Temp", "Brine Supply", "Notes"];
+    const rows: string[][] = logs.map(log => [
+      format(new Date(log.log_date), "yyyy-MM-dd HH:mm"),
+      log.reading_number.toString(),
+      log.suction_pressure?.toString() || "",
+      log.discharge_pressure?.toString() || "",
+      log.oil_pressure?.toString() || "",
+      log.compressor_amps?.toString() || "",
+      log.oil_temperature?.toString() || "",
+      log.brine_temp_supply?.toString() || "",
+      log.notes || ""
+    ]);
 
     const csv = [headers, ...rows].map(row => row.join(",")).join("\n");
     const blob = new Blob([csv], { type: "text/csv" });
@@ -196,15 +147,24 @@ export default function RefrigerationDashboard() {
   };
 
   const getStatusBadge = (log: LogEntry) => {
-    const failedChecks = log.plant_checklist?.filter(c => !c.status).length || 0;
-    const criticalOil = log.compressor_readings?.some(c => c.oil_level === "critical");
+    const issues: string[] = [];
 
-    if (criticalOil || failedChecks > 2) {
+    if (log.suction_pressure && (log.suction_pressure < 15 || log.suction_pressure > 35)) {
+      issues.push("suction");
+    }
+    if (log.discharge_pressure && (log.discharge_pressure < 180 || log.discharge_pressure > 220)) {
+      issues.push("discharge");
+    }
+    if (log.condenser_fan_status === "all_off") {
+      issues.push("fans");
+    }
+
+    if (issues.length > 2) {
       return <Badge variant="destructive">Critical</Badge>;
-    } else if (failedChecks > 0) {
+    } else if (issues.length > 0) {
       return <Badge variant="outline">Warning</Badge>;
     } else {
-      return <Badge className="bg-green-500">Good</Badge>;
+      return <Badge className="bg-green-500">Normal</Badge>;
     }
   };
 
@@ -212,7 +172,7 @@ export default function RefrigerationDashboard() {
     <div className="container mx-auto p-6 space-y-6">
       <PageHeader
         title="Refrigeration Dashboard"
-        subtitle="Historical data and trends"
+        subtitle="Historical equipment data and trends"
         icon={<BarChart3 className="h-8 w-8 text-primary" />}
         actions={
           <Button onClick={() => navigate("/refrigeration-log")}>
@@ -226,7 +186,7 @@ export default function RefrigerationDashboard() {
           <CardTitle>Filters</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
             <div>
               <Label>Start Date</Label>
               <Input
@@ -246,20 +206,6 @@ export default function RefrigerationDashboard() {
                 max={format(new Date(), "yyyy-MM-dd")}
               />
             </div>
-            <div>
-              <Label>Compressor</Label>
-              <Select value={selectedCompressor} onValueChange={setSelectedCompressor}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Compressors</SelectItem>
-                  {compressorNames.map(name => (
-                    <SelectItem key={name} value={name}>{name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
             <div className="flex gap-2">
               <Button onClick={fetchLogs} disabled={loading}>
                 {loading ? "Loading..." : "Generate Report"}
@@ -276,7 +222,7 @@ export default function RefrigerationDashboard() {
       {chartData.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle>Temperature & Pressure Trends</CardTitle>
+            <CardTitle>Pressure & Temperature Trends</CardTitle>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={400}>
@@ -288,8 +234,8 @@ export default function RefrigerationDashboard() {
                 <Legend />
                 <Line type="monotone" dataKey="suctionPressure" stroke="#8884d8" name="Suction Pressure (PSI)" />
                 <Line type="monotone" dataKey="dischargePressure" stroke="#82ca9d" name="Discharge Pressure (PSI)" />
-                <Line type="monotone" dataKey="temperature" stroke="#ffc658" name="Compressor Temp (°F)" />
-                <Line type="monotone" dataKey="condenserTemp" stroke="#ff7300" name="Condenser Temp (°F)" />
+                <Line type="monotone" dataKey="oilTemp" stroke="#ffc658" name="Oil Temp" />
+                <Line type="monotone" dataKey="brineSupply" stroke="#ff7300" name="Brine Supply Temp" />
               </LineChart>
             </ResponsiveContainer>
           </CardContent>
@@ -307,9 +253,11 @@ export default function RefrigerationDashboard() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Date/Time</TableHead>
+                    <TableHead>Reading #</TableHead>
                     <TableHead>Status</TableHead>
-                    <TableHead>Compressors</TableHead>
-                    <TableHead>Checklist</TableHead>
+                    <TableHead>Suction (PSI)</TableHead>
+                    <TableHead>Discharge (PSI)</TableHead>
+                    <TableHead>Oil Temp</TableHead>
                     <TableHead>Notes</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -317,24 +265,33 @@ export default function RefrigerationDashboard() {
                   {logs.map(log => (
                     <TableRow key={log.id}>
                       <TableCell>{format(new Date(log.log_date), "MMM dd, yyyy HH:mm")}</TableCell>
+                      <TableCell>{log.reading_number}</TableCell>
                       <TableCell>{getStatusBadge(log)}</TableCell>
                       <TableCell>
-                        <div className="text-sm space-y-1">
-                          {log.compressor_readings?.map((comp, idx) => (
-                            <div key={idx} className="flex items-center gap-1">
-                              {comp.oil_level === "critical" ? (
-                                <AlertCircle className="h-3 w-3 text-destructive" />
-                              ) : (
-                                <CheckCircle className="h-3 w-3 text-green-500" />
-                              )}
-                              <span>{comp.compressor_name}</span>
-                            </div>
-                          ))}
-                        </div>
+                        {log.suction_pressure ? (
+                          <div className="flex items-center gap-1">
+                            {log.suction_pressure < 15 || log.suction_pressure > 35 ? (
+                              <AlertCircle className="h-3 w-3 text-destructive" />
+                            ) : (
+                              <CheckCircle className="h-3 w-3 text-green-500" />
+                            )}
+                            {log.suction_pressure}
+                          </div>
+                        ) : "-"}
                       </TableCell>
                       <TableCell>
-                        {log.plant_checklist?.filter(c => c.status).length}/{log.plant_checklist?.length || 0} passed
+                        {log.discharge_pressure ? (
+                          <div className="flex items-center gap-1">
+                            {log.discharge_pressure < 180 || log.discharge_pressure > 220 ? (
+                              <AlertCircle className="h-3 w-3 text-destructive" />
+                            ) : (
+                              <CheckCircle className="h-3 w-3 text-green-500" />
+                            )}
+                            {log.discharge_pressure}
+                          </div>
+                        ) : "-"}
                       </TableCell>
+                      <TableCell>{log.oil_temperature || "-"}</TableCell>
                       <TableCell className="max-w-xs truncate">{log.notes || "-"}</TableCell>
                     </TableRow>
                   ))}
