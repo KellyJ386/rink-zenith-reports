@@ -28,6 +28,14 @@ export const IceDepthMeasurementForm = ({ userId }: IceDepthMeasurementFormProps
   const [loading, setLoading] = useState(false);
   const [analyzing, setAnalyzing] = useState(false);
 
+  // Calculate current point for progressive input
+  const getCurrentPointId = () => {
+    const filledCount = Object.values(measurements).filter(v => v > 0).length;
+    return filledCount + 1;
+  };
+
+  const currentPointId = getCurrentPointId();
+
   useEffect(() => {
     fetchFacilities();
   }, []);
@@ -274,9 +282,9 @@ export const IceDepthMeasurementForm = ({ userId }: IceDepthMeasurementFormProps
                 </Label>
               </div>
               <div className="flex items-center space-x-2">
-                <RadioGroupItem value="46-point" id="46-point" />
-                <Label htmlFor="46-point" className="font-normal cursor-pointer">
-                  46-Point Template
+                <RadioGroupItem value="47-point" id="47-point" />
+                <Label htmlFor="47-point" className="font-normal cursor-pointer">
+                  47-Point Template
                 </Label>
               </div>
             </RadioGroup>
@@ -286,12 +294,24 @@ export const IceDepthMeasurementForm = ({ userId }: IceDepthMeasurementFormProps
 
       {selectedFacility && selectedRink && (
         <>
-          <TemplateSelection templateType={templateType} />
+          <TemplateSelection 
+            templateType={templateType} 
+            measurements={measurements}
+            currentPointId={currentPointId}
+            onPointClick={(pointId) => {
+              // Allow clicking on completed points to edit
+              if (pointId < currentPointId) {
+                const input = document.getElementById(`point-${pointId}`);
+                input?.focus();
+              }
+            }}
+          />
           
           <MeasurementInput
             templateType={templateType}
             measurements={measurements}
             onMeasurementsChange={setMeasurements}
+            currentPointId={currentPointId}
           />
 
           <StatisticsPanel stats={stats} />
