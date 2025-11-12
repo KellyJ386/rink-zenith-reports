@@ -151,7 +151,7 @@ export default function IncidentReport() {
 
     setSaving(true);
     try {
-      const { error } = await supabase.from("incidents").insert({
+      const { data: insertedIncident, error } = await supabase.from("incidents").insert({
         incident_number: incidentNumber,
         facility_id: facilityId,
         report_date: currentDate,
@@ -185,13 +185,38 @@ export default function IncidentReport() {
         staff_id: user.id,
         additional_notes: additionalNotes,
         status: "submitted"
-      });
+      }).select().single();
 
       if (error) throw error;
 
+      // Send email notification
+      try {
+        const emailResponse = await supabase.functions.invoke("send-incident-notification", {
+          body: {
+            incidentNumber,
+            incidentDate,
+            incidentTime,
+            location,
+            incidentType,
+            severityLevel,
+            injuredPersonName: injuredName,
+            incidentDescription,
+            staffName,
+            facilityName,
+            recipientEmails: [staffEmail] // Add management emails here
+          }
+        });
+
+        if (emailResponse.error) {
+          console.error("Email notification error:", emailResponse.error);
+        }
+      } catch (emailError) {
+        console.error("Failed to send email notification:", emailError);
+      }
+
       toast({
         title: "Incident Report Submitted",
-        description: `Report ${incidentNumber} has been successfully submitted`
+        description: `Report ${incidentNumber} has been successfully submitted and notifications sent`
       });
 
       navigate("/incident-history");

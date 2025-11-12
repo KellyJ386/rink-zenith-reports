@@ -2,13 +2,15 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import PageHeader from "@/components/PageHeader";
+import IncidentPDFExport from "@/components/incident/IncidentPDFExport";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { AlertCircle, Plus, Download, Filter, Search } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { AlertCircle, Plus, Download, Filter, Search, FileText, Printer } from "lucide-react";
 import { format } from "date-fns";
 
 interface Incident {
@@ -33,6 +35,8 @@ export default function IncidentHistory() {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterType, setFilterType] = useState("all");
   const [filterSeverity, setFilterSeverity] = useState("all");
+  const [selectedIncident, setSelectedIncident] = useState<any>(null);
+  const [showPDFDialog, setShowPDFDialog] = useState(false);
 
   useEffect(() => {
     loadIncidents();
@@ -131,6 +135,27 @@ export default function IncidentHistory() {
     a.href = url;
     a.download = `incidents-${format(new Date(), "yyyy-MM-dd")}.csv`;
     a.click();
+  };
+
+  const viewIncidentPDF = async (incidentId: string) => {
+    const { data } = await supabase
+      .from("incidents")
+      .select("*, facilities(name)")
+      .eq("id", incidentId)
+      .single();
+
+    if (data) {
+      const facilityData = data.facilities as any;
+      setSelectedIncident({
+        ...data,
+        facility_name: facilityData?.name || "Main Arena"
+      });
+      setShowPDFDialog(true);
+    }
+  };
+
+  const printPDF = () => {
+    window.print();
   };
 
   const getSeverityColor = (severity: string) => {
@@ -288,6 +313,7 @@ export default function IncidentHistory() {
                 <TableHead>Injured Person</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Reported By</TableHead>
+                <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -317,6 +343,15 @@ export default function IncidentHistory() {
                       </Badge>
                     </TableCell>
                     <TableCell>{incident.staff_name}</TableCell>
+                    <TableCell>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => viewIncidentPDF(incident.id)}
+                      >
+                        <FileText className="h-4 w-4" />
+                      </Button>
+                    </TableCell>
                   </TableRow>
                 ))
               )}
@@ -324,6 +359,22 @@ export default function IncidentHistory() {
           </Table>
         </CardContent>
       </Card>
+
+      {/* PDF Export Dialog */}
+      <Dialog open={showPDFDialog} onOpenChange={setShowPDFDialog}>
+        <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center justify-between">
+              <span>Incident Report - PDF View</span>
+              <Button onClick={printPDF} variant="outline" size="sm">
+                <Printer className="h-4 w-4 mr-2" />
+                Print/Save PDF
+              </Button>
+            </DialogTitle>
+          </DialogHeader>
+          {selectedIncident && <IncidentPDFExport incident={selectedIncident} />}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
