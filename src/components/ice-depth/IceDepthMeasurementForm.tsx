@@ -8,7 +8,6 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useToast } from "@/hooks/use-toast";
 import { TemplateSelection } from "./TemplateSelection";
 import { StatisticsPanel } from "./StatisticsPanel";
-import { AIAnalysisDisplay } from "./AIAnalysisDisplay";
 import { Loader2 } from "lucide-react";
 
 interface IceDepthMeasurementFormProps {
@@ -23,9 +22,7 @@ export const IceDepthMeasurementForm = ({ userId }: IceDepthMeasurementFormProps
   const [selectedRink, setSelectedRink] = useState<string>("");
   const [templateType, setTemplateType] = useState<string>("25-point");
   const [measurements, setMeasurements] = useState<Record<string, number>>({});
-  const [aiAnalysis, setAiAnalysis] = useState<string>("");
   const [loading, setLoading] = useState(false);
-  const [analyzing, setAnalyzing] = useState(false);
 
   // Calculate current point for progressive input
   const getCurrentPointId = () => {
@@ -104,63 +101,6 @@ export const IceDepthMeasurementForm = ({ userId }: IceDepthMeasurementFormProps
     };
   };
 
-  const handleAnalyze = async () => {
-    if (!selectedFacility || !selectedRink) {
-      toast({
-        title: "Missing Information",
-        description: "Please select a facility and rink first",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    const stats = calculateStatistics();
-    if (stats.min === 0) {
-      toast({
-        title: "No Measurements",
-        description: "Please enter some measurements first",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setAnalyzing(true);
-    try {
-      const measurementArray = Object.entries(measurements).map(([point, depth]) => ({
-        point,
-        depth,
-      }));
-
-      const { data, error } = await supabase.functions.invoke("analyze-ice-depth", {
-        body: {
-          measurements: measurementArray,
-          minDepth: stats.min,
-          maxDepth: stats.max,
-          avgDepth: stats.avg,
-          stdDeviation: stats.stdDev,
-          templateType,
-        },
-      });
-
-      if (error) throw error;
-
-      setAiAnalysis(data.analysis);
-      toast({
-        title: "Analysis Complete",
-        description: "AI analysis has been generated",
-      });
-    } catch (error: any) {
-      console.error("Analysis error:", error);
-      toast({
-        title: "Analysis Failed",
-        description: error.message || "Failed to generate AI analysis",
-        variant: "destructive",
-      });
-    } finally {
-      setAnalyzing(false);
-    }
-  };
-
   const handleSave = async () => {
     if (!selectedFacility || !selectedRink) {
       toast({
@@ -186,30 +126,44 @@ export const IceDepthMeasurementForm = ({ userId }: IceDepthMeasurementFormProps
       const status = stats.min < 0.75 || stats.max > 1.5 || stats.stdDev > 0.3 ? "critical" : 
                      stats.stdDev > 0.2 ? "warning" : "good";
 
-      const { error } = await supabase.from("ice_depth_measurements").insert({
-        facility_id: selectedFacility,
-        rink_id: selectedRink,
-        template_type: templateType,
-        operator_id: userId,
-        measurements,
-        min_depth: stats.min,
-        max_depth: stats.max,
-        avg_depth: stats.avg,
-        std_deviation: stats.stdDev,
-        ai_analysis: aiAnalysis || null,
-        status,
-      });
+      const { data: savedMeasurement, error } = await supabase
+        .from("ice_depth_measurements")
+        .insert({
+          facility_id: selectedFacility,
+          rink_id: selectedRink,
+          template_type: templateType,
+          operator_id: userId,
+          measurements,
+          min_depth: stats.min,
+          max_depth: stats.max,
+          avg_depth: stats.avg,
+          std_deviation: stats.stdDev,
+          status,
+        })
+        .select()
+        .single();
 
       if (error) throw error;
 
+      // Send notifications in background
+      supabase.functions.invoke("send-ice-depth-notification", {
+        body: {
+          measurementId: savedMeasurement.id,
+          facilityId: selectedFacility,
+        },
+      }).then(({ error: notifError }) => {
+        if (notifError) {
+          console.error("Notification error:", notifError);
+        }
+      });
+
       toast({
         title: "Success",
-        description: "Measurement saved successfully",
+        description: "Measurement saved and notifications sent",
       });
 
       // Reset form
       setMeasurements({});
-      setAiAnalysis("");
     } catch (error: any) {
       console.error("Save error:", error);
       toast({
@@ -314,41 +268,22 @@ export const IceDepthMeasurementForm = ({ userId }: IceDepthMeasurementFormProps
 
           <StatisticsPanel stats={stats} />
 
-          {aiAnalysis && <AIAnalysisDisplay analysis={aiAnalysis} />}
-
           <Card className="shadow-[var(--shadow-ice)]">
             <CardContent className="pt-6">
-              <div className="flex gap-4">
-                <Button
-                  onClick={handleAnalyze}
-                  disabled={analyzing || Object.keys(measurements).length === 0}
-                  className="flex-1"
-                >
-                  {analyzing ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Analyzing...
-                    </>
-                  ) : (
-                    "Generate AI Analysis"
-                  )}
-                </Button>
-                <Button
-                  onClick={handleSave}
-                  disabled={loading || Object.keys(measurements).length === 0}
-                  variant="secondary"
-                  className="flex-1"
-                >
-                  {loading ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Saving...
-                    </>
-                  ) : (
-                    "Save Measurement"
-                  )}
-                </Button>
-              </div>
+              <Button
+                onClick={handleSave}
+                disabled={loading || Object.keys(measurements).length === 0}
+                className="w-full"
+              >
+                {loading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Saving & Sending Notifications...
+                  </>
+                ) : (
+                  "Save & Notify Recipients"
+                )}
+              </Button>
             </CardContent>
           </Card>
         </>
