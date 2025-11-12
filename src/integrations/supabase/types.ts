@@ -651,6 +651,158 @@ export type Database = {
           },
         ]
       }
+      incident_follow_ups: {
+        Row: {
+          created_at: string
+          follow_up_by: string
+          follow_up_date: string
+          follow_up_notes: string
+          id: string
+          incident_id: string
+        }
+        Insert: {
+          created_at?: string
+          follow_up_by: string
+          follow_up_date: string
+          follow_up_notes: string
+          id?: string
+          incident_id: string
+        }
+        Update: {
+          created_at?: string
+          follow_up_by?: string
+          follow_up_date?: string
+          follow_up_notes?: string
+          id?: string
+          incident_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "incident_follow_ups_incident_id_fkey"
+            columns: ["incident_id"]
+            isOneToOne: false
+            referencedRelation: "incidents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      incidents: {
+        Row: {
+          activity_at_time: string
+          additional_injury_details: string | null
+          additional_notes: string | null
+          ambulance_called: boolean | null
+          created_at: string
+          facility_id: string
+          id: string
+          immediate_action_taken: string
+          incident_date: string
+          incident_description: string
+          incident_number: string
+          incident_time: string
+          incident_type: string
+          injured_person_address: string | null
+          injured_person_age: number | null
+          injured_person_email: string | null
+          injured_person_gender: string | null
+          injured_person_name: string
+          injured_person_phone: string | null
+          injury_locations: Json | null
+          location: string
+          medical_attention_required: string | null
+          medical_facility_name: string | null
+          report_date: string
+          report_time: string
+          severity_level: string
+          staff_email: string | null
+          staff_id: string
+          staff_name: string
+          staff_phone: string | null
+          staff_position: string
+          status: string
+          updated_at: string
+          witness_email: string | null
+          witness_name: string | null
+          witness_phone: string | null
+        }
+        Insert: {
+          activity_at_time: string
+          additional_injury_details?: string | null
+          additional_notes?: string | null
+          ambulance_called?: boolean | null
+          created_at?: string
+          facility_id: string
+          id?: string
+          immediate_action_taken: string
+          incident_date: string
+          incident_description: string
+          incident_number: string
+          incident_time: string
+          incident_type: string
+          injured_person_address?: string | null
+          injured_person_age?: number | null
+          injured_person_email?: string | null
+          injured_person_gender?: string | null
+          injured_person_name: string
+          injured_person_phone?: string | null
+          injury_locations?: Json | null
+          location: string
+          medical_attention_required?: string | null
+          medical_facility_name?: string | null
+          report_date: string
+          report_time: string
+          severity_level: string
+          staff_email?: string | null
+          staff_id: string
+          staff_name: string
+          staff_phone?: string | null
+          staff_position: string
+          status?: string
+          updated_at?: string
+          witness_email?: string | null
+          witness_name?: string | null
+          witness_phone?: string | null
+        }
+        Update: {
+          activity_at_time?: string
+          additional_injury_details?: string | null
+          additional_notes?: string | null
+          ambulance_called?: boolean | null
+          created_at?: string
+          facility_id?: string
+          id?: string
+          immediate_action_taken?: string
+          incident_date?: string
+          incident_description?: string
+          incident_number?: string
+          incident_time?: string
+          incident_type?: string
+          injured_person_address?: string | null
+          injured_person_age?: number | null
+          injured_person_email?: string | null
+          injured_person_gender?: string | null
+          injured_person_name?: string
+          injured_person_phone?: string | null
+          injury_locations?: Json | null
+          location?: string
+          medical_attention_required?: string | null
+          medical_facility_name?: string | null
+          report_date?: string
+          report_time?: string
+          severity_level?: string
+          staff_email?: string | null
+          staff_id?: string
+          staff_name?: string
+          staff_phone?: string | null
+          staff_position?: string
+          status?: string
+          updated_at?: string
+          witness_email?: string | null
+          witness_name?: string | null
+          witness_phone?: string | null
+        }
+        Relationships: []
+      }
       maintenance_activities: {
         Row: {
           activity_datetime: string
@@ -1154,6 +1306,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      generate_incident_number: { Args: never; Returns: string }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
