@@ -173,10 +173,14 @@ const points47: MeasurementPoint[] = [
   { id: 47, x: 15, y: 12, name: "Point 47", row: 9 },
 ];
 
+// Custom Template: Empty array for user-defined patterns
+const pointsCustom: MeasurementPoint[] = [];
+
 export const measurementPoints: Record<string, MeasurementPoint[]> = {
   "24-point": points24,
   "35-point": points35,
   "47-point": points47,
+  "custom": pointsCustom,
 };
 
 export const getPointCount = (templateType: string): number => {

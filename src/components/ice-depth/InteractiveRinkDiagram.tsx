@@ -71,6 +71,8 @@ export const InteractiveRinkDiagram = ({
         return rink35Point;
       case "47-point":
         return rink47Point;
+      case "custom":
+        return rink24Point; // Use basic rink outline for custom template
       default:
         return rink24Point;
     }
@@ -246,6 +248,7 @@ export const InteractiveRinkDiagram = ({
                 <SelectItem value="24-point">24-point</SelectItem>
                 <SelectItem value="35-point">35-point</SelectItem>
                 <SelectItem value="47-point">47-point</SelectItem>
+                <SelectItem value="custom">Custom</SelectItem>
               </SelectContent>
             </Select>
             <input
