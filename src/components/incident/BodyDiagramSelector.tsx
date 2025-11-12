@@ -55,8 +55,6 @@ const bodyParts = {
 };
 
 export default function BodyDiagramSelector({ selectedParts, onPartsChange }: BodyDiagramSelectorProps) {
-  const [view, setView] = useState<"front" | "back">("front");
-
   const togglePart = (partId: string) => {
     if (selectedParts.includes(partId)) {
       onPartsChange(selectedParts.filter(p => p !== partId));
@@ -70,109 +68,632 @@ export default function BodyDiagramSelector({ selectedParts, onPartsChange }: Bo
     return allParts.find(p => p.id === partId)?.label || partId;
   };
 
-  const currentParts = bodyParts[view];
-
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Injury Location</CardTitle>
-        <CardDescription>Body Injury Diagram - Click any part to mark injuries</CardDescription>
+        <CardTitle className="text-center text-xl">Body Injury Diagram</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="space-y-4">
-          <div className="flex gap-2">
-            <button
-              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                view === "front" 
-                  ? "bg-primary text-primary-foreground" 
-                  : "bg-muted hover:bg-muted/80"
-              }`}
-              onClick={() => setView("front")}
-            >
-              Front View
-            </button>
-            <button
-              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                view === "back" 
-                  ? "bg-primary text-primary-foreground" 
-                  : "bg-muted hover:bg-muted/80"
-              }`}
-              onClick={() => setView("back")}
-            >
-              Back View
-            </button>
-          </div>
+        <div className="space-y-6">
+          <div className="grid grid-cols-2 gap-8 max-w-4xl mx-auto">
+            {/* Front View */}
+            <div className="space-y-2">
+              <h3 className="text-center font-semibold text-muted-foreground">Front View</h3>
+              <div className="relative bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950 dark:to-blue-900 rounded-lg p-6 border-2 border-border">
+                <svg viewBox="0 0 200 500" className="w-full h-auto" style={{ maxHeight: "500px" }}>
+                  {/* Head */}
+                  <g>
+                    <ellipse
+                      cx="100"
+                      cy="40"
+                      rx="25"
+                      ry="30"
+                      className={`cursor-pointer transition-all stroke-blue-600 dark:stroke-blue-400 ${
+                        selectedParts.includes("head_front")
+                          ? "fill-red-500"
+                          : "fill-blue-200 dark:fill-blue-800 hover:fill-blue-300 dark:hover:fill-blue-700"
+                      }`}
+                      strokeWidth="2"
+                      onClick={() => togglePart("head_front")}
+                    >
+                      <title>Head</title>
+                    </ellipse>
+                    {/* Face features */}
+                    <circle cx="90" cy="35" r="3" className="fill-blue-600 dark:fill-blue-400" />
+                    <circle cx="110" cy="35" r="3" className="fill-blue-600 dark:fill-blue-400" />
+                    <path d="M 90 48 Q 100 52 110 48" className="stroke-blue-600 dark:stroke-blue-400 fill-none" strokeWidth="2" />
+                  </g>
 
-          <div className="relative w-full max-w-md mx-auto border rounded-lg bg-muted/20 p-4">
-            <svg viewBox="0 0 100 100" className="w-full h-auto">
-              {/* Body outline */}
-              <g className="stroke-foreground/30 fill-none" strokeWidth="0.5">
-                {/* Head */}
-                <ellipse cx="50" cy="16" rx="7" ry="8" />
-                {/* Neck */}
-                <rect x="46" y="22" width="8" height="6" rx="2" />
-                {/* Torso */}
-                <path d="M 35 28 L 35 55 L 65 55 L 65 28 Z" />
-                {/* Arms */}
-                <path d="M 22 36 L 22 65 L 30 65 L 30 36" />
-                <path d="M 78 36 L 78 65 L 70 65 L 70 36" />
-                {/* Legs */}
-                <path d="M 43 55 L 43 94 L 51 94 L 51 55" />
-                <path d="M 57 55 L 57 94 L 49 94 L 49 55" />
-              </g>
-
-              {/* Clickable body parts */}
-              {currentParts.map((part) => {
-                const isSelected = selectedParts.includes(part.id);
-                return (
+                  {/* Neck */}
                   <rect
-                    key={part.id}
-                    x={part.x - part.width / 2}
-                    y={part.y}
-                    width={part.width}
-                    height={part.height}
-                    className={`cursor-pointer transition-all ${
-                      isSelected
-                        ? "fill-destructive/70 stroke-destructive"
-                        : "fill-muted/50 hover:fill-primary/30 stroke-border"
+                    x="85"
+                    y="65"
+                    width="30"
+                    height="20"
+                    rx="5"
+                    className={`cursor-pointer transition-all stroke-blue-600 dark:stroke-blue-400 ${
+                      selectedParts.includes("neck_front")
+                        ? "fill-red-500"
+                        : "fill-blue-200 dark:fill-blue-800 hover:fill-blue-300 dark:hover:fill-blue-700"
                     }`}
-                    strokeWidth="0.5"
-                    onClick={() => togglePart(part.id)}
+                    strokeWidth="2"
+                    onClick={() => togglePart("neck_front")}
                   >
-                    <title>{part.label}</title>
+                    <title>Neck</title>
                   </rect>
-                );
-              })}
-            </svg>
-            
-            <p className="text-xs text-center text-muted-foreground mt-2">
-              Click any part to mark injuries. Grey parts aren&apos;t configured but still selectable.
-            </p>
+
+                  {/* Shoulders */}
+                  <rect
+                    x="45"
+                    y="85"
+                    width="30"
+                    height="25"
+                    rx="8"
+                    className={`cursor-pointer transition-all stroke-blue-600 dark:stroke-blue-400 ${
+                      selectedParts.includes("left_shoulder")
+                        ? "fill-red-500"
+                        : "fill-blue-200 dark:fill-blue-800 hover:fill-blue-300 dark:hover:fill-blue-700"
+                    }`}
+                    strokeWidth="2"
+                    onClick={() => togglePart("left_shoulder")}
+                  >
+                    <title>Left Shoulder</title>
+                  </rect>
+                  <rect
+                    x="125"
+                    y="85"
+                    width="30"
+                    height="25"
+                    rx="8"
+                    className={`cursor-pointer transition-all stroke-blue-600 dark:stroke-blue-400 ${
+                      selectedParts.includes("right_shoulder")
+                        ? "fill-red-500"
+                        : "fill-blue-200 dark:fill-blue-800 hover:fill-blue-300 dark:hover:fill-blue-700"
+                    }`}
+                    strokeWidth="2"
+                    onClick={() => togglePart("right_shoulder")}
+                  >
+                    <title>Right Shoulder</title>
+                  </rect>
+
+                  {/* Chest */}
+                  <rect
+                    x="75"
+                    y="85"
+                    width="50"
+                    height="40"
+                    rx="5"
+                    className={`cursor-pointer transition-all stroke-blue-600 dark:stroke-blue-400 ${
+                      selectedParts.includes("chest")
+                        ? "fill-red-500"
+                        : "fill-blue-200 dark:fill-blue-800 hover:fill-blue-300 dark:hover:fill-blue-700"
+                    }`}
+                    strokeWidth="2"
+                    onClick={() => togglePart("chest")}
+                  >
+                    <title>Chest</title>
+                  </rect>
+
+                  {/* Abdomen */}
+                  <rect
+                    x="75"
+                    y="125"
+                    width="50"
+                    height="45"
+                    rx="5"
+                    className={`cursor-pointer transition-all stroke-blue-600 dark:stroke-blue-400 ${
+                      selectedParts.includes("abdomen")
+                        ? "fill-red-500"
+                        : "fill-blue-200 dark:fill-blue-800 hover:fill-blue-300 dark:hover:fill-blue-700"
+                    }`}
+                    strokeWidth="2"
+                    onClick={() => togglePart("abdomen")}
+                  >
+                    <title>Abdomen</title>
+                  </rect>
+
+                  {/* Arms */}
+                  <rect
+                    x="30"
+                    y="110"
+                    width="20"
+                    height="50"
+                    rx="10"
+                    className={`cursor-pointer transition-all stroke-blue-600 dark:stroke-blue-400 ${
+                      selectedParts.includes("left_arm_upper")
+                        ? "fill-red-500"
+                        : "fill-blue-200 dark:fill-blue-800 hover:fill-blue-300 dark:hover:fill-blue-700"
+                    }`}
+                    strokeWidth="2"
+                    onClick={() => togglePart("left_arm_upper")}
+                  >
+                    <title>Left Upper Arm</title>
+                  </rect>
+                  <rect
+                    x="150"
+                    y="110"
+                    width="20"
+                    height="50"
+                    rx="10"
+                    className={`cursor-pointer transition-all stroke-blue-600 dark:stroke-blue-400 ${
+                      selectedParts.includes("right_arm_upper")
+                        ? "fill-red-500"
+                        : "fill-blue-200 dark:fill-blue-800 hover:fill-blue-300 dark:hover:fill-blue-700"
+                    }`}
+                    strokeWidth="2"
+                    onClick={() => togglePart("right_arm_upper")}
+                  >
+                    <title>Right Upper Arm</title>
+                  </rect>
+
+                  {/* Elbows */}
+                  <circle
+                    cx="40"
+                    cy="165"
+                    r="8"
+                    className={`cursor-pointer transition-all stroke-blue-600 dark:stroke-blue-400 ${
+                      selectedParts.includes("left_elbow")
+                        ? "fill-red-500"
+                        : "fill-blue-200 dark:fill-blue-800 hover:fill-blue-300 dark:hover:fill-blue-700"
+                    }`}
+                    strokeWidth="2"
+                    onClick={() => togglePart("left_elbow")}
+                  >
+                    <title>Left Elbow</title>
+                  </circle>
+                  <circle
+                    cx="160"
+                    cy="165"
+                    r="8"
+                    className={`cursor-pointer transition-all stroke-blue-600 dark:stroke-blue-400 ${
+                      selectedParts.includes("right_elbow")
+                        ? "fill-red-500"
+                        : "fill-blue-200 dark:fill-blue-800 hover:fill-blue-300 dark:hover:fill-blue-700"
+                    }`}
+                    strokeWidth="2"
+                    onClick={() => togglePart("right_elbow")}
+                  >
+                    <title>Right Elbow</title>
+                  </circle>
+
+                  {/* Forearms */}
+                  <rect
+                    x="30"
+                    y="170"
+                    width="20"
+                    height="50"
+                    rx="10"
+                    className={`cursor-pointer transition-all stroke-blue-600 dark:stroke-blue-400 ${
+                      selectedParts.includes("left_forearm")
+                        ? "fill-red-500"
+                        : "fill-blue-200 dark:fill-blue-800 hover:fill-blue-300 dark:hover:fill-blue-700"
+                    }`}
+                    strokeWidth="2"
+                    onClick={() => togglePart("left_forearm")}
+                  >
+                    <title>Left Forearm</title>
+                  </rect>
+                  <rect
+                    x="150"
+                    y="170"
+                    width="20"
+                    height="50"
+                    rx="10"
+                    className={`cursor-pointer transition-all stroke-blue-600 dark:stroke-blue-400 ${
+                      selectedParts.includes("right_forearm")
+                        ? "fill-red-500"
+                        : "fill-blue-200 dark:fill-blue-800 hover:fill-blue-300 dark:hover:fill-blue-700"
+                    }`}
+                    strokeWidth="2"
+                    onClick={() => togglePart("right_forearm")}
+                  >
+                    <title>Right Forearm</title>
+                  </rect>
+
+                  {/* Hands */}
+                  <ellipse
+                    cx="40"
+                    cy="235"
+                    rx="12"
+                    ry="18"
+                    className={`cursor-pointer transition-all stroke-blue-600 dark:stroke-blue-400 ${
+                      selectedParts.includes("left_hand")
+                        ? "fill-red-500"
+                        : "fill-blue-200 dark:fill-blue-800 hover:fill-blue-300 dark:hover:fill-blue-700"
+                    }`}
+                    strokeWidth="2"
+                    onClick={() => togglePart("left_hand")}
+                  >
+                    <title>Left Hand</title>
+                  </ellipse>
+                  <ellipse
+                    cx="160"
+                    cy="235"
+                    rx="12"
+                    ry="18"
+                    className={`cursor-pointer transition-all stroke-blue-600 dark:stroke-blue-400 ${
+                      selectedParts.includes("right_hand")
+                        ? "fill-red-500"
+                        : "fill-blue-200 dark:fill-blue-800 hover:fill-blue-300 dark:hover:fill-blue-700"
+                    }`}
+                    strokeWidth="2"
+                    onClick={() => togglePart("right_hand")}
+                  >
+                    <title>Right Hand</title>
+                  </ellipse>
+
+                  {/* Thighs */}
+                  <rect
+                    x="75"
+                    y="170"
+                    width="20"
+                    height="80"
+                    rx="10"
+                    className={`cursor-pointer transition-all stroke-blue-600 dark:stroke-blue-400 ${
+                      selectedParts.includes("left_thigh")
+                        ? "fill-red-500"
+                        : "fill-blue-200 dark:fill-blue-800 hover:fill-blue-300 dark:hover:fill-blue-700"
+                    }`}
+                    strokeWidth="2"
+                    onClick={() => togglePart("left_thigh")}
+                  >
+                    <title>Left Thigh</title>
+                  </rect>
+                  <rect
+                    x="105"
+                    y="170"
+                    width="20"
+                    height="80"
+                    rx="10"
+                    className={`cursor-pointer transition-all stroke-blue-600 dark:stroke-blue-400 ${
+                      selectedParts.includes("right_thigh")
+                        ? "fill-red-500"
+                        : "fill-blue-200 dark:fill-blue-800 hover:fill-blue-300 dark:hover:fill-blue-700"
+                    }`}
+                    strokeWidth="2"
+                    onClick={() => togglePart("right_thigh")}
+                  >
+                    <title>Right Thigh</title>
+                  </rect>
+
+                  {/* Knees */}
+                  <circle
+                    cx="85"
+                    cy="260"
+                    r="10"
+                    className={`cursor-pointer transition-all stroke-blue-600 dark:stroke-blue-400 ${
+                      selectedParts.includes("left_knee")
+                        ? "fill-red-500"
+                        : "fill-blue-200 dark:fill-blue-800 hover:fill-blue-300 dark:hover:fill-blue-700"
+                    }`}
+                    strokeWidth="2"
+                    onClick={() => togglePart("left_knee")}
+                  >
+                    <title>Left Knee</title>
+                  </circle>
+                  <circle
+                    cx="115"
+                    cy="260"
+                    r="10"
+                    className={`cursor-pointer transition-all stroke-blue-600 dark:stroke-blue-400 ${
+                      selectedParts.includes("right_knee")
+                        ? "fill-red-500"
+                        : "fill-blue-200 dark:fill-blue-800 hover:fill-blue-300 dark:hover:fill-blue-700"
+                    }`}
+                    strokeWidth="2"
+                    onClick={() => togglePart("right_knee")}
+                  >
+                    <title>Right Knee</title>
+                  </circle>
+
+                  {/* Shins */}
+                  <rect
+                    x="75"
+                    y="270"
+                    width="20"
+                    height="80"
+                    rx="10"
+                    className={`cursor-pointer transition-all stroke-blue-600 dark:stroke-blue-400 ${
+                      selectedParts.includes("left_shin")
+                        ? "fill-red-500"
+                        : "fill-blue-200 dark:fill-blue-800 hover:fill-blue-300 dark:hover:fill-blue-700"
+                    }`}
+                    strokeWidth="2"
+                    onClick={() => togglePart("left_shin")}
+                  >
+                    <title>Left Shin</title>
+                  </rect>
+                  <rect
+                    x="105"
+                    y="270"
+                    width="20"
+                    height="80"
+                    rx="10"
+                    className={`cursor-pointer transition-all stroke-blue-600 dark:stroke-blue-400 ${
+                      selectedParts.includes("right_shin")
+                        ? "fill-red-500"
+                        : "fill-blue-200 dark:fill-blue-800 hover:fill-blue-300 dark:hover:fill-blue-700"
+                    }`}
+                    strokeWidth="2"
+                    onClick={() => togglePart("right_shin")}
+                  >
+                    <title>Right Shin</title>
+                  </rect>
+
+                  {/* Feet */}
+                  <ellipse
+                    cx="85"
+                    cy="370"
+                    rx="15"
+                    ry="20"
+                    className={`cursor-pointer transition-all stroke-blue-600 dark:stroke-blue-400 ${
+                      selectedParts.includes("left_foot")
+                        ? "fill-red-500"
+                        : "fill-blue-200 dark:fill-blue-800 hover:fill-blue-300 dark:hover:fill-blue-700"
+                    }`}
+                    strokeWidth="2"
+                    onClick={() => togglePart("left_foot")}
+                  >
+                    <title>Left Foot</title>
+                  </ellipse>
+                  <ellipse
+                    cx="115"
+                    cy="370"
+                    rx="15"
+                    ry="20"
+                    className={`cursor-pointer transition-all stroke-blue-600 dark:stroke-blue-400 ${
+                      selectedParts.includes("right_foot")
+                        ? "fill-red-500"
+                        : "fill-blue-200 dark:fill-blue-800 hover:fill-blue-300 dark:hover:fill-blue-700"
+                    }`}
+                    strokeWidth="2"
+                    onClick={() => togglePart("right_foot")}
+                  >
+                    <title>Right Foot</title>
+                  </ellipse>
+                </svg>
+              </div>
+            </div>
+
+            {/* Back View */}
+            <div className="space-y-2">
+              <h3 className="text-center font-semibold text-muted-foreground">Back View</h3>
+              <div className="relative bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950 dark:to-blue-900 rounded-lg p-6 border-2 border-border">
+                <svg viewBox="0 0 200 500" className="w-full h-auto" style={{ maxHeight: "500px" }}>
+                  {/* Head Back */}
+                  <ellipse
+                    cx="100"
+                    cy="40"
+                    rx="25"
+                    ry="30"
+                    className={`cursor-pointer transition-all stroke-blue-600 dark:stroke-blue-400 ${
+                      selectedParts.includes("head_back")
+                        ? "fill-red-500"
+                        : "fill-blue-200 dark:fill-blue-800 hover:fill-blue-300 dark:hover:fill-blue-700"
+                    }`}
+                    strokeWidth="2"
+                    onClick={() => togglePart("head_back")}
+                  >
+                    <title>Head (Back)</title>
+                  </ellipse>
+
+                  {/* Neck Back */}
+                  <rect
+                    x="85"
+                    y="65"
+                    width="30"
+                    height="20"
+                    rx="5"
+                    className={`cursor-pointer transition-all stroke-blue-600 dark:stroke-blue-400 ${
+                      selectedParts.includes("neck_back")
+                        ? "fill-red-500"
+                        : "fill-blue-200 dark:fill-blue-800 hover:fill-blue-300 dark:hover:fill-blue-700"
+                    }`}
+                    strokeWidth="2"
+                    onClick={() => togglePart("neck_back")}
+                  >
+                    <title>Neck (Back)</title>
+                  </rect>
+
+                  {/* Upper Back */}
+                  <rect
+                    x="75"
+                    y="85"
+                    width="50"
+                    height="40"
+                    rx="5"
+                    className={`cursor-pointer transition-all stroke-blue-600 dark:stroke-blue-400 ${
+                      selectedParts.includes("upper_back")
+                        ? "fill-red-500"
+                        : "fill-blue-200 dark:fill-blue-800 hover:fill-blue-300 dark:hover:fill-blue-700"
+                    }`}
+                    strokeWidth="2"
+                    onClick={() => togglePart("upper_back")}
+                  >
+                    <title>Upper Back</title>
+                  </rect>
+
+                  {/* Lower Back */}
+                  <rect
+                    x="75"
+                    y="125"
+                    width="50"
+                    height="45"
+                    rx="5"
+                    className={`cursor-pointer transition-all stroke-blue-600 dark:stroke-blue-400 ${
+                      selectedParts.includes("lower_back")
+                        ? "fill-red-500"
+                        : "fill-blue-200 dark:fill-blue-800 hover:fill-blue-300 dark:hover:fill-blue-700"
+                    }`}
+                    strokeWidth="2"
+                    onClick={() => togglePart("lower_back")}
+                  >
+                    <title>Lower Back</title>
+                  </rect>
+
+                  {/* Back Arms and similar structure... */}
+                  <rect
+                    x="30"
+                    y="110"
+                    width="20"
+                    height="50"
+                    rx="10"
+                    className={`cursor-pointer transition-all stroke-blue-600 dark:stroke-blue-400 ${
+                      selectedParts.includes("left_arm_back")
+                        ? "fill-red-500"
+                        : "fill-blue-200 dark:fill-blue-800 hover:fill-blue-300 dark:hover:fill-blue-700"
+                    }`}
+                    strokeWidth="2"
+                    onClick={() => togglePart("left_arm_back")}
+                  >
+                    <title>Left Arm (Back)</title>
+                  </rect>
+                  <rect
+                    x="150"
+                    y="110"
+                    width="20"
+                    height="50"
+                    rx="10"
+                    className={`cursor-pointer transition-all stroke-blue-600 dark:stroke-blue-400 ${
+                      selectedParts.includes("right_arm_back")
+                        ? "fill-red-500"
+                        : "fill-blue-200 dark:fill-blue-800 hover:fill-blue-300 dark:hover:fill-blue-700"
+                    }`}
+                    strokeWidth="2"
+                    onClick={() => togglePart("right_arm_back")}
+                  >
+                    <title>Right Arm (Back)</title>
+                  </rect>
+
+                  {/* Continue with back legs similar to front view */}
+                  <rect
+                    x="75"
+                    y="170"
+                    width="20"
+                    height="80"
+                    rx="10"
+                    className={`cursor-pointer transition-all stroke-blue-600 dark:stroke-blue-400 ${
+                      selectedParts.includes("left_thigh_back")
+                        ? "fill-red-500"
+                        : "fill-blue-200 dark:fill-blue-800 hover:fill-blue-300 dark:hover:fill-blue-700"
+                    }`}
+                    strokeWidth="2"
+                    onClick={() => togglePart("left_thigh_back")}
+                  >
+                    <title>Left Thigh (Back)</title>
+                  </rect>
+                  <rect
+                    x="105"
+                    y="170"
+                    width="20"
+                    height="80"
+                    rx="10"
+                    className={`cursor-pointer transition-all stroke-blue-600 dark:stroke-blue-400 ${
+                      selectedParts.includes("right_thigh_back")
+                        ? "fill-red-500"
+                        : "fill-blue-200 dark:fill-blue-800 hover:fill-blue-300 dark:hover:fill-blue-700"
+                    }`}
+                    strokeWidth="2"
+                    onClick={() => togglePart("right_thigh_back")}
+                  >
+                    <title>Right Thigh (Back)</title>
+                  </rect>
+
+                  <rect
+                    x="75"
+                    y="270"
+                    width="20"
+                    height="80"
+                    rx="10"
+                    className={`cursor-pointer transition-all stroke-blue-600 dark:stroke-blue-400 ${
+                      selectedParts.includes("left_calf")
+                        ? "fill-red-500"
+                        : "fill-blue-200 dark:fill-blue-800 hover:fill-blue-300 dark:hover:fill-blue-700"
+                    }`}
+                    strokeWidth="2"
+                    onClick={() => togglePart("left_calf")}
+                  >
+                    <title>Left Calf</title>
+                  </rect>
+                  <rect
+                    x="105"
+                    y="270"
+                    width="20"
+                    height="80"
+                    rx="10"
+                    className={`cursor-pointer transition-all stroke-blue-600 dark:stroke-blue-400 ${
+                      selectedParts.includes("right_calf")
+                        ? "fill-red-500"
+                        : "fill-blue-200 dark:fill-blue-800 hover:fill-blue-300 dark:hover:fill-blue-700"
+                    }`}
+                    strokeWidth="2"
+                    onClick={() => togglePart("right_calf")}
+                  >
+                    <title>Right Calf</title>
+                  </rect>
+
+                  <ellipse
+                    cx="85"
+                    cy="370"
+                    rx="15"
+                    ry="20"
+                    className={`cursor-pointer transition-all stroke-blue-600 dark:stroke-blue-400 ${
+                      selectedParts.includes("left_foot_back")
+                        ? "fill-red-500"
+                        : "fill-blue-200 dark:fill-blue-800 hover:fill-blue-300 dark:hover:fill-blue-700"
+                    }`}
+                    strokeWidth="2"
+                    onClick={() => togglePart("left_foot_back")}
+                  >
+                    <title>Left Foot (Back)</title>
+                  </ellipse>
+                  <ellipse
+                    cx="115"
+                    cy="370"
+                    rx="15"
+                    ry="20"
+                    className={`cursor-pointer transition-all stroke-blue-600 dark:stroke-blue-400 ${
+                      selectedParts.includes("right_foot_back")
+                        ? "fill-red-500"
+                        : "fill-blue-200 dark:fill-blue-800 hover:fill-blue-300 dark:hover:fill-blue-700"
+                    }`}
+                    strokeWidth="2"
+                    onClick={() => togglePart("right_foot_back")}
+                  >
+                    <title>Right Foot (Back)</title>
+                  </ellipse>
+                </svg>
+              </div>
+            </div>
           </div>
 
-          <div className="flex gap-4 text-sm">
+          <p className="text-sm text-center text-muted-foreground">
+            Click any part to mark injuries. Grey parts aren&apos;t configured but still selectable.
+          </p>
+
+          <div className="flex justify-center gap-6 text-sm">
             <div className="flex items-center gap-2">
-              <div className="w-4 h-4 rounded bg-muted/50 border" />
+              <div className="w-6 h-6 rounded-full bg-blue-200 dark:bg-blue-800 border-2 border-blue-600 dark:border-blue-400" />
               <span>Uninjured</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="w-4 h-4 rounded bg-destructive/70" />
+              <div className="w-6 h-6 rounded-full bg-red-500 border-2 border-blue-600 dark:border-blue-400" />
               <span>Injured</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="w-4 h-4 rounded bg-muted/20 border" />
+              <div className="w-6 h-6 rounded-full bg-gray-300 dark:bg-gray-700 border-2 border-gray-400" />
               <span>Not configured</span>
             </div>
           </div>
 
-          <div className="space-y-2">
-            <p className="font-medium">Selected Injury Locations:</p>
+          <div className="space-y-3 p-4 bg-muted/50 rounded-lg">
+            <p className="font-semibold text-center">Selected Injury Locations:</p>
             {selectedParts.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No injuries selected</p>
+              <p className="text-sm text-center text-muted-foreground italic">No injuries selected</p>
             ) : (
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap justify-center gap-2">
                 {selectedParts.map(partId => (
-                  <Badge key={partId} variant="destructive">
+                  <Badge key={partId} variant="destructive" className="text-sm">
                     {getPartLabel(partId)}
                   </Badge>
                 ))}
