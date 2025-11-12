@@ -533,6 +533,7 @@ export type Database = {
         Row: {
           created_at: string
           facility_id: string
+          fuel_type: string | null
           id: string
           model: string | null
           name: string
@@ -540,6 +541,7 @@ export type Database = {
         Insert: {
           created_at?: string
           facility_id: string
+          fuel_type?: string | null
           id?: string
           model?: string | null
           name: string
@@ -547,6 +549,7 @@ export type Database = {
         Update: {
           created_at?: string
           facility_id?: string
+          fuel_type?: string | null
           id?: string
           model?: string | null
           name?: string

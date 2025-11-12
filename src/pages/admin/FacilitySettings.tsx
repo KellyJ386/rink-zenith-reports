@@ -35,6 +35,7 @@ interface Machine {
   id: string;
   name: string;
   model: string;
+  fuel_type: string;
 }
 
 const FacilitySettings = () => {
@@ -43,7 +44,7 @@ const FacilitySettings = () => {
   const [rinks, setRinks] = useState<Rink[]>([]);
   const [machines, setMachines] = useState<Machine[]>([]);
   const [newRinkName, setNewRinkName] = useState("");
-  const [newMachine, setNewMachine] = useState({ name: "", model: "" });
+  const [newMachine, setNewMachine] = useState({ name: "", model: "", fuel_type: "electric" });
   const [deleteTarget, setDeleteTarget] = useState<{ type: string; id: string } | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedTimezone, setSelectedTimezone] = useState<string>("America/New_York");
@@ -133,6 +134,7 @@ const FacilitySettings = () => {
       facility_id: facility.id,
       name: newMachine.name,
       model: newMachine.model,
+      fuel_type: newMachine.fuel_type,
     });
 
     if (error) {
@@ -143,7 +145,7 @@ const FacilitySettings = () => {
       });
     } else {
       toast({ title: "Success", description: "Machine added successfully" });
-      setNewMachine({ name: "", model: "" });
+      setNewMachine({ name: "", model: "", fuel_type: "electric" });
       loadData();
     }
   };
@@ -285,6 +287,9 @@ const FacilitySettings = () => {
                 <div>
                   <span className="font-medium">{machine.name}</span>
                   {machine.model && <span className="text-sm text-muted-foreground ml-2">({machine.model})</span>}
+                  <span className="ml-2 text-xs px-2 py-1 rounded-full bg-primary/10 text-primary">
+                    {machine.fuel_type === "gas" ? "Gas" : "Electric"}
+                  </span>
                 </div>
                 <Button
                   variant="ghost"
@@ -297,7 +302,7 @@ const FacilitySettings = () => {
             ))}
           </div>
           <div className="space-y-2">
-            <div className="flex gap-2">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
               <Input
                 placeholder="Machine name"
                 value={newMachine.name}
@@ -308,6 +313,18 @@ const FacilitySettings = () => {
                 value={newMachine.model}
                 onChange={(e) => setNewMachine({ ...newMachine, model: e.target.value })}
               />
+              <Select 
+                value={newMachine.fuel_type} 
+                onValueChange={(value) => setNewMachine({ ...newMachine, fuel_type: value })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Fuel Type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="electric">Electric</SelectItem>
+                  <SelectItem value="gas">Gas</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
             <Button onClick={addMachine}>
               <Plus className="h-4 w-4 mr-2" />
