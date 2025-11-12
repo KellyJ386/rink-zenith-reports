@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import PageHeader from "@/components/PageHeader";
 import { Trash2, Plus, Building2, DoorOpen, Wrench } from "lucide-react";
@@ -22,6 +23,7 @@ import {
 interface FacilityForm {
   name: string;
   address: string;
+  timezone: string;
 }
 
 interface Rink {
@@ -44,6 +46,7 @@ const FacilitySettings = () => {
   const [newMachine, setNewMachine] = useState({ name: "", model: "" });
   const [deleteTarget, setDeleteTarget] = useState<{ type: string; id: string } | null>(null);
   const [loading, setLoading] = useState(true);
+  const [selectedTimezone, setSelectedTimezone] = useState<string>("America/New_York");
 
   const { register, handleSubmit, setValue } = useForm<FacilityForm>();
 
@@ -57,6 +60,7 @@ const FacilitySettings = () => {
       setFacility(facilityData);
       setValue("name", facilityData.name);
       setValue("address", facilityData.address || "");
+      setSelectedTimezone(facilityData.timezone || "America/New_York");
     }
 
     const { data: rinksData } = await supabase
@@ -82,6 +86,7 @@ const FacilitySettings = () => {
       .update({
         name: data.name,
         address: data.address,
+        timezone: selectedTimezone,
       })
       .eq("id", facility.id);
 
@@ -191,6 +196,37 @@ const FacilitySettings = () => {
             <div className="space-y-2">
               <Label htmlFor="address">Address</Label>
               <Input id="address" {...register("address")} placeholder="Street, City, State, Zip" />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="timezone">Time Zone</Label>
+              <Select value={selectedTimezone} onValueChange={setSelectedTimezone}>
+                <SelectTrigger id="timezone">
+                  <SelectValue placeholder="Select timezone" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="America/New_York">Eastern Time (ET)</SelectItem>
+                  <SelectItem value="America/Chicago">Central Time (CT)</SelectItem>
+                  <SelectItem value="America/Denver">Mountain Time (MT)</SelectItem>
+                  <SelectItem value="America/Phoenix">Arizona Time (MST)</SelectItem>
+                  <SelectItem value="America/Los_Angeles">Pacific Time (PT)</SelectItem>
+                  <SelectItem value="America/Anchorage">Alaska Time (AKT)</SelectItem>
+                  <SelectItem value="Pacific/Honolulu">Hawaii Time (HST)</SelectItem>
+                  <SelectItem value="America/Toronto">Toronto (ET)</SelectItem>
+                  <SelectItem value="America/Vancouver">Vancouver (PT)</SelectItem>
+                  <SelectItem value="America/Edmonton">Edmonton (MT)</SelectItem>
+                  <SelectItem value="America/Winnipeg">Winnipeg (CT)</SelectItem>
+                  <SelectItem value="America/Halifax">Halifax (AT)</SelectItem>
+                  <SelectItem value="Europe/London">London (GMT)</SelectItem>
+                  <SelectItem value="Europe/Paris">Paris (CET)</SelectItem>
+                  <SelectItem value="Europe/Berlin">Berlin (CET)</SelectItem>
+                  <SelectItem value="Europe/Moscow">Moscow (MSK)</SelectItem>
+                  <SelectItem value="Asia/Tokyo">Tokyo (JST)</SelectItem>
+                  <SelectItem value="Asia/Shanghai">Shanghai (CST)</SelectItem>
+                  <SelectItem value="Asia/Dubai">Dubai (GST)</SelectItem>
+                  <SelectItem value="Australia/Sydney">Sydney (AEDT)</SelectItem>
+                  <SelectItem value="Pacific/Auckland">Auckland (NZDT)</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
             <Button type="submit">Save Facility Settings</Button>
           </form>
