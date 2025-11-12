@@ -106,7 +106,7 @@ export const InteractiveRinkDiagram = ({
     }
     
     if (state === "available") {
-      return `${baseClasses} ${sizeClasses} bg-muted hover:bg-primary/70 text-muted-foreground hover:text-primary-foreground opacity-60 hover:opacity-100`;
+      return `${baseClasses} ${sizeClasses} bg-black text-white opacity-0 hover:opacity-100 hover:scale-110`;
     }
     
     return baseClasses;
