@@ -6,13 +6,15 @@ interface TemplateSelectionProps {
   measurements: Record<string, number>;
   currentPointId: number;
   onPointClick?: (pointId: number) => void;
+  onMeasurementChange?: (pointId: number, value: number) => void;
 }
 
 export const TemplateSelection = ({ 
   templateType, 
   measurements, 
   currentPointId,
-  onPointClick 
+  onPointClick,
+  onMeasurementChange
 }: TemplateSelectionProps) => {
   return (
     <Card className="shadow-[var(--shadow-ice)]">
@@ -26,6 +28,7 @@ export const TemplateSelection = ({
             measurements={measurements}
             currentPointId={currentPointId}
             onPointClick={onPointClick}
+            onMeasurementChange={onMeasurementChange}
           />
         </div>
       </CardContent>

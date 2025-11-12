@@ -1,5 +1,5 @@
 import { measurementPoints, MeasurementPoint } from "./measurementPoints";
-import { Check, MapPin, Copy, Download, Upload, Save, FolderOpen } from "lucide-react";
+import { MapPin, Copy, Download, Upload, Save, FolderOpen } from "lucide-react";
 import rink24Point from "@/assets/rink-24-point.svg";
 import rink35Point from "@/assets/rink-35-point.svg";
 import rink47Point from "@/assets/rink-47-point.svg";
@@ -18,6 +18,7 @@ interface InteractiveRinkDiagramProps {
   measurements: Record<string, number>;
   currentPointId: number;
   onPointClick?: (pointId: number) => void;
+  onMeasurementChange?: (pointId: number, value: number) => void;
 }
 
 export const InteractiveRinkDiagram = ({
@@ -25,6 +26,7 @@ export const InteractiveRinkDiagram = ({
   measurements,
   currentPointId,
   onPointClick,
+  onMeasurementChange,
 }: InteractiveRinkDiagramProps) => {
   const [devMode, setDevMode] = useState(false);
   const [devTemplate, setDevTemplate] = useState(templateType);
@@ -33,7 +35,10 @@ export const InteractiveRinkDiagram = ({
   const [saveDialogOpen, setSaveDialogOpen] = useState(false);
   const [loadDialogOpen, setLoadDialogOpen] = useState(false);
   const [templateName, setTemplateName] = useState("");
+  const [editingPointId, setEditingPointId] = useState<number | null>(null);
+  const [editValue, setEditValue] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
   
   const activeTemplate = devMode ? devTemplate : templateType;
   const points = measurementPoints[activeTemplate] || [];
@@ -72,13 +77,20 @@ export const InteractiveRinkDiagram = ({
     return "disabled";
   };
 
-  const getPointStyles = (state: "disabled" | "current" | "complete", isSpecial?: boolean) => {
+  const getDepthColor = (depth: number): string => {
+    if (depth < 1) return "bg-red-500";
+    if (depth <= 1.75) return "bg-green-500";
+    if (depth <= 2.0) return "bg-blue-500";
+    return "bg-yellow-500";
+  };
+
+  const getPointStyles = (state: "disabled" | "current" | "complete", depth?: number) => {
     const baseClasses = "absolute flex items-center justify-center rounded-full font-bold text-white transition-all cursor-pointer";
     
     // Responsive sizing
     const sizeClasses = state === "current" 
-      ? "w-10 h-10 md:w-12 md:h-12 text-sm md:text-base" 
-      : "w-8 h-8 md:w-10 md:h-10 text-xs md:text-sm";
+      ? "w-12 h-12 md:w-14 md:h-14 text-sm md:text-base" 
+      : "w-12 h-12 md:w-14 md:h-14 text-xs md:text-sm";
     
     if (state === "disabled") {
       return `${baseClasses} ${sizeClasses} bg-muted text-muted-foreground opacity-50`;
@@ -88,12 +100,52 @@ export const InteractiveRinkDiagram = ({
       return `${baseClasses} ${sizeClasses} bg-primary text-primary-foreground animate-pulse shadow-lg ring-2 ring-primary/50`;
     }
     
-    if (state === "complete") {
-      const bgColor = isSpecial ? "bg-amber-500" : "bg-green-500";
+    if (state === "complete" && depth !== undefined) {
+      const bgColor = getDepthColor(depth);
       return `${baseClasses} ${sizeClasses} ${bgColor} text-white shadow-md hover:scale-110`;
     }
     
     return baseClasses;
+  };
+
+  const handlePointClick = (point: MeasurementPoint) => {
+    if (devMode) return;
+    
+    setEditingPointId(point.id);
+    const measurementKey = `Point ${point.id}`;
+    const currentValue = measurements[measurementKey];
+    setEditValue(currentValue ? currentValue.toString() : "");
+    
+    // Focus input after state update
+    setTimeout(() => inputRef.current?.focus(), 0);
+  };
+
+  const handleInputChange = (value: string) => {
+    setEditValue(value);
+  };
+
+  const handleInputSubmit = () => {
+    if (editingPointId && editValue) {
+      const numValue = parseFloat(editValue);
+      if (!isNaN(numValue) && numValue > 0) {
+        onMeasurementChange?.(editingPointId, numValue);
+      }
+    }
+    setEditingPointId(null);
+    setEditValue("");
+  };
+
+  const handleInputBlur = () => {
+    handleInputSubmit();
+  };
+
+  const handleInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      handleInputSubmit();
+    } else if (e.key === 'Escape') {
+      setEditingPointId(null);
+      setEditValue("");
+    }
   };
 
   const getImageSource = () => {
@@ -438,37 +490,54 @@ export const InteractiveRinkDiagram = ({
           const measurementValue = measurements[measurementKey];
           const hasValue = measurementValue !== undefined && measurementValue > 0;
           
+          // Don't render disabled points
+          if (state === "disabled") return null;
+          
+          const isEditing = editingPointId === point.id;
+          
           return (
-            <div
-              key={point.id}
-              className={`${getPointStyles(state, point.isSpecial)} pointer-events-auto`}
-              style={{
-                left: `${point.x}%`,
-                top: `${point.y}%`,
-                transform: "translate(-50%, -50%)",
-              }}
-              onClick={() => onPointClick?.(point.id)}
-              title={point.isSpecial ? point.specialLabel : point.name}
-            >
-              {state === "complete" ? (
-                hasValue ? (
-                  <span className="flex items-center gap-1">
-                    <Check className="w-3 h-3 md:w-4 md:h-4" />
-                    <span className="hidden md:inline text-xs">
-                      {measurementValue.toFixed(2)}
-                    </span>
+            <div key={point.id}>
+              {/* Measurement point circle */}
+              <div
+                className={`${getPointStyles(state, measurementValue)} pointer-events-auto`}
+                style={{
+                  left: `${point.x}%`,
+                  top: `${point.y}%`,
+                  transform: "translate(-50%, -50%)",
+                }}
+                onClick={() => handlePointClick(point)}
+                title={point.isSpecial ? point.specialLabel : point.name}
+              >
+                {state === "complete" && hasValue ? (
+                  <span className="text-xs md:text-sm font-bold">
+                    {measurementValue.toFixed(2)}
                   </span>
                 ) : (
-                  <Check className="w-3 h-3 md:w-4 md:h-4" />
-                )
-              ) : (
-                <span>{point.id}</span>
-              )}
-              
-              {/* Special badge for goal crease and center ice */}
-              {point.isSpecial && state !== "disabled" && (
-                <div className="absolute -top-6 left-1/2 transform -translate-x-1/2 bg-amber-500 text-white text-[10px] px-2 py-0.5 rounded whitespace-nowrap shadow-md hidden md:block">
-                  {point.specialLabel === "Center Ice" ? "CI" : "GC"}
+                  <span>{point.id}</span>
+                )}
+              </div>
+
+              {/* Inline input for editing */}
+              {isEditing && (
+                <div
+                  className="absolute pointer-events-auto z-50"
+                  style={{
+                    left: `${point.x}%`,
+                    top: `${point.y}%`,
+                    transform: "translate(-50%, -120%)",
+                  }}
+                >
+                  <Input
+                    ref={inputRef}
+                    type="number"
+                    step="0.01"
+                    value={editValue}
+                    onChange={(e) => handleInputChange(e.target.value)}
+                    onBlur={handleInputBlur}
+                    onKeyDown={handleInputKeyDown}
+                    className="w-20 h-10 text-center text-sm font-bold bg-background border-2 border-primary shadow-lg"
+                    placeholder="0.00"
+                  />
                 </div>
               )}
             </div>

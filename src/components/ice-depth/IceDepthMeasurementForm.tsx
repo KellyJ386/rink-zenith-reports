@@ -305,6 +305,12 @@ export const IceDepthMeasurementForm = ({ userId }: IceDepthMeasurementFormProps
                 input?.focus();
               }
             }}
+            onMeasurementChange={(pointId, value) => {
+              setMeasurements({
+                ...measurements,
+                [`Point ${pointId}`]: value,
+              });
+            }}
           />
           
           <MeasurementInput
