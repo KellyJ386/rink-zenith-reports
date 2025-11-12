@@ -1,5 +1,8 @@
 import { measurementPoints, MeasurementPoint } from "./measurementPoints";
 import { Check } from "lucide-react";
+import rink24Point from "@/assets/rink-24-point.svg";
+import rink35Point from "@/assets/rink-35-point.svg";
+import rink47Point from "@/assets/rink-47-point.svg";
 
 interface InteractiveRinkDiagramProps {
   templateType: string;
@@ -52,13 +55,13 @@ export const InteractiveRinkDiagram = ({
   const getImageSource = () => {
     switch (templateType) {
       case "24-point":
-        return "/src/assets/rink-24-point.svg";
+        return rink24Point;
       case "35-point":
-        return "/src/assets/rink-35-point.svg";
+        return rink35Point;
       case "47-point":
-        return "/src/assets/rink-47-point.svg";
+        return rink47Point;
       default:
-        return "/src/assets/rink-24-point.svg";
+        return rink24Point;
     }
   };
 
