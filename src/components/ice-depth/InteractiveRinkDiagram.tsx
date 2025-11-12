@@ -1,8 +1,11 @@
 import { measurementPoints, MeasurementPoint } from "./measurementPoints";
-import { Check } from "lucide-react";
+import { Check, MapPin, Copy } from "lucide-react";
 import rink24Point from "@/assets/rink-24-point.svg";
 import rink35Point from "@/assets/rink-35-point.svg";
 import rink47Point from "@/assets/rink-47-point.svg";
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 
 interface InteractiveRinkDiagramProps {
   templateType: string;
@@ -18,6 +21,8 @@ export const InteractiveRinkDiagram = ({
   onPointClick,
 }: InteractiveRinkDiagramProps) => {
   const points = measurementPoints[templateType] || [];
+  const [devMode, setDevMode] = useState(false);
+  const [capturedPoints, setCapturedPoints] = useState<{ x: number; y: number; id: number }[]>([]);
 
   const getPointState = (point: MeasurementPoint): "disabled" | "current" | "complete" => {
     const measurementKey = `Point ${point.id}`;
@@ -65,18 +70,69 @@ export const InteractiveRinkDiagram = ({
     }
   };
 
+  const handleDiagramClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!devMode) return;
+    
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = ((e.clientX - rect.left) / rect.width) * 100;
+    const y = ((e.clientY - rect.top) / rect.height) * 100;
+    
+    const newPoint = { x: parseFloat(x.toFixed(2)), y: parseFloat(y.toFixed(2)), id: capturedPoints.length + 1 };
+    setCapturedPoints([...capturedPoints, newPoint]);
+    console.log(`Point ${newPoint.id}: x: ${newPoint.x}%, y: ${newPoint.y}%`);
+  };
+
+  const copyCoordinates = () => {
+    const code = `[\n${capturedPoints.map(p => `  { id: ${p.id}, x: ${p.x}, y: ${p.y}, name: "Point ${p.id}", row: 1 }`).join(',\n')}\n]`;
+    navigator.clipboard.writeText(code);
+    toast.success("Coordinates copied to clipboard!");
+  };
+
+  const clearPoints = () => {
+    setCapturedPoints([]);
+    toast.success("Points cleared!");
+  };
+
   return (
-    <div className="relative w-full" style={{ aspectRatio: "595.28 / 841.89" }}>
-      {/* Base rink diagram */}
-      <img
-        src={getImageSource()}
-        alt={`Ice rink ${templateType} measurement template`}
-        className="w-full h-full object-contain"
-      />
+    <div className="space-y-4">
+      {/* Dev Mode Controls */}
+      <div className="flex gap-2 items-center justify-end">
+        <Button
+          variant={devMode ? "default" : "outline"}
+          size="sm"
+          onClick={() => setDevMode(!devMode)}
+        >
+          <MapPin className="w-4 h-4 mr-2" />
+          {devMode ? "Exit" : "Enable"} Coordinate Capture
+        </Button>
+        {devMode && capturedPoints.length > 0 && (
+          <>
+            <Button variant="outline" size="sm" onClick={copyCoordinates}>
+              <Copy className="w-4 h-4 mr-2" />
+              Copy ({capturedPoints.length})
+            </Button>
+            <Button variant="outline" size="sm" onClick={clearPoints}>
+              Clear
+            </Button>
+          </>
+        )}
+      </div>
+
+      <div 
+        className="relative w-full" 
+        style={{ aspectRatio: "595.28 / 841.89" }}
+        onClick={handleDiagramClick}
+      >
+        {/* Base rink diagram */}
+        <img
+          src={getImageSource()}
+          alt={`Ice rink ${templateType} measurement template`}
+          className="w-full h-full object-contain"
+        />
       
       {/* Measurement point overlays */}
       <div className="absolute inset-0 pointer-events-none">
-        {points.map((point) => {
+        {!devMode && points.map((point) => {
           const state = getPointState(point);
           const measurementKey = `Point ${point.id}`;
           const measurementValue = measurements[measurementKey];
@@ -118,6 +174,22 @@ export const InteractiveRinkDiagram = ({
             </div>
           );
         })}
+        
+        {/* Captured points in dev mode */}
+        {devMode && capturedPoints.map((point) => (
+          <div
+            key={point.id}
+            className="absolute w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-xs font-bold pointer-events-none"
+            style={{
+              left: `${point.x}%`,
+              top: `${point.y}%`,
+              transform: "translate(-50%, -50%)",
+            }}
+          >
+            {point.id}
+          </div>
+        ))}
+      </div>
       </div>
     </div>
   );
