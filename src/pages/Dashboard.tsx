@@ -17,6 +17,7 @@ import {
   Shield,
   LogOut,
   Settings,
+  FileText,
 } from "lucide-react";
 
 const Dashboard = () => {
@@ -79,6 +80,13 @@ const Dashboard = () => {
       icon: Thermometer,
       color: "from-accent to-ice-arctic",
       path: "/refrigeration-log",
+    },
+    {
+      title: "Daily Reports",
+      description: "Task management and financial tracking",
+      icon: FileText,
+      color: "from-primary to-ice-blue",
+      path: "/daily-reports-dashboard",
     },
     {
       title: "Air Quality",

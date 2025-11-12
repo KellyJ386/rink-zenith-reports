@@ -79,6 +79,169 @@ export type Database = {
         }
         Relationships: []
       }
+      daily_report_financials: {
+        Row: {
+          amount: number
+          category: string
+          description: string | null
+          id: string
+          payment_method: string | null
+          recorded_at: string
+          report_id: string
+          transaction_type: string
+        }
+        Insert: {
+          amount: number
+          category: string
+          description?: string | null
+          id?: string
+          payment_method?: string | null
+          recorded_at?: string
+          report_id: string
+          transaction_type: string
+        }
+        Update: {
+          amount?: number
+          category?: string
+          description?: string | null
+          id?: string
+          payment_method?: string | null
+          recorded_at?: string
+          report_id?: string
+          transaction_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "daily_report_financials_report_id_fkey"
+            columns: ["report_id"]
+            isOneToOne: false
+            referencedRelation: "daily_reports"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      daily_report_tasks: {
+        Row: {
+          category_id: string | null
+          completed_at: string | null
+          completed_by: string | null
+          created_at: string
+          description: string | null
+          id: string
+          notes: string | null
+          report_id: string
+          status: string
+          subcategory_id: string | null
+          task_name: string
+          work_area_id: string | null
+        }
+        Insert: {
+          category_id?: string | null
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          notes?: string | null
+          report_id: string
+          status?: string
+          subcategory_id?: string | null
+          task_name: string
+          work_area_id?: string | null
+        }
+        Update: {
+          category_id?: string | null
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          notes?: string | null
+          report_id?: string
+          status?: string
+          subcategory_id?: string | null
+          task_name?: string
+          work_area_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "daily_report_tasks_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "task_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "daily_report_tasks_report_id_fkey"
+            columns: ["report_id"]
+            isOneToOne: false
+            referencedRelation: "daily_reports"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "daily_report_tasks_subcategory_id_fkey"
+            columns: ["subcategory_id"]
+            isOneToOne: false
+            referencedRelation: "task_subcategories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "daily_report_tasks_work_area_id_fkey"
+            columns: ["work_area_id"]
+            isOneToOne: false
+            referencedRelation: "work_areas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      daily_reports: {
+        Row: {
+          created_at: string
+          duty_type: string | null
+          facility_id: string
+          id: string
+          notes: string | null
+          petty_cash_balance: number | null
+          report_date: string
+          shift_type: string
+          status: string
+          submitted_by: string
+          total_expenses: number | null
+          total_revenue: number | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          duty_type?: string | null
+          facility_id: string
+          id?: string
+          notes?: string | null
+          petty_cash_balance?: number | null
+          report_date: string
+          shift_type: string
+          status?: string
+          submitted_by: string
+          total_expenses?: number | null
+          total_revenue?: number | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          duty_type?: string | null
+          facility_id?: string
+          id?: string
+          notes?: string | null
+          petty_cash_balance?: number | null
+          report_date?: string
+          shift_type?: string
+          status?: string
+          submitted_by?: string
+          total_expenses?: number | null
+          total_revenue?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       facilities: {
         Row: {
           address: string | null
@@ -469,6 +632,42 @@ export type Database = {
           },
         ]
       }
+      report_templates: {
+        Row: {
+          created_at: string
+          duty_type: string | null
+          facility_id: string
+          id: string
+          is_active: boolean
+          shift_type: string | null
+          template_config: Json
+          template_name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          duty_type?: string | null
+          facility_id: string
+          id?: string
+          is_active?: boolean
+          shift_type?: string | null
+          template_config?: Json
+          template_name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          duty_type?: string | null
+          facility_id?: string
+          id?: string
+          is_active?: boolean
+          shift_type?: string | null
+          template_config?: Json
+          template_name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       resurfacing_machines: {
         Row: {
           created_at: string
@@ -533,6 +732,91 @@ export type Database = {
           },
         ]
       }
+      task_categories: {
+        Row: {
+          created_at: string
+          description: string | null
+          display_order: number
+          facility_id: string
+          icon: string | null
+          id: string
+          is_active: boolean
+          name: string
+          updated_at: string
+          work_area_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          display_order?: number
+          facility_id: string
+          icon?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          updated_at?: string
+          work_area_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          display_order?: number
+          facility_id?: string
+          icon?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          updated_at?: string
+          work_area_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "task_categories_work_area_id_fkey"
+            columns: ["work_area_id"]
+            isOneToOne: false
+            referencedRelation: "work_areas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      task_subcategories: {
+        Row: {
+          category_id: string
+          created_at: string
+          description: string | null
+          display_order: number
+          id: string
+          is_active: boolean
+          name: string
+        }
+        Insert: {
+          category_id: string
+          created_at?: string
+          description?: string | null
+          display_order?: number
+          id?: string
+          is_active?: boolean
+          name: string
+        }
+        Update: {
+          category_id?: string
+          created_at?: string
+          description?: string | null
+          display_order?: number
+          id?: string
+          is_active?: boolean
+          name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "task_subcategories_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "task_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_permissions: {
         Row: {
           can_access: boolean
@@ -569,6 +853,39 @@ export type Database = {
           id?: string
           role?: Database["public"]["Enums"]["app_role"]
           user_id?: string
+        }
+        Relationships: []
+      }
+      work_areas: {
+        Row: {
+          created_at: string
+          description: string | null
+          display_order: number
+          facility_id: string
+          id: string
+          is_active: boolean
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          display_order?: number
+          facility_id: string
+          id?: string
+          is_active?: boolean
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          display_order?: number
+          facility_id?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          updated_at?: string
         }
         Relationships: []
       }
