@@ -5,6 +5,7 @@ import rink35Point from "@/assets/rink-35-point.svg";
 import rink47Point from "@/assets/rink-47-point.svg";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 
 interface InteractiveRinkDiagramProps {
@@ -20,9 +21,12 @@ export const InteractiveRinkDiagram = ({
   currentPointId,
   onPointClick,
 }: InteractiveRinkDiagramProps) => {
-  const points = measurementPoints[templateType] || [];
   const [devMode, setDevMode] = useState(false);
+  const [devTemplate, setDevTemplate] = useState(templateType);
   const [capturedPoints, setCapturedPoints] = useState<{ x: number; y: number; id: number }[]>([]);
+  
+  const activeTemplate = devMode ? devTemplate : templateType;
+  const points = measurementPoints[activeTemplate] || [];
 
   const getPointState = (point: MeasurementPoint): "disabled" | "current" | "complete" => {
     const measurementKey = `Point ${point.id}`;
@@ -58,7 +62,7 @@ export const InteractiveRinkDiagram = ({
   };
 
   const getImageSource = () => {
-    switch (templateType) {
+    switch (activeTemplate) {
       case "24-point":
         return rink24Point;
       case "35-point":
@@ -96,7 +100,7 @@ export const InteractiveRinkDiagram = ({
   return (
     <div className="space-y-4">
       {/* Dev Mode Controls */}
-      <div className="flex gap-2 items-center justify-end">
+      <div className="flex gap-2 items-center justify-end flex-wrap">
         <Button
           variant={devMode ? "default" : "outline"}
           size="sm"
@@ -105,15 +109,29 @@ export const InteractiveRinkDiagram = ({
           <MapPin className="w-4 h-4 mr-2" />
           {devMode ? "Exit" : "Enable"} Coordinate Capture
         </Button>
-        {devMode && capturedPoints.length > 0 && (
+        {devMode && (
           <>
-            <Button variant="outline" size="sm" onClick={copyCoordinates}>
-              <Copy className="w-4 h-4 mr-2" />
-              Copy ({capturedPoints.length})
-            </Button>
-            <Button variant="outline" size="sm" onClick={clearPoints}>
-              Clear
-            </Button>
+            <Select value={devTemplate} onValueChange={setDevTemplate}>
+              <SelectTrigger className="w-[140px] h-9">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="24-point">24-point</SelectItem>
+                <SelectItem value="35-point">35-point</SelectItem>
+                <SelectItem value="47-point">47-point</SelectItem>
+              </SelectContent>
+            </Select>
+            {capturedPoints.length > 0 && (
+              <>
+                <Button variant="outline" size="sm" onClick={copyCoordinates}>
+                  <Copy className="w-4 h-4 mr-2" />
+                  Copy ({capturedPoints.length})
+                </Button>
+                <Button variant="outline" size="sm" onClick={clearPoints}>
+                  Clear
+                </Button>
+              </>
+            )}
           </>
         )}
       </div>
@@ -126,7 +144,7 @@ export const InteractiveRinkDiagram = ({
         {/* Base rink diagram */}
         <img
           src={getImageSource()}
-          alt={`Ice rink ${templateType} measurement template`}
+          alt={`Ice rink ${activeTemplate} measurement template`}
           className="w-full h-full object-contain"
         />
       
