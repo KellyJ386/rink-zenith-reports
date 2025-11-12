@@ -9,8 +9,10 @@ import { format, addWeeks, subWeeks, startOfWeek, endOfWeek } from "date-fns";
 import { useScheduleShifts } from "@/hooks/useScheduleShifts";
 import { useScheduleRoles } from "@/hooks/useScheduleRoles";
 import { useScheduleStaff } from "@/hooks/useScheduleStaff";
+import { useShiftSwaps } from "@/hooks/useShiftSwaps";
 import { WeeklyCalendarGrid } from "@/components/schedule/WeeklyCalendarGrid";
 import { ShiftModal } from "@/components/schedule/ShiftModal";
+import { ShiftSwapModal } from "@/components/schedule/ShiftSwapModal";
 import { ScheduleShift, ShiftFormData, FACILITY_AREAS } from "@/types/schedule";
 
 const ScheduleCalendar = () => {
@@ -21,10 +23,13 @@ const ScheduleCalendar = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingShift, setEditingShift] = useState<ScheduleShift | null>(null);
+  const [isSwapModalOpen, setIsSwapModalOpen] = useState(false);
+  const [swappingShift, setSwappingShift] = useState<ScheduleShift | null>(null);
 
   const { shifts, isLoading, createShift, updateShift, deleteShift } = useScheduleShifts(currentWeek);
   const { data: roles = [] } = useScheduleRoles();
   const { data: staff = [] } = useScheduleStaff();
+  const { createSwapRequest, isSubmitting: isSwapSubmitting } = useShiftSwaps();
 
   const weekStartDate = startOfWeek(currentWeek, { weekStartsOn: 0 });
   const weekEndDate = endOfWeek(currentWeek, { weekStartsOn: 0 });
@@ -79,6 +84,20 @@ const ScheduleCalendar = () => {
   const handleModalClose = () => {
     setIsModalOpen(false);
     setEditingShift(null);
+  };
+
+  const handleSwapShift = (shift: ScheduleShift) => {
+    setSwappingShift(shift);
+    setIsSwapModalOpen(true);
+  };
+
+  const handleCreateSwapRequest = (data: any) => {
+    createSwapRequest.mutate(data);
+  };
+
+  const handleSwapModalClose = () => {
+    setIsSwapModalOpen(false);
+    setSwappingShift(null);
   };
 
   const stats = {
@@ -238,6 +257,7 @@ const ScheduleCalendar = () => {
           shifts={filteredShifts}
           onEditShift={handleEditShift}
           onDeleteShift={handleDeleteShift}
+          onSwapShift={handleSwapShift}
         />
       )}
 
@@ -257,6 +277,18 @@ const ScheduleCalendar = () => {
         } : undefined}
         isSubmitting={createShift.isPending || updateShift.isPending}
       />
+
+      {/* Shift Swap Modal */}
+      {swappingShift?.assigned_staff_id && (
+        <ShiftSwapModal
+          isOpen={isSwapModalOpen}
+          onClose={handleSwapModalClose}
+          onSubmit={handleCreateSwapRequest}
+          shift={swappingShift}
+          currentStaffId={swappingShift.assigned_staff_id}
+          isSubmitting={isSwapSubmitting}
+        />
+      )}
     </div>
   );
 };

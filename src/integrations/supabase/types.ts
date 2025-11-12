@@ -1266,6 +1266,70 @@ export type Database = {
           },
         ]
       }
+      schedule_shift_swaps: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          created_at: string
+          id: string
+          manager_notes: string | null
+          reason: string | null
+          requested_by: string
+          requested_to: string
+          shift_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          created_at?: string
+          id?: string
+          manager_notes?: string | null
+          reason?: string | null
+          requested_by: string
+          requested_to: string
+          shift_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          created_at?: string
+          id?: string
+          manager_notes?: string | null
+          reason?: string | null
+          requested_by?: string
+          requested_to?: string
+          shift_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "schedule_shift_swaps_requested_by_fkey"
+            columns: ["requested_by"]
+            isOneToOne: false
+            referencedRelation: "schedule_staff"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "schedule_shift_swaps_requested_to_fkey"
+            columns: ["requested_to"]
+            isOneToOne: false
+            referencedRelation: "schedule_staff"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "schedule_shift_swaps_shift_id_fkey"
+            columns: ["shift_id"]
+            isOneToOne: false
+            referencedRelation: "schedule_shifts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       schedule_shifts: {
         Row: {
           area: string

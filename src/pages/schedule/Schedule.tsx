@@ -3,7 +3,7 @@ import { useNavigate, Outlet, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { Calendar, Users, Clock, CalendarX, BarChart3, LogOut, Home } from "lucide-react";
+import { Calendar, Users, Clock, CalendarX, BarChart3, LogOut, Home, ArrowRightLeft } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 
 const Schedule = () => {
@@ -47,6 +47,7 @@ const Schedule = () => {
     { label: "Staff", path: "/schedule/staff", icon: Users },
     { label: "Availability", path: "/schedule/availability", icon: Clock },
     { label: "Time Off", path: "/schedule/time-off", icon: CalendarX },
+    { label: "Shift Swaps", path: "/schedule/swaps", icon: ArrowRightLeft },
     { label: "Reports", path: "/schedule/reports", icon: BarChart3 },
   ];
 

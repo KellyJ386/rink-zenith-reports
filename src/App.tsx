@@ -26,6 +26,7 @@ import ScheduleCalendar from "./pages/schedule/ScheduleCalendar";
 import ScheduleStaff from "./pages/schedule/ScheduleStaff";
 import ScheduleAvailability from "./pages/schedule/ScheduleAvailability";
 import ScheduleTimeOff from "./pages/schedule/ScheduleTimeOff";
+import ScheduleSwaps from "./pages/schedule/ScheduleSwaps";
 import ScheduleReports from "./pages/schedule/ScheduleReports";
 import NotFound from "./pages/NotFound";
 
@@ -61,6 +62,7 @@ const App = () => (
             <Route path="staff" element={<ScheduleStaff />} />
             <Route path="availability" element={<ScheduleAvailability />} />
             <Route path="time-off" element={<ScheduleTimeOff />} />
+            <Route path="swaps" element={<ScheduleSwaps />} />
             <Route path="reports" element={<ScheduleReports />} />
           </Route>
           <Route path="/admin" element={<Admin />}>

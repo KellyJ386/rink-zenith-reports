@@ -3,16 +3,17 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ScheduleShift, TIME_SLOTS } from "@/types/schedule";
-import { Pencil, Trash2, User } from "lucide-react";
+import { Pencil, Trash2, User, ArrowRightLeft } from "lucide-react";
 
 interface WeeklyCalendarGridProps {
   weekStart: Date;
   shifts: ScheduleShift[];
   onEditShift: (shift: ScheduleShift) => void;
   onDeleteShift: (id: string) => void;
+  onSwapShift?: (shift: ScheduleShift) => void;
 }
 
-export const WeeklyCalendarGrid = ({ weekStart, shifts, onEditShift, onDeleteShift }: WeeklyCalendarGridProps) => {
+export const WeeklyCalendarGrid = ({ weekStart, shifts, onEditShift, onDeleteShift, onSwapShift }: WeeklyCalendarGridProps) => {
   const days = Array.from({ length: 7 }, (_, i) => addDays(startOfWeek(weekStart, { weekStartsOn: 0 }), i));
   const today = new Date();
 
@@ -163,6 +164,19 @@ export const WeeklyCalendarGrid = ({ weekStart, shifts, onEditShift, onDeleteShi
                         >
                           <Pencil className="h-3 w-3" />
                         </Button>
+                        {shift.assigned_staff_id && onSwapShift && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="h-6 px-2 text-xs"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onSwapShift(shift);
+                            }}
+                          >
+                            <ArrowRightLeft className="h-3 w-3" />
+                          </Button>
+                        )}
                         <Button
                           size="sm"
                           variant="destructive"
