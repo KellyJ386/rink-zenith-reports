@@ -76,8 +76,8 @@ export const EmailChangePrompt = () => {
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent className="sm:max-w-md">
+    <Dialog open={open} onOpenChange={(value) => !value && setOpen(value)}>
+      <DialogContent className="sm:max-w-md" onInteractOutside={(e) => e.preventDefault()}>
         <DialogHeader>
           <DialogTitle>Update Your Email</DialogTitle>
           <DialogDescription>
