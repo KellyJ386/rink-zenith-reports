@@ -380,6 +380,129 @@ export type Database = {
           },
         ]
       }
+      refrigeration_checklist_template: {
+        Row: {
+          created_at: string
+          display_order: number | null
+          facility_id: string
+          id: string
+          is_active: boolean | null
+          item_text: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          display_order?: number | null
+          facility_id: string
+          id?: string
+          is_active?: boolean | null
+          item_text: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          display_order?: number | null
+          facility_id?: string
+          id?: string
+          is_active?: boolean | null
+          item_text?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "refrigeration_checklist_template_facility_id_fkey"
+            columns: ["facility_id"]
+            isOneToOne: false
+            referencedRelation: "facilities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      refrigeration_equipment: {
+        Row: {
+          created_at: string
+          display_order: number | null
+          equipment_name: string
+          equipment_type: string
+          facility_id: string
+          id: string
+          is_active: boolean | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          display_order?: number | null
+          equipment_name: string
+          equipment_type: string
+          facility_id: string
+          id?: string
+          is_active?: boolean | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          display_order?: number | null
+          equipment_name?: string
+          equipment_type?: string
+          facility_id?: string
+          id?: string
+          is_active?: boolean | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "refrigeration_equipment_facility_id_fkey"
+            columns: ["facility_id"]
+            isOneToOne: false
+            referencedRelation: "facilities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      refrigeration_logs: {
+        Row: {
+          checklist_items: Json
+          created_at: string
+          facility_id: string
+          id: string
+          log_date: string
+          notes: string | null
+          operator_id: string
+          readings: Json
+          updated_at: string
+        }
+        Insert: {
+          checklist_items?: Json
+          created_at?: string
+          facility_id: string
+          id?: string
+          log_date?: string
+          notes?: string | null
+          operator_id: string
+          readings?: Json
+          updated_at?: string
+        }
+        Update: {
+          checklist_items?: Json
+          created_at?: string
+          facility_id?: string
+          id?: string
+          log_date?: string
+          notes?: string | null
+          operator_id?: string
+          readings?: Json
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "refrigeration_logs_facility_id_fkey"
+            columns: ["facility_id"]
+            isOneToOne: false
+            referencedRelation: "facilities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       resurfacing_machines: {
         Row: {
           created_at: string

@@ -78,7 +78,7 @@ const Dashboard = () => {
       description: "Monitor compressor and condenser data",
       icon: Thermometer,
       color: "from-accent to-ice-arctic",
-      path: null,
+      path: "/refrigeration-log",
     },
     {
       title: "Air Quality",
