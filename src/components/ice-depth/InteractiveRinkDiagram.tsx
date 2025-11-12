@@ -1,13 +1,17 @@
 import { measurementPoints, MeasurementPoint } from "./measurementPoints";
-import { Check, MapPin, Copy, Download, Upload } from "lucide-react";
+import { Check, MapPin, Copy, Download, Upload, Save, FolderOpen } from "lucide-react";
 import rink24Point from "@/assets/rink-24-point.svg";
 import rink35Point from "@/assets/rink-35-point.svg";
 import rink47Point from "@/assets/rink-47-point.svg";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 interface InteractiveRinkDiagramProps {
   templateType: string;
@@ -25,10 +29,39 @@ export const InteractiveRinkDiagram = ({
   const [devMode, setDevMode] = useState(false);
   const [devTemplate, setDevTemplate] = useState(templateType);
   const [capturedPoints, setCapturedPoints] = useState<{ x: number; y: number; id: number }[]>([]);
+  const [savedTemplates, setSavedTemplates] = useState<any[]>([]);
+  const [saveDialogOpen, setSaveDialogOpen] = useState(false);
+  const [loadDialogOpen, setLoadDialogOpen] = useState(false);
+  const [templateName, setTemplateName] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   const activeTemplate = devMode ? devTemplate : templateType;
   const points = measurementPoints[activeTemplate] || [];
+
+  // Fetch saved templates when entering dev mode
+  useEffect(() => {
+    if (devMode) {
+      fetchSavedTemplates();
+    }
+  }, [devMode]);
+
+  const fetchSavedTemplates = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    const { data, error } = await supabase
+      .from("custom_templates")
+      .select("*")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      console.error("Error fetching templates:", error);
+      return;
+    }
+
+    setSavedTemplates(data || []);
+  };
 
   const getPointState = (point: MeasurementPoint): "disabled" | "current" | "complete" => {
     const measurementKey = `Point ${point.id}`;
@@ -226,6 +259,87 @@ export const InteractiveRinkDiagram = ({
     fileInputRef.current?.click();
   };
 
+  const handleSaveTemplate = async () => {
+    if (!templateName.trim()) {
+      toast.error("Please enter a template name");
+      return;
+    }
+
+    if (capturedPoints.length === 0) {
+      toast.error("No points to save");
+      return;
+    }
+
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      toast.error("You must be logged in to save templates");
+      return;
+    }
+
+    const templateData = {
+      template: devTemplate,
+      points: capturedPoints.map(p => ({
+        id: p.id,
+        x: p.x,
+        y: p.y,
+        name: `Point ${p.id}`,
+        row: 1
+      }))
+    };
+
+    const { error } = await supabase
+      .from("custom_templates")
+      .insert({
+        name: templateName,
+        user_id: user.id,
+        template_data: templateData,
+        point_count: capturedPoints.length
+      });
+
+    if (error) {
+      console.error("Error saving template:", error);
+      toast.error("Failed to save template");
+      return;
+    }
+
+    toast.success(`Template "${templateName}" saved successfully!`);
+    setTemplateName("");
+    setSaveDialogOpen(false);
+    fetchSavedTemplates();
+  };
+
+  const handleLoadTemplate = async (template: any) => {
+    try {
+      const data = template.template_data;
+      if (data.template) {
+        setDevTemplate(data.template);
+      }
+      const importedPoints = data.points?.map((p: any) => ({ id: p.id, x: p.x, y: p.y })) || [];
+      setCapturedPoints(importedPoints);
+      toast.success(`Loaded template "${template.name}" with ${importedPoints.length} points`);
+      setLoadDialogOpen(false);
+    } catch (error) {
+      console.error("Error loading template:", error);
+      toast.error("Failed to load template");
+    }
+  };
+
+  const handleDeleteTemplate = async (templateId: string, templateName: string) => {
+    const { error } = await supabase
+      .from("custom_templates")
+      .delete()
+      .eq("id", templateId);
+
+    if (error) {
+      console.error("Error deleting template:", error);
+      toast.error("Failed to delete template");
+      return;
+    }
+
+    toast.success(`Template "${templateName}" deleted`);
+    fetchSavedTemplates();
+  };
+
   return (
     <div className="space-y-4">
       {/* Dev Mode Controls */}
@@ -262,8 +376,16 @@ export const InteractiveRinkDiagram = ({
               <Upload className="w-4 h-4 mr-2" />
               Import
             </Button>
+            <Button variant="outline" size="sm" onClick={() => setLoadDialogOpen(true)}>
+              <FolderOpen className="w-4 h-4 mr-2" />
+              Load ({savedTemplates.length})
+            </Button>
             {capturedPoints.length > 0 && (
               <>
+                <Button variant="outline" size="sm" onClick={() => setSaveDialogOpen(true)}>
+                  <Save className="w-4 h-4 mr-2" />
+                  Save Template
+                </Button>
                 <Button variant="outline" size="sm" onClick={copyCoordinates}>
                   <Copy className="w-4 h-4 mr-2" />
                   Copy ({capturedPoints.length})
@@ -369,6 +491,95 @@ export const InteractiveRinkDiagram = ({
         ))}
       </div>
       </div>
+
+      {/* Save Template Dialog */}
+      <Dialog open={saveDialogOpen} onOpenChange={setSaveDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Save Custom Template</DialogTitle>
+            <DialogDescription>
+              Save your {capturedPoints.length} captured points as a reusable template.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="template-name">Template Name</Label>
+              <Input
+                id="template-name"
+                placeholder="e.g., My Custom 30-Point Pattern"
+                value={templateName}
+                onChange={(e) => setTemplateName(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    handleSaveTemplate();
+                  }
+                }}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setSaveDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleSaveTemplate}>
+              <Save className="w-4 h-4 mr-2" />
+              Save Template
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Load Template Dialog */}
+      <Dialog open={loadDialogOpen} onOpenChange={setLoadDialogOpen}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Load Saved Template</DialogTitle>
+            <DialogDescription>
+              Select a saved template to load into the coordinate capture tool.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2 py-4">
+            {savedTemplates.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                <FolderOpen className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                <p>No saved templates yet</p>
+                <p className="text-sm mt-1">Capture points and save them to create templates</p>
+              </div>
+            ) : (
+              savedTemplates.map((template) => (
+                <div
+                  key={template.id}
+                  className="flex items-center justify-between p-4 border rounded-lg hover:bg-accent transition-colors"
+                >
+                  <div className="flex-1">
+                    <h4 className="font-medium">{template.name}</h4>
+                    <p className="text-sm text-muted-foreground">
+                      {template.point_count} points • {template.template_data.template || 'custom'} • 
+                      {new Date(template.created_at).toLocaleDateString()}
+                    </p>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleLoadTemplate(template)}
+                    >
+                      Load
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleDeleteTemplate(template.id, template.name)}
+                    >
+                      Delete
+                    </Button>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

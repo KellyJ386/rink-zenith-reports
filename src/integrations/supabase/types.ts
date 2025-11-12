@@ -49,6 +49,36 @@ export type Database = {
           },
         ]
       }
+      custom_templates: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          point_count: number
+          template_data: Json
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          point_count: number
+          template_data: Json
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          point_count?: number
+          template_data?: Json
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       facilities: {
         Row: {
           address: string | null
