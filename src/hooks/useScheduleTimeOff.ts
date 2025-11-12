@@ -102,6 +102,16 @@ export const useScheduleTimeOff = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
+      // Get time off details for notifications
+      const { data: timeOffDetails } = await supabase
+        .from('schedule_time_off')
+        .select(`
+          *,
+          staff:schedule_staff(full_name, email)
+        `)
+        .eq('id', id)
+        .single();
+
       const { error } = await supabase
         .from('schedule_time_off')
         .update({
@@ -113,6 +123,28 @@ export const useScheduleTimeOff = () => {
         .eq('id', id);
 
       if (error) throw error;
+
+      // Send notification
+      if (timeOffDetails?.staff) {
+        try {
+          await supabase.functions.invoke('send-timeoff-notification', {
+            body: {
+              type: data.status,
+              staffEmail: timeOffDetails.staff.email,
+              staffName: timeOffDetails.staff.full_name,
+              requestDetails: {
+                startDate: timeOffDetails.start_date,
+                endDate: timeOffDetails.end_date,
+                requestType: timeOffDetails.request_type,
+                reason: timeOffDetails.reason,
+              },
+              managerResponse: data.manager_response,
+            },
+          });
+        } catch (emailError) {
+          console.error('Failed to send notification:', emailError);
+        }
+      }
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['schedule-time-off'] });

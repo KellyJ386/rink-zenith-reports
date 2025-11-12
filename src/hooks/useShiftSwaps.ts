@@ -80,6 +80,24 @@ export const useShiftSwaps = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
+      // Get swap details for notifications
+      const { data: swapDetails } = await supabase
+        .from('schedule_shift_swaps')
+        .select(`
+          *,
+          shift:schedule_shifts(
+            date,
+            start_time,
+            end_time,
+            area,
+            role:schedule_roles(name)
+          ),
+          requester:schedule_staff!schedule_shift_swaps_requested_by_fkey(full_name, email),
+          recipient:schedule_staff!schedule_shift_swaps_requested_to_fkey(full_name, email)
+        `)
+        .eq('id', id)
+        .single();
+
       const { error } = await supabase
         .from('schedule_shift_swaps')
         .update({
@@ -93,23 +111,60 @@ export const useShiftSwaps = () => {
       if (error) throw error;
 
       // If approved, update the shift assignment
-      if (data.status === 'approved') {
-        const { data: swapData } = await supabase
-          .from('schedule_shift_swaps')
-          .select('shift_id, requested_to')
-          .eq('id', id)
-          .single();
+      if (data.status === 'approved' && swapDetails) {
+        const { error: shiftError } = await supabase
+          .from('schedule_shifts')
+          .update({
+            assigned_staff_id: swapDetails.requested_to,
+            status: 'assigned',
+          })
+          .eq('id', swapDetails.shift_id);
 
-        if (swapData) {
-          const { error: shiftError } = await supabase
-            .from('schedule_shifts')
-            .update({
-              assigned_staff_id: swapData.requested_to,
-              status: 'assigned',
-            })
-            .eq('id', swapData.shift_id);
+        if (shiftError) throw shiftError;
+      }
 
-          if (shiftError) throw shiftError;
+      // Send notifications to both parties
+      if (swapDetails?.shift && swapDetails.requester && swapDetails.recipient) {
+        try {
+          // Notify requester
+          await supabase.functions.invoke('send-swap-notification', {
+            body: {
+              type: data.status,
+              recipientEmail: swapDetails.requester.email,
+              recipientName: swapDetails.requester.full_name,
+              requesterName: swapDetails.requester.full_name,
+              shiftDetails: {
+                date: swapDetails.shift.date,
+                startTime: swapDetails.shift.start_time,
+                endTime: swapDetails.shift.end_time,
+                role: swapDetails.shift.role?.name || 'Unknown',
+                area: swapDetails.shift.area,
+              },
+              managerNotes: data.manager_notes,
+            },
+          });
+
+          // Notify recipient (new assignee) if approved
+          if (data.status === 'approved') {
+            await supabase.functions.invoke('send-swap-notification', {
+              body: {
+                type: 'approved',
+                recipientEmail: swapDetails.recipient.email,
+                recipientName: swapDetails.recipient.full_name,
+                requesterName: swapDetails.requester.full_name,
+                shiftDetails: {
+                  date: swapDetails.shift.date,
+                  startTime: swapDetails.shift.start_time,
+                  endTime: swapDetails.shift.end_time,
+                  role: swapDetails.shift.role?.name || 'Unknown',
+                  area: swapDetails.shift.area,
+                },
+                managerNotes: data.manager_notes,
+              },
+            });
+          }
+        } catch (emailError) {
+          console.error('Failed to send notification:', emailError);
         }
       }
     },

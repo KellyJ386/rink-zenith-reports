@@ -38,18 +38,45 @@ export const useScheduleShifts = (weekStart: Date) => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
-      const { data, error } = await supabase
+      const { data: newShift, error } = await supabase
         .from('schedule_shifts')
         .insert({
           ...shiftData,
           created_by: user.id,
           status: shiftData.assigned_staff_id ? 'assigned' : 'open',
         })
-        .select()
+        .select(`
+          *,
+          role:schedule_roles(name),
+          assigned_staff:schedule_staff(email, full_name)
+        `)
         .single();
 
       if (error) throw error;
-      return data;
+
+      // Send notification if staff is assigned
+      if (shiftData.assigned_staff_id && newShift.assigned_staff) {
+        try {
+          await supabase.functions.invoke('send-shift-notification', {
+            body: {
+              type: 'assignment',
+              staffEmail: newShift.assigned_staff.email,
+              staffName: newShift.assigned_staff.full_name,
+              shiftDetails: {
+                date: newShift.date,
+                startTime: newShift.start_time,
+                endTime: newShift.end_time,
+                role: newShift.role?.name || 'Unknown',
+                area: newShift.area,
+              },
+            },
+          });
+        } catch (emailError) {
+          console.error('Failed to send notification:', emailError);
+        }
+      }
+
+      return newShift;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['schedule-shifts'] });
@@ -70,15 +97,50 @@ export const useScheduleShifts = (weekStart: Date) => {
   // Update shift mutation
   const updateShift = useMutation({
     mutationFn: async ({ id, updates }: { id: string; updates: Partial<ShiftFormData> }) => {
-      const { data, error } = await supabase
+      // Get original shift to check if assignment changed
+      const { data: originalShift } = await supabase
+        .from('schedule_shifts')
+        .select('assigned_staff_id')
+        .eq('id', id)
+        .single();
+
+      const { data: updatedShift, error } = await supabase
         .from('schedule_shifts')
         .update(updates)
         .eq('id', id)
-        .select()
+        .select(`
+          *,
+          role:schedule_roles(name),
+          assigned_staff:schedule_staff(email, full_name)
+        `)
         .single();
 
       if (error) throw error;
-      return data;
+
+      // Send notification if assignment changed
+      const assignmentChanged = originalShift?.assigned_staff_id !== updates.assigned_staff_id;
+      if (assignmentChanged && updates.assigned_staff_id && updatedShift.assigned_staff) {
+        try {
+          await supabase.functions.invoke('send-shift-notification', {
+            body: {
+              type: 'assignment',
+              staffEmail: updatedShift.assigned_staff.email,
+              staffName: updatedShift.assigned_staff.full_name,
+              shiftDetails: {
+                date: updatedShift.date,
+                startTime: updatedShift.start_time,
+                endTime: updatedShift.end_time,
+                role: updatedShift.role?.name || 'Unknown',
+                area: updatedShift.area,
+              },
+            },
+          });
+        } catch (emailError) {
+          console.error('Failed to send notification:', emailError);
+        }
+      }
+
+      return updatedShift;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['schedule-shifts'] });
