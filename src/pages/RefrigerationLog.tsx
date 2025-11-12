@@ -38,7 +38,6 @@ export default function RefrigerationLog() {
   const [facilityId, setFacilityId] = useState<string>("");
   const [operatorName, setOperatorName] = useState<string>("");
   const [logDate, setLogDate] = useState(format(new Date(), "yyyy-MM-dd'T'HH:mm"));
-  const [shift, setShift] = useState<string>("morning");
   const [notes, setNotes] = useState("");
   
   const [compressors, setCompressors] = useState<CompressorReading[]>([
@@ -156,7 +155,6 @@ export default function RefrigerationLog() {
         .insert({
           facility_id: facilityId,
           log_date: new Date(logDate).toISOString(),
-          shift,
           operator_id: user.id,
           notes
         })
@@ -256,7 +254,7 @@ export default function RefrigerationLog() {
           <CardTitle>Log Information</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <Label>Date & Time</Label>
               <Input
@@ -264,20 +262,6 @@ export default function RefrigerationLog() {
                 value={logDate}
                 onChange={(e) => setLogDate(e.target.value)}
               />
-            </div>
-            <div>
-              <Label>Shift</Label>
-              <Select value={shift} onValueChange={setShift}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="morning">Morning</SelectItem>
-                  <SelectItem value="afternoon">Afternoon</SelectItem>
-                  <SelectItem value="evening">Evening</SelectItem>
-                  <SelectItem value="overnight">Overnight</SelectItem>
-                </SelectContent>
-              </Select>
             </div>
             <div>
               <Label>Operator</Label>

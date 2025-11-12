@@ -18,7 +18,6 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsi
 interface LogEntry {
   id: string;
   log_date: string;
-  shift: string;
   notes: string;
   operator_id: string;
   compressor_readings: any[];
@@ -170,14 +169,13 @@ export default function RefrigerationDashboard() {
       return;
     }
 
-    const headers = ["Date", "Shift", "Compressor", "Suction PSI", "Discharge PSI", "Oil Level", "Temp", "Notes"];
+    const headers = ["Date", "Compressor", "Suction PSI", "Discharge PSI", "Oil Level", "Temp", "Notes"];
     const rows: string[][] = [];
 
     logs.forEach(log => {
       log.compressor_readings?.forEach(comp => {
         rows.push([
           format(new Date(log.log_date), "yyyy-MM-dd HH:mm"),
-          log.shift,
           comp.compressor_name,
           comp.suction_pressure?.toString() || "",
           comp.discharge_pressure?.toString() || "",
@@ -309,7 +307,6 @@ export default function RefrigerationDashboard() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Date/Time</TableHead>
-                    <TableHead>Shift</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Compressors</TableHead>
                     <TableHead>Checklist</TableHead>
@@ -320,7 +317,6 @@ export default function RefrigerationDashboard() {
                   {logs.map(log => (
                     <TableRow key={log.id}>
                       <TableCell>{format(new Date(log.log_date), "MMM dd, yyyy HH:mm")}</TableCell>
-                      <TableCell className="capitalize">{log.shift}</TableCell>
                       <TableCell>{getStatusBadge(log)}</TableCell>
                       <TableCell>
                         <div className="text-sm space-y-1">

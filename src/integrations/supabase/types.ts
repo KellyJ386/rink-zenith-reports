@@ -499,7 +499,6 @@ export type Database = {
           log_date: string
           notes: string | null
           operator_id: string
-          shift: string
         }
         Insert: {
           created_at?: string
@@ -508,7 +507,6 @@ export type Database = {
           log_date?: string
           notes?: string | null
           operator_id: string
-          shift: string
         }
         Update: {
           created_at?: string
@@ -517,7 +515,6 @@ export type Database = {
           log_date?: string
           notes?: string | null
           operator_id?: string
-          shift?: string
         }
         Relationships: [
           {
