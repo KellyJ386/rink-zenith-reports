@@ -483,7 +483,7 @@ export const InteractiveRinkDiagram = ({
         <img
           src={getImageSource()}
           alt={`Ice rink ${activeTemplate} measurement template`}
-          className="w-full h-full object-contain"
+          className="w-full h-full object-fill"
         />
       
       {/* Measurement point overlays */}
