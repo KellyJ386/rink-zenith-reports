@@ -7,7 +7,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useToast } from "@/hooks/use-toast";
 import { TemplateSelection } from "./TemplateSelection";
-import { MeasurementInput } from "./MeasurementInput";
 import { StatisticsPanel } from "./StatisticsPanel";
 import { AIAnalysisDisplay } from "./AIAnalysisDisplay";
 import { Loader2 } from "lucide-react";
@@ -311,13 +310,6 @@ export const IceDepthMeasurementForm = ({ userId }: IceDepthMeasurementFormProps
                 [`Point ${pointId}`]: value,
               });
             }}
-          />
-          
-          <MeasurementInput
-            templateType={templateType}
-            measurements={measurements}
-            onMeasurementsChange={setMeasurements}
-            currentPointId={currentPointId}
           />
 
           <StatisticsPanel stats={stats} />
