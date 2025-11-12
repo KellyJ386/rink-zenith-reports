@@ -22,7 +22,7 @@ export const IceDepthMeasurementForm = ({ userId }: IceDepthMeasurementFormProps
   const [rinks, setRinks] = useState<any[]>([]);
   const [selectedFacility, setSelectedFacility] = useState<string>("");
   const [selectedRink, setSelectedRink] = useState<string>("");
-  const [templateType, setTemplateType] = useState<string>("24-point");
+  const [templateType, setTemplateType] = useState<string>("25-point");
   const [measurements, setMeasurements] = useState<Record<string, number>>({});
   const [aiAnalysis, setAiAnalysis] = useState<string>("");
   const [loading, setLoading] = useState(false);
@@ -270,9 +270,9 @@ export const IceDepthMeasurementForm = ({ userId }: IceDepthMeasurementFormProps
             <Label>Measurement Template</Label>
             <RadioGroup value={templateType} onValueChange={setTemplateType}>
               <div className="flex items-center space-x-2">
-                <RadioGroupItem value="24-point" id="24-point" />
-                <Label htmlFor="24-point" className="font-normal cursor-pointer">
-                  24-Point Template
+                <RadioGroupItem value="25-point" id="25-point" />
+                <Label htmlFor="25-point" className="font-normal cursor-pointer">
+                  25-Point Template
                 </Label>
               </div>
               <div className="flex items-center space-x-2">

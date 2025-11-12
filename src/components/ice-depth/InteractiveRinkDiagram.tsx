@@ -65,7 +65,7 @@ export const InteractiveRinkDiagram = ({
 
   const getImageSource = () => {
     switch (activeTemplate) {
-      case "24-point":
+      case "25-point":
         return rink24Point;
       case "35-point":
         return rink35Point;
@@ -245,7 +245,7 @@ export const InteractiveRinkDiagram = ({
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="24-point">24-point</SelectItem>
+                <SelectItem value="25-point">25-point</SelectItem>
                 <SelectItem value="35-point">35-point</SelectItem>
                 <SelectItem value="47-point">47-point</SelectItem>
                 <SelectItem value="custom">Custom</SelectItem>
