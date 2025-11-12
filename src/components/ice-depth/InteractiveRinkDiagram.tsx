@@ -68,13 +68,13 @@ export const InteractiveRinkDiagram = ({
     setSavedTemplates(data || []);
   };
 
-  const getPointState = (point: MeasurementPoint): "disabled" | "current" | "complete" => {
+  const getPointState = (point: MeasurementPoint): "disabled" | "current" | "complete" | "available" => {
     const measurementKey = `Point ${point.id}`;
     const hasMeasurement = measurements[measurementKey] !== undefined && measurements[measurementKey] > 0;
     
     if (hasMeasurement) return "complete";
     if (point.id === currentPointId) return "current";
-    return "disabled";
+    return "available";
   };
 
   const getDepthColor = (depth: number): string => {
@@ -84,7 +84,7 @@ export const InteractiveRinkDiagram = ({
     return "bg-yellow-500";
   };
 
-  const getPointStyles = (state: "disabled" | "current" | "complete", depth?: number) => {
+  const getPointStyles = (state: "disabled" | "current" | "complete" | "available", depth?: number) => {
     const baseClasses = "absolute flex items-center justify-center rounded-full font-bold text-white transition-all cursor-pointer";
     
     // Responsive sizing
@@ -103,6 +103,10 @@ export const InteractiveRinkDiagram = ({
     if (state === "complete" && depth !== undefined) {
       const bgColor = getDepthColor(depth);
       return `${baseClasses} ${sizeClasses} ${bgColor} text-white shadow-md hover:scale-110`;
+    }
+    
+    if (state === "available") {
+      return `${baseClasses} ${sizeClasses} bg-muted hover:bg-primary/70 text-muted-foreground hover:text-primary-foreground opacity-60 hover:opacity-100`;
     }
     
     return baseClasses;
@@ -483,15 +487,12 @@ export const InteractiveRinkDiagram = ({
         />
       
       {/* Measurement point overlays */}
-      <div className="absolute inset-0 pointer-events-none">
+      <div className="absolute inset-0">
         {!devMode && points.map((point) => {
           const state = getPointState(point);
           const measurementKey = `Point ${point.id}`;
           const measurementValue = measurements[measurementKey];
           const hasValue = measurementValue !== undefined && measurementValue > 0;
-          
-          // Don't render disabled points
-          if (state === "disabled") return null;
           
           const isEditing = editingPointId === point.id;
           

@@ -252,11 +252,9 @@ export const IceDepthMeasurementForm = ({ userId }: IceDepthMeasurementFormProps
             measurements={measurements}
             currentPointId={currentPointId}
             onPointClick={(pointId) => {
-              // Allow clicking on completed points to edit
-              if (pointId < currentPointId) {
-                const input = document.getElementById(`point-${pointId}`);
-                input?.focus();
-              }
+              // Allow clicking any point to jump to it
+              const input = document.getElementById(`point-${pointId}`);
+              input?.focus();
             }}
             onMeasurementChange={(pointId, value) => {
               setMeasurements({

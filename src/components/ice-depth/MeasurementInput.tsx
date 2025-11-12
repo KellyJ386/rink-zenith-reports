@@ -44,7 +44,8 @@ export const MeasurementInput = ({
   };
 
   const isPointDisabled = (point: number) => {
-    return point > currentPointId;
+    // Don't disable any points - allow jumping to any point
+    return false;
   };
 
   const filledCount = Object.values(measurements).filter(v => v > 0).length;
