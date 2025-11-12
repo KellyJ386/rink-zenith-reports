@@ -11,7 +11,8 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "@/hooks/use-toast";
 import { format, subDays } from "date-fns";
-import { ArrowLeft, Download, AlertCircle, CheckCircle } from "lucide-react";
+import PageHeader from "@/components/PageHeader";
+import { Download, AlertCircle, CheckCircle, BarChart3 } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 
 interface LogEntry {
@@ -211,16 +212,16 @@ export default function RefrigerationDashboard() {
 
   return (
     <div className="container mx-auto p-6 space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold">Refrigeration Dashboard</h1>
-          <p className="text-muted-foreground">Historical data and trends</p>
-        </div>
-        <Button variant="outline" onClick={() => navigate("/refrigeration-log")}>
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Back to Log
-        </Button>
-      </div>
+      <PageHeader
+        title="Refrigeration Dashboard"
+        subtitle="Historical data and trends"
+        icon={<BarChart3 className="h-8 w-8 text-primary" />}
+        actions={
+          <Button onClick={() => navigate("/refrigeration-log")}>
+            New Log Entry
+          </Button>
+        }
+      />
 
       <Card>
         <CardHeader>

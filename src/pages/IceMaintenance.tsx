@@ -10,7 +10,8 @@ import { BladeChangeForm } from "@/components/maintenance/BladeChangeForm";
 import { EdgingForm } from "@/components/maintenance/EdgingForm";
 import { CircleCheckForm } from "@/components/maintenance/CircleCheckForm";
 import { ActivityFeed } from "@/components/maintenance/ActivityFeed";
-import { Wrench, ArrowLeft, Settings } from "lucide-react";
+import PageHeader from "@/components/PageHeader";
+import { Wrench, Settings } from "lucide-react";
 
 const IceMaintenance = () => {
   const navigate = useNavigate();
@@ -66,44 +67,28 @@ const IceMaintenance = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-ice-frost to-background p-6">
       <div className="max-w-7xl mx-auto">
-        <div className="flex items-center justify-between mb-4">
-          <Button
-            variant="ghost"
-            onClick={() => navigate("/dashboard")}
-          >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Dashboard
-          </Button>
-          <Button
-            variant="outline"
-            onClick={() => navigate("/admin/form-config")}
-          >
-            <Settings className="h-4 w-4 mr-2" />
-            Configure Forms
-          </Button>
-        </div>
-
-        <Card className="shadow-[var(--shadow-ice)] mb-6">
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="p-3 bg-gradient-to-br from-primary to-accent rounded-2xl">
-                  <Wrench className="h-8 w-8 text-white" />
-                </div>
-                <div>
-                  <CardTitle className="text-3xl">Ice Maintenance Log</CardTitle>
-                  <CardDescription>Track resurfacing, blade changes, and equipment checks</CardDescription>
-                </div>
-              </div>
+        <PageHeader
+          title="Ice Maintenance Log"
+          subtitle="Track resurfacing, blade changes, and equipment checks"
+          icon={<Wrench className="h-8 w-8 text-primary" />}
+          actions={
+            <>
+              <Button
+                variant="outline"
+                onClick={() => navigate("/admin/form-config")}
+              >
+                <Settings className="h-4 w-4 mr-2" />
+                Configure Forms
+              </Button>
               <Button
                 variant={showFeed ? "default" : "outline"}
                 onClick={() => setShowFeed(!showFeed)}
               >
                 {showFeed ? "Hide" : "Show"} Activity Feed
               </Button>
-            </div>
-          </CardHeader>
-        </Card>
+            </>
+          }
+        />
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className={showFeed ? "lg:col-span-2" : "lg:col-span-3"}>

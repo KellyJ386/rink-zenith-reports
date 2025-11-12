@@ -6,7 +6,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { FormConfigEditor } from "@/components/admin/FormConfigEditor";
-import { Settings, ArrowLeft } from "lucide-react";
+import PageHeader from "@/components/PageHeader";
+import { Settings } from "lucide-react";
 
 const AdminFormConfig = () => {
   const navigate = useNavigate();
@@ -66,28 +67,11 @@ const AdminFormConfig = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-ice-frost to-background p-6">
       <div className="max-w-7xl mx-auto">
-        <Button
-          variant="ghost"
-          onClick={() => navigate("/ice-maintenance")}
-          className="mb-4"
-        >
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Back to Maintenance
-        </Button>
-
-        <Card className="shadow-[var(--shadow-ice)] mb-6">
-          <CardHeader>
-            <div className="flex items-center gap-3">
-              <div className="p-3 bg-gradient-to-br from-primary to-accent rounded-2xl">
-                <Settings className="h-8 w-8 text-white" />
-              </div>
-              <div>
-                <CardTitle className="text-3xl">Form Configuration</CardTitle>
-                <CardDescription>Customize maintenance form fields for your facility</CardDescription>
-              </div>
-            </div>
-          </CardHeader>
-        </Card>
+        <PageHeader
+          title="Form Configuration"
+          subtitle="Customize maintenance form fields"
+          icon={<Settings className="h-8 w-8 text-primary" />}
+        />
 
         <Tabs defaultValue="resurface" className="w-full">
           <TabsList className="grid w-full grid-cols-4 mb-6">

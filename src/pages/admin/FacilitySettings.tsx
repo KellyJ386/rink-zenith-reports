@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
+import PageHeader from "@/components/PageHeader";
 import { Trash2, Plus, Building2, DoorOpen, Wrench } from "lucide-react";
 import {
   AlertDialog,
@@ -167,10 +168,11 @@ const FacilitySettings = () => {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-3xl font-bold mb-2">Facility Settings</h2>
-        <p className="text-muted-foreground">Manage your facility information, rinks, and equipment</p>
-      </div>
+      <PageHeader
+        title="Facility Settings"
+        subtitle="Manage your facility information, rinks, and equipment"
+        icon={<Building2 className="h-8 w-8 text-primary" />}
+      />
 
       <Card>
         <CardHeader>

@@ -7,7 +7,8 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { IceDepthMeasurementForm } from "@/components/ice-depth/IceDepthMeasurementForm";
 import { IceDepthHistory } from "@/components/ice-depth/IceDepthHistory";
-import { Snowflake, ArrowLeft } from "lucide-react";
+import PageHeader from "@/components/PageHeader";
+import { Snowflake } from "lucide-react";
 
 const IceDepthLog = () => {
   const navigate = useNavigate();
@@ -54,28 +55,11 @@ const IceDepthLog = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-ice-frost to-background p-6">
       <div className="max-w-7xl mx-auto">
-        <Button
-          variant="ghost"
-          onClick={() => navigate("/dashboard")}
-          className="mb-4"
-        >
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Back to Dashboard
-        </Button>
-
-        <Card className="shadow-[var(--shadow-ice)] mb-6">
-          <CardHeader>
-            <div className="flex items-center gap-3">
-              <div className="p-3 bg-gradient-to-br from-primary to-accent rounded-2xl">
-                <Snowflake className="h-8 w-8 text-white" />
-              </div>
-              <div>
-                <CardTitle className="text-3xl">Ice Depth Log</CardTitle>
-                <CardDescription>Monitor and analyze ice surface measurements</CardDescription>
-              </div>
-            </div>
-          </CardHeader>
-        </Card>
+        <PageHeader
+          title="Ice Depth Log"
+          subtitle="Monitor and analyze ice surface measurements"
+          icon={<Snowflake className="h-8 w-8 text-primary" />}
+        />
 
         <Tabs defaultValue="new-measurement" className="w-full">
           <TabsList className="grid w-full grid-cols-2 mb-6">

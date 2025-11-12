@@ -11,6 +11,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { toast } from "@/hooks/use-toast";
+import PageHeader from "@/components/PageHeader";
 import { Thermometer, AlertTriangle, Plus, Trash2, BarChart3 } from "lucide-react";
 import { format } from "date-fns";
 
@@ -224,19 +225,17 @@ export default function RefrigerationLog() {
 
   return (
     <div className="container mx-auto p-6 space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold flex items-center gap-2">
-            <Thermometer className="h-8 w-8" />
-            Refrigeration Log
-          </h1>
-          <p className="text-muted-foreground">Monitor refrigeration system vital signs</p>
-        </div>
-        <Button variant="outline" onClick={() => navigate("/refrigeration-dashboard")}>
-          <BarChart3 className="mr-2 h-4 w-4" />
-          View Dashboard
-        </Button>
-      </div>
+      <PageHeader
+        title="Refrigeration Log"
+        subtitle="Monitor refrigeration system vital signs"
+        icon={<Thermometer className="h-8 w-8 text-primary" />}
+        actions={
+          <Button variant="outline" onClick={() => navigate("/refrigeration-dashboard")}>
+            <BarChart3 className="mr-2 h-4 w-4" />
+            View Dashboard
+          </Button>
+        }
+      />
 
       {alerts.length > 0 && (
         <Alert variant="destructive">

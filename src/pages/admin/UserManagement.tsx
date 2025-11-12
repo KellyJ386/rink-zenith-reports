@@ -29,6 +29,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
+import PageHeader from "@/components/PageHeader";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -248,16 +249,17 @@ const UserManagement = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h2 className="text-3xl font-bold mb-2">User Management</h2>
-          <p className="text-muted-foreground">Manage staff accounts, roles, and permissions</p>
-        </div>
-        <Button onClick={() => setIsAddDialogOpen(true)}>
-          <Plus className="h-4 w-4 mr-2" />
-          Add User
-        </Button>
-      </div>
+      <PageHeader
+        title="User Management"
+        subtitle="Manage staff accounts, roles, and permissions"
+        icon={<Users className="h-8 w-8 text-primary" />}
+        actions={
+          <Button onClick={() => setIsAddDialogOpen(true)}>
+            <Plus className="h-4 w-4 mr-2" />
+            Add User
+          </Button>
+        }
+      />
 
       <Card>
         <CardHeader>
