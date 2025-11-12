@@ -1144,6 +1144,325 @@ export type Database = {
           },
         ]
       }
+      schedule_availability: {
+        Row: {
+          created_at: string
+          day_of_week: number
+          end_time: string
+          id: string
+          is_available: boolean
+          notes: string | null
+          staff_id: string
+          start_time: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          day_of_week: number
+          end_time: string
+          id?: string
+          is_available?: boolean
+          notes?: string | null
+          staff_id: string
+          start_time: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          day_of_week?: number
+          end_time?: string
+          id?: string
+          is_available?: boolean
+          notes?: string | null
+          staff_id?: string
+          start_time?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "schedule_availability_staff_id_fkey"
+            columns: ["staff_id"]
+            isOneToOne: false
+            referencedRelation: "schedule_staff"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      schedule_roles: {
+        Row: {
+          color: string
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean
+          name: string
+          required_certification: string | null
+          sort_order: number
+        }
+        Insert: {
+          color: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          required_certification?: string | null
+          sort_order?: number
+        }
+        Update: {
+          color?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          required_certification?: string | null
+          sort_order?: number
+        }
+        Relationships: []
+      }
+      schedule_shift_responses: {
+        Row: {
+          created_at: string
+          decline_reason: string | null
+          id: string
+          response: string
+          response_date: string | null
+          shift_id: string
+          staff_id: string
+        }
+        Insert: {
+          created_at?: string
+          decline_reason?: string | null
+          id?: string
+          response?: string
+          response_date?: string | null
+          shift_id: string
+          staff_id: string
+        }
+        Update: {
+          created_at?: string
+          decline_reason?: string | null
+          id?: string
+          response?: string
+          response_date?: string | null
+          shift_id?: string
+          staff_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "schedule_shift_responses_shift_id_fkey"
+            columns: ["shift_id"]
+            isOneToOne: false
+            referencedRelation: "schedule_shifts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "schedule_shift_responses_staff_id_fkey"
+            columns: ["staff_id"]
+            isOneToOne: false
+            referencedRelation: "schedule_staff"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      schedule_shifts: {
+        Row: {
+          area: string
+          assigned_staff_id: string | null
+          created_at: string
+          created_by: string
+          date: string
+          end_time: string
+          id: string
+          notes: string | null
+          role_id: string
+          start_time: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          area: string
+          assigned_staff_id?: string | null
+          created_at?: string
+          created_by: string
+          date: string
+          end_time: string
+          id?: string
+          notes?: string | null
+          role_id: string
+          start_time: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          area?: string
+          assigned_staff_id?: string | null
+          created_at?: string
+          created_by?: string
+          date?: string
+          end_time?: string
+          id?: string
+          notes?: string | null
+          role_id?: string
+          start_time?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "schedule_shifts_assigned_staff_id_fkey"
+            columns: ["assigned_staff_id"]
+            isOneToOne: false
+            referencedRelation: "schedule_staff"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "schedule_shifts_role_id_fkey"
+            columns: ["role_id"]
+            isOneToOne: false
+            referencedRelation: "schedule_roles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      schedule_staff: {
+        Row: {
+          created_at: string
+          email: string
+          employment_status: string
+          full_name: string
+          hire_date: string
+          id: string
+          notes: string | null
+          phone_number: string | null
+          target_hours_per_week: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          employment_status?: string
+          full_name: string
+          hire_date: string
+          id?: string
+          notes?: string | null
+          phone_number?: string | null
+          target_hours_per_week?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          employment_status?: string
+          full_name?: string
+          hire_date?: string
+          id?: string
+          notes?: string | null
+          phone_number?: string | null
+          target_hours_per_week?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      schedule_staff_roles: {
+        Row: {
+          certification_expires: string | null
+          certified_date: string | null
+          created_at: string
+          id: string
+          role_id: string
+          staff_id: string
+        }
+        Insert: {
+          certification_expires?: string | null
+          certified_date?: string | null
+          created_at?: string
+          id?: string
+          role_id: string
+          staff_id: string
+        }
+        Update: {
+          certification_expires?: string | null
+          certified_date?: string | null
+          created_at?: string
+          id?: string
+          role_id?: string
+          staff_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "schedule_staff_roles_role_id_fkey"
+            columns: ["role_id"]
+            isOneToOne: false
+            referencedRelation: "schedule_roles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "schedule_staff_roles_staff_id_fkey"
+            columns: ["staff_id"]
+            isOneToOne: false
+            referencedRelation: "schedule_staff"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      schedule_time_off: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          created_at: string
+          end_date: string
+          id: string
+          manager_response: string | null
+          reason: string | null
+          request_type: string
+          staff_id: string
+          start_date: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          created_at?: string
+          end_date: string
+          id?: string
+          manager_response?: string | null
+          reason?: string | null
+          request_type: string
+          staff_id: string
+          start_date: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          created_at?: string
+          end_date?: string
+          id?: string
+          manager_response?: string | null
+          reason?: string | null
+          request_type?: string
+          staff_id?: string
+          start_date?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "schedule_time_off_staff_id_fkey"
+            columns: ["staff_id"]
+            isOneToOne: false
+            referencedRelation: "schedule_staff"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       task_categories: {
         Row: {
           created_at: string
