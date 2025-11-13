@@ -88,78 +88,123 @@ const UserManagement = () => {
   }, []);
 
   const loadUsers = async () => {
-    const { data: profilesData } = await supabase
-      .from("profiles")
-      .select("id, user_id, name");
+    try {
+      const { data: profilesData } = await supabase
+        .from("profiles")
+        .select("id, user_id, name");
 
-    if (!profilesData) return;
+      if (!profilesData) {
+        setLoading(false);
+        return;
+      }
 
-    const usersWithRoles = await Promise.all(
-      profilesData.map(async (profile) => {
-        const { data: userData } = await supabase.auth.admin.getUserById(profile.user_id);
-        const { data: roleData } = await supabase
-          .from("user_roles")
-          .select("role")
-          .eq("user_id", profile.user_id)
-          .single();
+      const usersWithRoles = await Promise.all(
+        profilesData.map(async (profile) => {
+          const { data: roleData } = await supabase
+            .from("user_roles")
+            .select("role")
+            .eq("user_id", profile.user_id)
+            .maybeSingle();
 
-        return {
-          id: profile.user_id,
-          email: userData?.user?.email || "",
-          name: profile.name,
-          role: roleData?.role || "staff",
-        };
-      })
-    );
+          // Get email from auth metadata if available
+          const { data: { user } } = await supabase.auth.getUser();
+          const isCurrentUser = user?.id === profile.user_id;
+          
+          return {
+            id: profile.user_id,
+            email: isCurrentUser ? (user?.email || "N/A") : "N/A",
+            name: profile.name,
+            role: roleData?.role || "staff",
+          };
+        })
+      );
 
-    setUsers(usersWithRoles);
-    setLoading(false);
+      setUsers(usersWithRoles);
+    } catch (error) {
+      console.error("Error loading users:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load users",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleAddUser = async () => {
-    const { data: authData, error: authError } = await supabase.auth.signUp({
-      email: formData.email,
-      password: formData.password,
-      options: {
-        data: { name: formData.name },
-      },
-    });
-
-    if (authError || !authData.user) {
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
       toast({
-        title: "Error",
-        description: authError?.message || "Failed to create user",
+        title: "Invalid Email",
+        description: "Please enter a valid email address",
         variant: "destructive",
       });
       return;
     }
 
-    // Update profile with additional fields
-    const { error: profileError } = await supabase
-      .from("profiles")
-      .update({
-        address: formData.address,
-        phone_number: formData.phone_number,
-        date_of_birth: formData.date_of_birth || null,
-        email_notifications_enabled: formData.email_notifications_enabled,
-        sms_notifications_enabled: formData.sms_notifications_enabled,
-        force_email_change: formData.force_email_change,
-      })
-      .eq("user_id", authData.user.id);
-
-    const { error: roleError } = await supabase.from("user_roles").insert({
-      user_id: authData.user.id,
-      role: formData.role as "admin" | "manager" | "staff",
-    });
-
-    if (roleError || profileError) {
+    // Validate password length
+    if (formData.password.length < 6) {
       toast({
-        title: "Error",
-        description: "User created but additional data failed to save",
+        title: "Invalid Password",
+        description: "Password must be at least 6 characters",
         variant: "destructive",
       });
-    } else {
-      toast({ title: "Success", description: "User created successfully" });
+      return;
+    }
+
+    try {
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email: formData.email,
+        password: formData.password,
+        options: {
+          data: { name: formData.name },
+        },
+      });
+
+      if (authError || !authData.user) {
+        toast({
+          title: "Error",
+          description: authError?.message || "Failed to create user",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Update profile with additional fields
+      const { error: profileError } = await supabase
+        .from("profiles")
+        .update({
+          address: formData.address,
+          phone_number: formData.phone_number,
+          date_of_birth: formData.date_of_birth || null,
+          email_notifications_enabled: formData.email_notifications_enabled,
+          sms_notifications_enabled: formData.sms_notifications_enabled,
+          force_email_change: formData.force_email_change,
+        })
+        .eq("user_id", authData.user.id);
+
+      const { error: roleError } = await supabase.from("user_roles").insert({
+        user_id: authData.user.id,
+        role: formData.role as "admin" | "manager" | "staff",
+      });
+
+      if (roleError || profileError) {
+        console.error("Role error:", roleError);
+        console.error("Profile error:", profileError);
+        toast({
+          title: "Partial Success",
+          description: "User created but some additional data failed to save. Please edit the user to complete setup.",
+          variant: "destructive",
+        });
+      } else {
+        toast({ 
+          title: "Success", 
+          description: `User ${formData.name} created successfully` 
+        });
+      }
+
       setFormData({ 
         name: "", 
         email: "", 
@@ -174,6 +219,13 @@ const UserManagement = () => {
       });
       setIsAddDialogOpen(false);
       loadUsers();
+    } catch (error) {
+      console.error("Error creating user:", error);
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred",
+        variant: "destructive",
+      });
     }
   };
 
