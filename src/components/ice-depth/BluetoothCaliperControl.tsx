@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
@@ -137,77 +136,82 @@ export const BluetoothCaliperControl = ({
 
   if (!isSupported) {
     return (
-      <Card className="border-muted">
-        <CardContent className="pt-6">
-          <div className="text-center text-muted-foreground">
-            <BluetoothOff className="w-12 h-12 mx-auto mb-2 opacity-50" />
-            <p className="text-sm">
-              Web Bluetooth is not supported in this browser.
-              <br />
-              Please use Chrome, Edge, or Opera.
-            </p>
-          </div>
-        </CardContent>
-      </Card>
+      <div className="border border-muted rounded-lg bg-card p-4">
+        <div className="text-center text-muted-foreground">
+          <BluetoothOff className="w-10 h-10 mx-auto mb-2 opacity-50" />
+          <p className="text-xs">
+            Web Bluetooth is not supported in this browser.
+            <br />
+            Please use Chrome, Edge, or Opera.
+          </p>
+        </div>
+      </div>
     );
   }
 
   return (
-    <Card className="border-primary/20 shadow-[var(--shadow-ice)]">
-      <CardHeader>
+    <div className="border border-primary/20 rounded-lg bg-card">
+      <div className="p-3 border-b border-border">
         <div className="flex items-center justify-between">
-          <CardTitle className="flex items-center gap-2">
-            <Bluetooth className="w-5 h-5 text-primary" />
-            Bluetooth Caliper
-          </CardTitle>
+          <div className="flex items-center gap-2">
+            <Bluetooth className="w-4 h-4 text-primary" />
+            <span className="text-sm font-medium">Bluetooth Caliper</span>
+          </div>
           {getStatusBadge()}
         </div>
-      </CardHeader>
-      <CardContent className="space-y-4">
+      </div>
+      <div className="p-3 space-y-3">
         {state.status === "disconnected" || state.status === "error" ? (
           <>
-            <div className="space-y-2">
-              <Label>Device Profile</Label>
-              <Select value={profile} onValueChange={(v) => setProfile(v as CaliperProfile)}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="igaging">iGaging (Default)</SelectItem>
-                  <SelectItem value="hid">HID Protocol</SelectItem>
-                  <SelectItem value="custom">Custom UUIDs</SelectItem>
-                </SelectContent>
-              </Select>
+            <div className="grid grid-cols-2 gap-2">
+              <div className="space-y-1">
+                <Label className="text-xs">Device Profile</Label>
+                <Select value={profile} onValueChange={(v) => setProfile(v as CaliperProfile)}>
+                  <SelectTrigger className="h-8 text-xs">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="igaging">iGaging</SelectItem>
+                    <SelectItem value="hid">HID Protocol</SelectItem>
+                    <SelectItem value="custom">Custom</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex items-end">
+                <Button 
+                  onClick={handleConnect} 
+                  size="sm"
+                  className="w-full h-8"
+                  disabled={!(state.status === "disconnected" || state.status === "error")}
+                >
+                  <Bluetooth className="w-3 h-3 mr-1" />
+                  Connect
+                </Button>
+              </div>
             </div>
 
             {profile === "custom" && (
-              <div className="space-y-3 p-3 bg-muted/30 rounded-lg">
-                <div className="space-y-2">
-                  <Label htmlFor="service-uuid" className="text-sm">Service UUID</Label>
-                  <Input
-                    id="service-uuid"
-                    placeholder="0000fff0-0000-1000-8000-00805f9b34fb"
-                    value={customServiceUUID}
-                    onChange={(e) => setCustomServiceUUID(e.target.value)}
-                    className="font-mono text-sm"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="char-uuid" className="text-sm">Characteristic UUID</Label>
-                  <Input
-                    id="char-uuid"
-                    placeholder="0000fff1-0000-1000-8000-00805f9b34fb"
-                    value={customCharUUID}
-                    onChange={(e) => setCustomCharUUID(e.target.value)}
-                    className="font-mono text-sm"
-                  />
-                </div>
+              <div className="space-y-2 p-2 bg-muted/30 rounded">
+                <Input
+                  id="service-uuid"
+                  placeholder="Service UUID"
+                  value={customServiceUUID}
+                  onChange={(e) => setCustomServiceUUID(e.target.value)}
+                  className="h-8 text-xs font-mono"
+                />
+                <Input
+                  id="char-uuid"
+                  placeholder="Characteristic UUID"
+                  value={customCharUUID}
+                  onChange={(e) => setCustomCharUUID(e.target.value)}
+                  className="h-8 text-xs font-mono"
+                />
               </div>
             )}
 
-            <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
-              <Label htmlFor="auto-advance" className="cursor-pointer">
-                Auto-advance to next point
+            <div className="flex items-center justify-between py-1">
+              <Label htmlFor="auto-advance" className="text-xs cursor-pointer">
+                Auto-advance
               </Label>
               <Switch
                 id="auto-advance"
@@ -215,51 +219,33 @@ export const BluetoothCaliperControl = ({
                 onCheckedChange={setAutoAdvance}
               />
             </div>
-
-            <Button 
-              onClick={handleConnect} 
-              className="w-full" 
-              disabled={!(state.status === "disconnected" || state.status === "error")}
-            >
-              <Bluetooth className="w-4 h-4 mr-2" />
-              Connect Bluetooth Caliper
-            </Button>
           </>
         ) : (
           <>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-3 gap-3">
               <div className="space-y-1">
-                <Label className="text-sm text-muted-foreground">Device</Label>
-                <p className="text-sm font-medium">{state.deviceName || "Unknown"}</p>
+                <Label className="text-xs text-muted-foreground">Device</Label>
+                <p className="text-xs font-medium truncate">{state.deviceName || "Unknown"}</p>
               </div>
               <div className="space-y-1">
-                <Label className="text-sm text-muted-foreground">Current Point</Label>
-                <p className="text-sm font-medium">Point {currentPoint}</p>
+                <Label className="text-xs text-muted-foreground">Point</Label>
+                <p className="text-xs font-medium">#{currentPoint}</p>
               </div>
-            </div>
-
-            <div className="p-4 bg-primary/5 rounded-lg border border-primary/20">
-              <div className="text-center">
-                <Label className="text-sm text-muted-foreground">Last Reading</Label>
-                <p className="text-2xl font-bold text-primary mt-1">
+              <div className="space-y-1">
+                <Label className="text-xs text-muted-foreground">Reading</Label>
+                <p className="text-xs font-bold text-primary">
                   {formatValue(state.lastValueMm)}
                 </p>
               </div>
             </div>
 
-            {autoAdvance && (
-              <p className="text-sm text-muted-foreground text-center">
-                Taking measurements will automatically advance to the next point
-              </p>
-            )}
-
-            <Button onClick={disconnect} variant="outline" className="w-full">
-              <BluetoothOff className="w-4 h-4 mr-2" />
+            <Button onClick={disconnect} variant="outline" size="sm" className="w-full h-8">
+              <BluetoothOff className="w-3 h-3 mr-1" />
               Disconnect
             </Button>
           </>
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 };

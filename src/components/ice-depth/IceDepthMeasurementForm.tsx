@@ -315,16 +315,19 @@ export const IceDepthMeasurementForm = ({ userId }: IceDepthMeasurementFormProps
               </div>
             </RadioGroup>
           </div>
+
+          {selectedFacility && selectedRink && (
+            <BluetoothCaliperControl 
+              onReading={handleBluetoothReading}
+              currentPoint={currentPointId}
+              unit={unit}
+            />
+          )}
         </CardContent>
       </Card>
 
       {selectedFacility && selectedRink && (
         <>
-          <BluetoothCaliperControl 
-            onReading={handleBluetoothReading}
-            currentPoint={currentPointId}
-            unit={unit}
-          />
 
           <TemplateSelection
             templateType={templateType} 
