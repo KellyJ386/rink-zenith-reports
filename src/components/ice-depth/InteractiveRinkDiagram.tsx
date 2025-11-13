@@ -3,6 +3,7 @@ import { MapPin, Copy, Download, Upload, Save, FolderOpen } from "lucide-react";
 import rink24Point from "@/assets/rink-24-point.svg";
 import rink35Point from "@/assets/rink-35-point.svg";
 import rink47Point from "@/assets/rink-47-point.svg";
+import rinkCustom from "@/assets/rink-custom.webp";
 import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -51,6 +52,14 @@ export const InteractiveRinkDiagram = ({
       fetchSavedTemplates();
     }
   }, [devMode]);
+
+  // Auto-enable dev mode when custom template is selected
+  useEffect(() => {
+    if (templateType === "custom") {
+      setDevMode(true);
+      setDevTemplate("custom");
+    }
+  }, [templateType]);
 
   // Helper to convert mm to display unit
   const getDisplayValue = (mmValue: number): string => {
@@ -171,7 +180,7 @@ export const InteractiveRinkDiagram = ({
       case "47-point":
         return rink47Point;
       case "custom":
-        return rink24Point; // Use basic rink outline for custom template
+        return rinkCustom;
       default:
         return rink24Point;
     }
