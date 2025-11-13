@@ -73,28 +73,61 @@ const AdminFormConfig = () => {
           icon={<Settings className="h-8 w-8 text-primary" />}
         />
 
-        <Tabs defaultValue="resurface" className="w-full">
-          <TabsList className="grid w-full grid-cols-4 mb-6">
-            <TabsTrigger value="resurface">Resurface</TabsTrigger>
-            <TabsTrigger value="blade_change">Blade Change</TabsTrigger>
-            <TabsTrigger value="edging">Edging</TabsTrigger>
-            <TabsTrigger value="circle_check">Circle Check</TabsTrigger>
+        <Tabs defaultValue="ice_maintenance" className="w-full">
+          <TabsList className="grid w-full grid-cols-6 mb-6">
+            <TabsTrigger value="ice_maintenance">Ice Maintenance</TabsTrigger>
+            <TabsTrigger value="refrigeration">Refrigeration</TabsTrigger>
+            <TabsTrigger value="daily_reports">Daily Reports</TabsTrigger>
+            <TabsTrigger value="air_quality">Air Quality</TabsTrigger>
+            <TabsTrigger value="incidents">Incidents</TabsTrigger>
+            <TabsTrigger value="communications">Communications</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="resurface">
-            <FormConfigEditor formType="resurface" />
+          <TabsContent value="ice_maintenance">
+            <Tabs defaultValue="resurface" className="w-full">
+              <TabsList className="grid w-full grid-cols-4 mb-4">
+                <TabsTrigger value="resurface">Resurface</TabsTrigger>
+                <TabsTrigger value="blade_change">Blade Change</TabsTrigger>
+                <TabsTrigger value="edging">Edging</TabsTrigger>
+                <TabsTrigger value="circle_check">Circle Check</TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="resurface">
+                <FormConfigEditor formType="resurface" />
+              </TabsContent>
+
+              <TabsContent value="blade_change">
+                <FormConfigEditor formType="blade_change" />
+              </TabsContent>
+
+              <TabsContent value="edging">
+                <FormConfigEditor formType="edging" />
+              </TabsContent>
+
+              <TabsContent value="circle_check">
+                <FormConfigEditor formType="circle_check" />
+              </TabsContent>
+            </Tabs>
           </TabsContent>
 
-          <TabsContent value="blade_change">
-            <FormConfigEditor formType="blade_change" />
+          <TabsContent value="refrigeration">
+            <FormConfigEditor formType="refrigeration_log" />
           </TabsContent>
 
-          <TabsContent value="edging">
-            <FormConfigEditor formType="edging" />
+          <TabsContent value="daily_reports">
+            <FormConfigEditor formType="daily_report" />
           </TabsContent>
 
-          <TabsContent value="circle_check">
-            <FormConfigEditor formType="circle_check" />
+          <TabsContent value="air_quality">
+            <FormConfigEditor formType="air_quality_log" />
+          </TabsContent>
+
+          <TabsContent value="incidents">
+            <FormConfigEditor formType="incident_report" />
+          </TabsContent>
+
+          <TabsContent value="communications">
+            <FormConfigEditor formType="communication_log" />
           </TabsContent>
         </Tabs>
       </div>
