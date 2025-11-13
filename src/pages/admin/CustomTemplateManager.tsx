@@ -89,31 +89,40 @@ export default function CustomTemplateManager() {
     }
   };
 
+  const fetchTemplates = async () => {
+    try {
+      // Type assertion to avoid deep type instantiation errors
+      const result = await supabase
+        .from("custom_templates")
+        .select("*")
+        .order("created_at", { ascending: false }) as any;
+      
+      const { data, error } = result;
+
+      if (error) {
+        console.error("Error fetching templates:", error);
+        toast({
+          title: "Error",
+          description: "Failed to load templates",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Filter by facility on the client side
+      const filtered = data?.filter((t: any) => t.facility_id === selectedFacility) || [];
+      setSavedTemplates(filtered);
+    } catch (err) {
+      console.error("Error fetching templates:", err);
+    }
+  };
+
   useEffect(() => {
     if (selectedFacility && hasAccess) {
       fetchTemplates();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedFacility, hasAccess]);
-
-  const fetchTemplates = async () => {
-    const { data, error } = await supabase
-      .from("custom_templates")
-      .select("*")
-      .eq("facility_id", selectedFacility)
-      .order("created_at", { ascending: false });
-
-    if (error) {
-      console.error("Error fetching templates:", error);
-      toast({
-        title: "Error",
-        description: "Failed to load templates",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setSavedTemplates(data || []);
-  };
 
   const handleDeleteTemplate = (id: string, name: string) => {
     setTemplateToDelete({ id, name });
