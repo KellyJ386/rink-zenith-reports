@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { DndContext, DragEndEvent, DragOverlay, closestCenter, DragStartEvent } from "@dnd-kit/core";
 import { arrayMove, SortableContext } from "@dnd-kit/sortable";
 import { supabase } from "@/integrations/supabase/client";
@@ -7,7 +7,10 @@ import { FieldPalette } from "./FieldPalette";
 import { FormCanvas } from "./FormCanvas";
 import { FieldPropertiesPanel } from "./FieldPropertiesPanel";
 import { Button } from "@/components/ui/button";
-import { Save, Eye } from "lucide-react";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Save, Eye, Download, Upload } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 interface FormField {
   id: string;
@@ -34,6 +37,9 @@ export const FormBuilderEditor = ({ facilityId, formType }: FormBuilderEditorPro
   const [selectedFieldId, setSelectedFieldId] = useState<string | null>(null);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
+  const [templateName, setTemplateName] = useState("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     fetchFields();
@@ -150,6 +156,85 @@ export const FormBuilderEditor = ({ facilityId, formType }: FormBuilderEditorPro
     setFields([...fields, newField]);
   };
 
+  const handleExportTemplate = () => {
+    const template = {
+      formType,
+      templateName: `${formType}_template`,
+      exportDate: new Date().toISOString(),
+      version: "1.0",
+      fields: fields.map(({ id, ...field }) => field),
+    };
+
+    const blob = new Blob([JSON.stringify(template, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${formType}_template_${Date.now()}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    toast({
+      title: "Template Exported",
+      description: `Form template with ${fields.length} fields has been downloaded`,
+    });
+  };
+
+  const handleImportClick = () => {
+    setIsImportDialogOpen(true);
+  };
+
+  const handleFileSelect = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    try {
+      const text = await file.text();
+      const template = JSON.parse(text);
+
+      if (!template.fields || !Array.isArray(template.fields)) {
+        throw new Error("Invalid template format");
+      }
+
+      const importedFields: FormField[] = template.fields.map((field: any, index: number) => ({
+        ...field,
+        id: crypto.randomUUID(),
+        display_order: index,
+        field_options: field.field_options || [],
+        is_required: field.is_required || false,
+        placeholder_text: field.placeholder_text || "",
+        help_text: field.help_text || "",
+        field_width: field.field_width || "full",
+        default_value: field.default_value || "",
+      }));
+
+      setFields(importedFields);
+      setSelectedFieldId(null);
+      setIsImportDialogOpen(false);
+
+      toast({
+        title: "Template Imported",
+        description: `Imported ${importedFields.length} fields. Click "Save Form" to apply changes.`,
+      });
+
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+    } catch (error) {
+      console.error("Import error:", error);
+      toast({
+        title: "Import Failed",
+        description: "Could not import template. Please check the file format.",
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleSave = async () => {
     setSaving(true);
     try {
@@ -209,6 +294,14 @@ export const FormBuilderEditor = ({ facilityId, formType }: FormBuilderEditorPro
           <p className="text-sm text-muted-foreground">{fields.length} fields</p>
         </div>
         <div className="flex gap-2">
+          <Button variant="outline" size="sm" onClick={handleExportTemplate}>
+            <Download className="h-4 w-4 mr-2" />
+            Export
+          </Button>
+          <Button variant="outline" size="sm" onClick={handleImportClick}>
+            <Upload className="h-4 w-4 mr-2" />
+            Import
+          </Button>
           <Button variant="outline" size="sm">
             <Eye className="h-4 w-4 mr-2" />
             Preview
@@ -250,6 +343,43 @@ export const FormBuilderEditor = ({ facilityId, formType }: FormBuilderEditorPro
           ) : null}
         </DragOverlay>
       </DndContext>
+
+      <Dialog open={isImportDialogOpen} onOpenChange={setIsImportDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Import Form Template</DialogTitle>
+            <DialogDescription>
+              Upload a previously exported form template JSON file. This will replace all current fields in the builder.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label>Template File</Label>
+              <div className="flex gap-2">
+                <Input
+                  type="file"
+                  ref={fileInputRef}
+                  onChange={handleFileChange}
+                  accept=".json"
+                  className="hidden"
+                />
+                <Button variant="outline" onClick={handleFileSelect} className="w-full">
+                  <Upload className="h-4 w-4 mr-2" />
+                  Choose File
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Select a .json template file exported from the form builder
+              </p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsImportDialogOpen(false)}>
+              Cancel
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
