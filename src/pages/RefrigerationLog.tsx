@@ -13,6 +13,7 @@ import { toast } from "@/hooks/use-toast";
 import PageHeader from "@/components/PageHeader";
 import { Thermometer, AlertTriangle, BarChart3 } from "lucide-react";
 import { format } from "date-fns";
+import { DynamicFormFields } from "@/components/maintenance/DynamicFormFields";
 
 export default function RefrigerationLog() {
   const navigate = useNavigate();
@@ -47,6 +48,7 @@ export default function RefrigerationLog() {
     notes: ""
   });
 
+  const [customFields, setCustomFields] = useState<Record<string, any>>({});
   const [alerts, setAlerts] = useState<string[]>([]);
 
   useEffect(() => {
@@ -172,7 +174,8 @@ export default function RefrigerationLog() {
         brine_temp_return: parseFloat(formData.brine_temp_return) || null,
         brine_flow_rate: parseFloat(formData.brine_flow_rate) || null,
         ice_surface_temp: parseFloat(formData.ice_surface_temp) || null,
-        notes: formData.notes
+        notes: formData.notes,
+        custom_fields: customFields
       });
 
       if (error) throw error;
@@ -186,6 +189,7 @@ export default function RefrigerationLog() {
         evaporator_pressure: "", brine_temp_supply: "", brine_temp_return: "", brine_flow_rate: "", ice_surface_temp: "",
         notes: ""
       });
+      setCustomFields({});
       setLogDate(format(new Date(), "yyyy-MM-dd'T'HH:mm"));
       setReadingNumber(prev => prev + 1);
     } catch (error) {
@@ -373,6 +377,15 @@ export default function RefrigerationLog() {
           </div>
         </CardContent>
       </Card>
+
+      {facilityId && (
+        <DynamicFormFields
+          facilityId={facilityId}
+          formType="refrigeration_log"
+          values={customFields}
+          onChange={setCustomFields}
+        />
+      )}
 
       <Card>
         <CardHeader>
