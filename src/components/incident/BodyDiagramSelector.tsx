@@ -1,6 +1,4 @@
-import { useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
 import bodyFront from "@/assets/body-diagram-front.png";
 import bodyBack from "@/assets/body-diagram-back.png";
 
@@ -76,91 +74,113 @@ export default function BodyDiagramSelector({ selectedParts, onPartsChange }: Bo
     return allParts.find(p => p.id === partId)?.label || partId;
   };
 
-  const renderBodyView = (parts: typeof bodyParts.front, imageSrc: string, viewTitle: string) => (
-    <div className="space-y-2">
-      <h3 className="text-center font-semibold text-muted-foreground">{viewTitle}</h3>
-      <div className="relative bg-gradient-to-br from-muted/30 to-muted/50 rounded-lg p-4 border-2 border-border overflow-hidden">
-        <div className="relative w-full" style={{ paddingBottom: "162.5%" }}>
-          {/* Background Image */}
+  const renderBodyView = (view: "front" | "back", title: string, image: string) => {
+    const parts = bodyParts[view];
+    
+    return (
+      <div className="flex-1 min-w-[280px]">
+        <h3 className="text-lg font-medium text-foreground mb-3 text-center">{title}</h3>
+        <div className="relative mx-auto max-w-[300px]">
           <img
-            src={imageSrc}
-            alt={viewTitle}
-            className="absolute inset-0 w-full h-full object-contain pointer-events-none"
+            src={image}
+            alt={`Body diagram ${view} view`}
+            className="w-full h-auto"
           />
-          
-          {/* Clickable Overlay Regions */}
-          {parts.map((part) => (
-            <div
-              key={part.id}
-              className={`absolute cursor-pointer transition-all duration-200 rounded-md ${
-                selectedParts.includes(part.id)
-                  ? "bg-destructive/70 border-2 border-destructive hover:bg-destructive/80"
-                  : "hover:bg-primary/20 border-2 border-transparent hover:border-primary/40"
-              }`}
-              style={{
-                top: part.top,
-                left: part.left,
-                width: part.width,
-                height: part.height,
-              }}
-              onClick={() => togglePart(part.id)}
-              title={part.label}
-            />
-          ))}
+          <div className="absolute inset-0">
+            {parts.map((part) => {
+              const isSelected = selectedParts.includes(part.id);
+              return (
+                <button
+                  key={part.id}
+                  onClick={() => togglePart(part.id)}
+                  className="absolute transition-colors cursor-pointer group"
+                  style={{
+                    top: part.top,
+                    left: part.left,
+                    width: part.width,
+                    height: part.height,
+                  }}
+                  title={part.label}
+                >
+                  <div
+                    className={`w-full h-full transition-all ${
+                      isSelected
+                        ? "bg-red-500/40 border-2 border-red-600"
+                        : "bg-transparent hover:bg-blue-500/20 border-2 border-transparent hover:border-blue-400"
+                    }`}
+                  />
+                </button>
+              );
+            })}
+          </div>
         </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-center text-xl">Body Injury Diagram</CardTitle>
-        <CardDescription className="text-center">
-          Click on any body part to mark injury locations
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
+    <Card className="w-full">
+      <CardContent className="p-6">
         <div className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-            {/* Front View */}
-            {renderBodyView(bodyParts.front, bodyFront, "Front View")}
+          {/* Title */}
+          <div className="text-center">
+            <h2 className="text-2xl font-semibold text-foreground mb-2">Body Injury Diagram</h2>
+            <p className="text-sm text-muted-foreground">
+              Click on any body part to mark injury locations
+            </p>
+          </div>
+
+          {/* Body Diagrams */}
+          <div className="flex flex-col md:flex-row gap-8 justify-center items-start">
+            {renderBodyView("front", "Front View", bodyFront)}
+            {renderBodyView("back", "Back View", bodyBack)}
+          </div>
+
+          {/* Instructions and Legend */}
+          <div className="border-t pt-4 space-y-4">
+            <p className="text-sm text-muted-foreground text-center">
+              Click any body part to mark injuries. Selected areas will be highlighted in red.
+            </p>
             
-            {/* Back View */}
-            {renderBodyView(bodyParts.back, bodyBack, "Back View")}
-          </div>
-
-          <p className="text-sm text-center text-muted-foreground">
-            Click any body part to mark injuries. Selected areas will be highlighted in red.
-          </p>
-
-          <div className="flex justify-center gap-6 text-sm">
-            <div className="flex items-center gap-2">
-              <div className="w-6 h-6 rounded-md border-2 border-border" />
-              <span>Uninjured</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-6 h-6 rounded-md bg-destructive/70 border-2 border-destructive" />
-              <span>Injured</span>
-            </div>
-          </div>
-
-          <div className="space-y-3 p-4 bg-muted/50 rounded-lg">
-            <p className="font-semibold text-center">Selected Injury Locations:</p>
-            {selectedParts.length === 0 ? (
-              <p className="text-sm text-center text-muted-foreground italic">No injuries selected</p>
-            ) : (
-              <div className="flex flex-wrap justify-center gap-2">
-                {selectedParts.map(partId => (
-                  <Badge key={partId} variant="destructive" className="text-sm">
-                    {getPartLabel(partId)}
-                  </Badge>
-                ))}
+            <div className="flex items-center justify-center gap-6 flex-wrap">
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 rounded-full bg-blue-200 border-2 border-blue-400"></div>
+                <span className="text-sm text-foreground">Uninjured</span>
               </div>
-            )}
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 rounded-full bg-red-500 border-2 border-red-600"></div>
+                <span className="text-sm text-foreground">Injured</span>
+              </div>
+            </div>
+
+            {/* Selected Locations */}
+            <div className="bg-muted/50 rounded-lg p-4">
+              <h4 className="font-medium text-foreground mb-2">Selected Injury Locations:</h4>
+              {selectedParts.length === 0 ? (
+                <p className="text-sm text-muted-foreground italic">No injuries selected</p>
+              ) : (
+                <div className="flex flex-wrap gap-2">
+                  {selectedParts.map((partId) => (
+                    <span
+                      key={partId}
+                      className="inline-flex items-center gap-1 px-3 py-1 bg-background rounded-full text-sm border"
+                    >
+                      {getPartLabel(partId)}
+                      <button
+                        onClick={() => togglePart(partId)}
+                        className="ml-1 hover:text-destructive transition-colors"
+                        aria-label={`Remove ${getPartLabel(partId)}`}
+                      >
+                        ×
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </CardContent>
     </Card>
   );
-}
+};
