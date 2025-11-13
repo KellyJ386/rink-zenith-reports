@@ -500,15 +500,16 @@ export const InteractiveRinkDiagram = ({
         </div>
       )}
 
-      <div className="relative w-full bg-white dark:bg-gray-900 rounded-lg overflow-hidden shadow-[var(--shadow-ice)]">
-        <img
-          src={getImageSource()}
-          alt={`Ice rink ${activeTemplate} measurement template`}
-          className="block w-full h-auto object-contain"
-        />
-      
-      {/* Measurement point overlays */}
-      <div className="absolute inset-0">
+      <div className="relative w-full bg-white dark:bg-gray-900 rounded-lg shadow-[var(--shadow-ice)]">
+        <div className="w-full aspect-[463/1000] relative">
+          <img
+            src={getImageSource()}
+            alt={`Ice rink ${activeTemplate} measurement template`}
+            className="absolute inset-0 w-full h-full object-contain"
+          />
+        
+        {/* Measurement point overlays */}
+        <div className="absolute inset-0">
         {!devMode && points.map((point) => {
           const state = getPointState(point);
           const measurementKey = `Point ${point.id}`;
@@ -581,6 +582,7 @@ export const InteractiveRinkDiagram = ({
           </div>
         ))}
       </div>
+        </div>
       </div>
 
       {/* Save Template Dialog */}
