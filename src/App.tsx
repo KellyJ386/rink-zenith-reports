@@ -73,6 +73,7 @@ const App = () => (
             <Route path="facility" element={<FacilitySettings />} />
             <Route path="users" element={<UserManagement />} />
             <Route path="reports" element={<AdminFormConfig />} />
+            <Route path="form-config" element={<AdminFormConfig />} />
             <Route path="modules" element={<ModuleAdministration />} />
             <Route path="incidents" element={<IncidentHistory />} />
             <Route path="templates" element={<CustomTemplateManager />} />

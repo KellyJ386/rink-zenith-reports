@@ -50,19 +50,22 @@ export const FormBuilderEditor = ({ facilityId, formType }: FormBuilderEditorPro
 
       if (error) throw error;
       
-      const mappedFields: FormField[] = (data || []).map(field => ({
-        id: field.id,
-        field_name: field.field_name,
-        field_label: field.field_label,
-        field_type: field.field_type,
-        field_options: (field.field_options as string[]) || [],
-        is_required: field.is_required || false,
-        placeholder_text: field.placeholder_text || "",
-        help_text: field.help_text || "",
-        field_width: field.field_width || "full",
-        default_value: field.default_value || "",
-        display_order: field.display_order || 0,
-      }));
+      const mappedFields: FormField[] = (data || []).map(field => {
+        const fieldAny = field as any; // Type assertion needed until types are regenerated
+        return {
+          id: field.id,
+          field_name: field.field_name,
+          field_label: field.field_label,
+          field_type: field.field_type,
+          field_options: (field.field_options as string[]) || [],
+          is_required: field.is_required || false,
+          placeholder_text: fieldAny.placeholder_text || "",
+          help_text: fieldAny.help_text || "",
+          field_width: fieldAny.field_width || "full",
+          default_value: fieldAny.default_value || "",
+          display_order: field.display_order || 0,
+        };
+      });
       
       setFields(mappedFields);
     } catch (error) {
