@@ -24,6 +24,7 @@ const ModuleAdministration = () => {
       color: "from-ice-glacier to-ice-blue",
       path: "/ice-depth",
       implemented: true,
+      hasFormBuilder: false,
     },
     {
       title: "Ice Maintenance",
@@ -32,38 +33,52 @@ const ModuleAdministration = () => {
       color: "from-primary to-ice-glacier",
       path: "/ice-maintenance",
       implemented: true,
+      hasFormBuilder: true,
     },
     {
       title: "Refrigeration Log",
       description: "Monitor compressor and condenser data",
       icon: Thermometer,
       color: "from-accent to-ice-arctic",
-      path: null,
-      implemented: false,
+      path: "/refrigeration-log",
+      implemented: true,
+      hasFormBuilder: true,
     },
     {
       title: "Air Quality",
       description: "Track CO and NO2 levels",
       icon: Wind,
       color: "from-ice-arctic to-secondary",
-      path: null,
-      implemented: false,
+      path: "/air-quality",
+      implemented: true,
+      hasFormBuilder: true,
     },
     {
       title: "Employee Scheduling",
       description: "Manage employee shifts and hours",
       icon: Calendar,
       color: "from-ice-blue to-primary",
-      path: null,
-      implemented: false,
+      path: "/schedule/calendar",
+      implemented: true,
+      hasFormBuilder: false,
     },
     {
       title: "Incident Reports",
       description: "Document and track incidents",
       icon: AlertCircle,
       color: "from-destructive/80 to-destructive/60",
-      path: null,
-      implemented: false,
+      path: "/incident-report",
+      implemented: true,
+      hasFormBuilder: true,
+    },
+    {
+      title: "Daily Reports",
+      description: "Daily operations and tasks",
+      icon: MessageSquare,
+      color: "from-primary to-accent",
+      path: "/daily-reports",
+      implemented: true,
+      hasFormBuilder: true,
     },
     {
       title: "Communications Log",
@@ -72,6 +87,7 @@ const ModuleAdministration = () => {
       color: "from-primary to-accent",
       path: null,
       implemented: false,
+      hasFormBuilder: false,
     },
     {
       title: "Safety & Compliance",
@@ -80,6 +96,7 @@ const ModuleAdministration = () => {
       color: "from-ice-glacier to-accent",
       path: null,
       implemented: false,
+      hasFormBuilder: false,
     },
   ];
 
@@ -110,6 +127,11 @@ const ModuleAdministration = () => {
                 <CardDescription>{module.description}</CardDescription>
               </CardHeader>
               <CardContent className="space-y-2">
+                {module.hasFormBuilder && module.implemented && (
+                  <div className="flex items-center gap-2 mb-2 px-2 py-1 bg-primary/10 rounded-md">
+                    <span className="text-xs font-medium text-primary">✨ Customizable Forms</span>
+                  </div>
+                )}
                 <Button
                   variant="outline"
                   className="w-full group-hover:bg-primary group-hover:text-primary-foreground transition-colors"
@@ -125,6 +147,16 @@ const ModuleAdministration = () => {
                     "Coming Soon"
                   )}
                 </Button>
+                {module.hasFormBuilder && module.implemented && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="w-full text-xs"
+                    onClick={() => navigate("/admin/form-config")}
+                  >
+                    Configure Form
+                  </Button>
+                )}
                 <div className="text-xs text-center text-muted-foreground">
                   Status: {module.implemented ? "Active" : "Planned"}
                 </div>
