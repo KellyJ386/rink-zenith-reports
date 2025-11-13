@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { IceDepthMeasurementForm } from "@/components/ice-depth/IceDepthMeasurementForm";
 import { IceDepthHistory } from "@/components/ice-depth/IceDepthHistory";
+import { IceDepthTrendCharts } from "@/components/ice-depth/IceDepthTrendCharts";
 import PageHeader from "@/components/PageHeader";
 import { Snowflake } from "lucide-react";
 
@@ -62,9 +63,10 @@ const IceDepthLog = () => {
         />
 
         <Tabs defaultValue="new-measurement" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 mb-6">
+          <TabsList className="grid w-full grid-cols-3 mb-6">
             <TabsTrigger value="new-measurement">New Measurement</TabsTrigger>
             <TabsTrigger value="history">Measurement History</TabsTrigger>
+            <TabsTrigger value="trends">Trend Analysis</TabsTrigger>
           </TabsList>
 
           <TabsContent value="new-measurement">
@@ -73,6 +75,10 @@ const IceDepthLog = () => {
 
           <TabsContent value="history">
             <IceDepthHistory />
+          </TabsContent>
+
+          <TabsContent value="trends">
+            <IceDepthTrendCharts />
           </TabsContent>
         </Tabs>
       </div>
