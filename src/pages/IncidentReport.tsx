@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import PageHeader from "@/components/PageHeader";
-import BodyDiagramSelector from "@/components/incident/BodyDiagramSelector";
+import { BodyDiagramSelector } from "@/components/incident/BodyDiagramSelector";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
