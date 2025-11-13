@@ -1,6 +1,6 @@
-import { Card, CardContent } from "@/components/ui/card";
-import bodyFront from "@/assets/body-diagram-front.png";
-import bodyBack from "@/assets/body-diagram-back.png";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 
 interface BodyDiagramSelectorProps {
   selectedParts: string[];
@@ -9,54 +9,54 @@ interface BodyDiagramSelectorProps {
 
 const bodyParts = {
   front: [
-    { id: "head_front", label: "Head", top: "5%", left: "32%", width: "36%", height: "18%" },
-    { id: "neck_front", label: "Neck", top: "23%", left: "40%", width: "20%", height: "5%" },
-    { id: "left_shoulder", label: "Left Shoulder", top: "28%", left: "15%", width: "15%", height: "12%" },
-    { id: "right_shoulder", label: "Right Shoulder", top: "28%", left: "70%", width: "15%", height: "12%" },
-    { id: "chest", label: "Chest", top: "28%", left: "30%", width: "40%", height: "15%" },
-    { id: "abdomen", label: "Abdomen", top: "43%", left: "30%", width: "40%", height: "15%" },
-    { id: "left_arm_upper", label: "Left Upper Arm", top: "40%", left: "12%", width: "13%", height: "18%" },
-    { id: "right_arm_upper", label: "Right Upper Arm", top: "40%", left: "75%", width: "13%", height: "18%" },
-    { id: "left_elbow", label: "Left Elbow", top: "58%", left: "13%", width: "11%", height: "8%" },
-    { id: "right_elbow", label: "Right Elbow", top: "58%", left: "76%", width: "11%", height: "8%" },
-    { id: "left_forearm", label: "Left Forearm", top: "66%", left: "12%", width: "13%", height: "15%" },
-    { id: "right_forearm", label: "Right Forearm", top: "66%", left: "75%", width: "13%", height: "15%" },
-    { id: "left_hand", label: "Left Hand", top: "81%", left: "11%", width: "14%", height: "9%" },
-    { id: "right_hand", label: "Right Hand", top: "81%", left: "75%", width: "14%", height: "9%" },
-    { id: "left_thigh", label: "Left Thigh", top: "58%", left: "33%", width: "13%", height: "22%" },
-    { id: "right_thigh", label: "Right Thigh", top: "58%", left: "54%", width: "13%", height: "22%" },
-    { id: "left_knee", label: "Left Knee", top: "80%", left: "33%", width: "13%", height: "8%" },
-    { id: "right_knee", label: "Right Knee", top: "80%", left: "54%", width: "13%", height: "8%" },
-    { id: "left_shin", label: "Left Shin", top: "88%", left: "33%", width: "13%", height: "8%" },
-    { id: "right_shin", label: "Right Shin", top: "88%", left: "54%", width: "13%", height: "8%" },
-    { id: "left_foot", label: "Left Foot", top: "96%", left: "32%", width: "14%", height: "4%" },
-    { id: "right_foot", label: "Right Foot", top: "96%", left: "54%", width: "14%", height: "4%" }
+    { id: "head_front", label: "Head", path: "M150,40 Q150,20 170,20 Q190,20 190,40 Q190,60 170,70 Q150,60 150,40 Z" },
+    { id: "neck_front", label: "Neck", path: "M165,70 L175,70 L175,85 L165,85 Z" },
+    { id: "left_shoulder", label: "Left Shoulder", path: "M130,85 Q120,85 115,95 L115,110 L145,110 L145,95 Z" },
+    { id: "right_shoulder", label: "Right Shoulder", path: "M195,85 Q205,85 210,95 L210,110 L180,110 L180,95 Z" },
+    { id: "chest", label: "Chest", path: "M145,85 L180,85 L180,125 L145,125 Z" },
+    { id: "abdomen", label: "Abdomen", path: "M145,125 L180,125 L180,165 L145,165 Z" },
+    { id: "left_arm_upper", label: "Left Upper Arm", path: "M115,110 L105,110 L95,165 L105,165 L115,125 Z" },
+    { id: "right_arm_upper", label: "Right Upper Arm", path: "M210,110 L220,110 L230,165 L220,165 L210,125 Z" },
+    { id: "left_elbow", label: "Left Elbow", path: "M95,165 Q90,170 95,175 L105,175 Q110,170 105,165 Z" },
+    { id: "right_elbow", label: "Right Elbow", path: "M220,165 Q215,170 220,175 L230,175 Q235,170 230,165 Z" },
+    { id: "left_forearm", label: "Left Forearm", path: "M95,175 L85,230 L95,230 L105,175 Z" },
+    { id: "right_forearm", label: "Right Forearm", path: "M220,175 L230,230 L240,230 L230,175 Z" },
+    { id: "left_hand", label: "Left Hand", path: "M85,230 L80,245 L90,250 L100,245 L95,230 Z" },
+    { id: "right_hand", label: "Right Hand", path: "M230,230 L225,245 L235,250 L245,245 L240,230 Z" },
+    { id: "left_thigh", label: "Left Thigh", path: "M145,165 L135,235 L155,235 L155,165 Z" },
+    { id: "right_thigh", label: "Right Thigh", path: "M170,165 L170,235 L190,235 L180,165 Z" },
+    { id: "left_knee", label: "Left Knee", path: "M135,235 Q130,245 135,255 L155,255 Q160,245 155,235 Z" },
+    { id: "right_knee", label: "Right Knee", path: "M170,235 Q165,245 170,255 L190,255 Q195,245 190,235 Z" },
+    { id: "left_shin", label: "Left Shin", path: "M135,255 L130,315 L140,315 L155,255 Z" },
+    { id: "right_shin", label: "Right Shin", path: "M170,255 L185,315 L195,315 L190,255 Z" },
+    { id: "left_foot", label: "Left Foot", path: "M130,315 L125,330 L145,330 L140,315 Z" },
+    { id: "right_foot", label: "Right Foot", path: "M185,315 L180,330 L200,330 L195,315 Z" }
   ],
   back: [
-    { id: "head_back", label: "Head (Back)", top: "5%", left: "32%", width: "36%", height: "18%" },
-    { id: "neck_back", label: "Neck (Back)", top: "23%", left: "40%", width: "20%", height: "5%" },
-    { id: "left_shoulder_back", label: "Left Shoulder (Back)", top: "28%", left: "15%", width: "15%", height: "12%" },
-    { id: "right_shoulder_back", label: "Right Shoulder (Back)", top: "28%", left: "70%", width: "15%", height: "12%" },
-    { id: "upper_back", label: "Upper Back", top: "28%", left: "30%", width: "40%", height: "15%" },
-    { id: "lower_back", label: "Lower Back", top: "43%", left: "30%", width: "40%", height: "15%" },
-    { id: "left_arm_back", label: "Left Arm (Back)", top: "40%", left: "12%", width: "13%", height: "18%" },
-    { id: "right_arm_back", label: "Right Arm (Back)", top: "40%", left: "75%", width: "13%", height: "18%" },
-    { id: "left_elbow_back", label: "Left Elbow (Back)", top: "58%", left: "13%", width: "11%", height: "8%" },
-    { id: "right_elbow_back", label: "Right Elbow (Back)", top: "58%", left: "76%", width: "11%", height: "8%" },
-    { id: "left_forearm_back", label: "Left Forearm (Back)", top: "66%", left: "12%", width: "13%", height: "15%" },
-    { id: "right_forearm_back", label: "Right Forearm (Back)", top: "66%", left: "75%", width: "13%", height: "15%" },
-    { id: "left_hand_back", label: "Left Hand (Back)", top: "81%", left: "11%", width: "14%", height: "9%" },
-    { id: "right_hand_back", label: "Right Hand (Back)", top: "81%", left: "75%", width: "14%", height: "9%" },
-    { id: "left_buttock", label: "Left Buttock", top: "58%", left: "35%", width: "11%", height: "10%" },
-    { id: "right_buttock", label: "Right Buttock", top: "58%", left: "54%", width: "11%", height: "10%" },
-    { id: "left_thigh_back", label: "Left Thigh (Back)", top: "68%", left: "33%", width: "13%", height: "12%" },
-    { id: "right_thigh_back", label: "Right Thigh (Back)", top: "68%", left: "54%", width: "13%", height: "12%" },
-    { id: "left_knee_back", label: "Left Knee (Back)", top: "80%", left: "33%", width: "13%", height: "8%" },
-    { id: "right_knee_back", label: "Right Knee (Back)", top: "80%", left: "54%", width: "13%", height: "8%" },
-    { id: "left_calf", label: "Left Calf", top: "88%", left: "33%", width: "13%", height: "8%" },
-    { id: "right_calf", label: "Right Calf", top: "88%", left: "54%", width: "13%", height: "8%" },
-    { id: "left_foot_back", label: "Left Foot (Back)", top: "96%", left: "32%", width: "14%", height: "4%" },
-    { id: "right_foot_back", label: "Right Foot (Back)", top: "96%", left: "54%", width: "14%", height: "4%" }
+    { id: "head_back", label: "Head (Back)", path: "M150,40 Q150,20 170,20 Q190,20 190,40 Q190,60 170,70 Q150,60 150,40 Z" },
+    { id: "neck_back", label: "Neck (Back)", path: "M165,70 L175,70 L175,85 L165,85 Z" },
+    { id: "left_shoulder_back", label: "Left Shoulder (Back)", path: "M130,85 Q120,85 115,95 L115,110 L145,110 L145,95 Z" },
+    { id: "right_shoulder_back", label: "Right Shoulder (Back)", path: "M195,85 Q205,85 210,95 L210,110 L180,110 L180,95 Z" },
+    { id: "upper_back", label: "Upper Back", path: "M145,85 L180,85 L180,125 L145,125 Z" },
+    { id: "lower_back", label: "Lower Back", path: "M145,125 L180,125 L180,165 L145,165 Z" },
+    { id: "left_arm_back", label: "Left Upper Arm (Back)", path: "M115,110 L105,110 L95,165 L105,165 L115,125 Z" },
+    { id: "right_arm_back", label: "Right Upper Arm (Back)", path: "M210,110 L220,110 L230,165 L220,165 L210,125 Z" },
+    { id: "left_elbow_back", label: "Left Elbow (Back)", path: "M95,165 Q90,170 95,175 L105,175 Q110,170 105,165 Z" },
+    { id: "right_elbow_back", label: "Right Elbow (Back)", path: "M220,165 Q215,170 220,175 L230,175 Q235,170 230,165 Z" },
+    { id: "left_forearm_back", label: "Left Forearm (Back)", path: "M95,175 L85,230 L95,230 L105,175 Z" },
+    { id: "right_forearm_back", label: "Right Forearm (Back)", path: "M220,175 L230,230 L240,230 L230,175 Z" },
+    { id: "left_hand_back", label: "Left Hand (Back)", path: "M85,230 L80,245 L90,250 L100,245 L95,230 Z" },
+    { id: "right_hand_back", label: "Right Hand (Back)", path: "M230,230 L225,245 L235,250 L245,245 L240,230 Z" },
+    { id: "left_buttock", label: "Left Buttock", path: "M145,165 L145,190 Q145,200 155,200 L155,165 Z" },
+    { id: "right_buttock", label: "Right Buttock", path: "M170,165 L170,200 Q180,200 180,190 L180,165 Z" },
+    { id: "left_thigh_back", label: "Left Thigh (Back)", path: "M145,200 L135,235 L155,235 L155,200 Z" },
+    { id: "right_thigh_back", label: "Right Thigh (Back)", path: "M170,200 L170,235 L190,235 L180,200 Z" },
+    { id: "left_knee_back", label: "Left Knee (Back)", path: "M135,235 Q130,245 135,255 L155,255 Q160,245 155,235 Z" },
+    { id: "right_knee_back", label: "Right Knee (Back)", path: "M170,235 Q165,245 170,255 L190,255 Q195,245 190,235 Z" },
+    { id: "left_calf", label: "Left Calf", path: "M135,255 L130,315 L140,315 L155,255 Z" },
+    { id: "right_calf", label: "Right Calf", path: "M170,255 L185,315 L195,315 L190,255 Z" },
+    { id: "left_foot_back", label: "Left Foot (Back)", path: "M130,315 L125,330 L145,330 L140,315 Z" },
+    { id: "right_foot_back", label: "Right Foot (Back)", path: "M185,315 L180,330 L200,330 L195,315 Z" }
   ]
 };
 
@@ -69,118 +69,107 @@ export default function BodyDiagramSelector({ selectedParts, onPartsChange }: Bo
     }
   };
 
-  const getPartLabel = (partId: string) => {
+  const getPartLabel = (partId: string): string => {
     const allParts = [...bodyParts.front, ...bodyParts.back];
-    return allParts.find(p => p.id === partId)?.label || partId;
+    const part = allParts.find(p => p.id === partId);
+    return part?.label || partId;
   };
 
-  const renderBodyView = (view: "front" | "back", title: string, image: string) => {
+  const getPartColor = (partId: string) => {
+    return selectedParts.includes(partId) 
+      ? "hsl(var(--destructive))" 
+      : "hsl(var(--primary))";
+  };
+
+  const getPartOpacity = (partId: string) => {
+    return selectedParts.includes(partId) ? 0.7 : 0.15;
+  };
+
+  const renderBodyView = (view: "front" | "back", title: string) => {
     const parts = bodyParts[view];
     
     return (
-      <div className="flex-1 min-w-[280px]">
-        <h3 className="text-lg font-medium text-foreground mb-3 text-center">{title}</h3>
-        <div className="relative mx-auto max-w-[300px]">
-          <img
-            src={image}
-            alt={`Body diagram ${view} view`}
-            className="w-full h-auto"
-          />
-          <div className="absolute inset-0">
-            {parts.map((part) => {
-              const isSelected = selectedParts.includes(part.id);
-              return (
-                <button
-                  key={part.id}
-                  onClick={() => togglePart(part.id)}
-                  className="absolute transition-colors cursor-pointer group"
-                  style={{
-                    top: part.top,
-                    left: part.left,
-                    width: part.width,
-                    height: part.height,
-                  }}
-                  title={part.label}
-                >
-                  <div
-                    className={`w-full h-full transition-all ${
-                      isSelected
-                        ? "bg-red-500/40 border-2 border-red-600"
-                        : "bg-transparent hover:bg-blue-500/20 border-2 border-transparent hover:border-blue-400"
-                    }`}
-                  />
-                </button>
-              );
-            })}
-          </div>
-        </div>
+      <div className="flex flex-col items-center gap-2">
+        <h3 className="font-semibold text-foreground">{title}</h3>
+        <svg 
+          viewBox="0 0 325 350" 
+          className="w-full max-w-[300px] border border-border rounded-lg bg-card"
+        >
+          {parts.map((part) => (
+            <g key={part.id}>
+              <path
+                d={part.path}
+                fill={getPartColor(part.id)}
+                fillOpacity={getPartOpacity(part.id)}
+                stroke="hsl(var(--primary))"
+                strokeWidth="2"
+                className="cursor-pointer transition-all hover:opacity-100"
+                onClick={() => togglePart(part.id)}
+              >
+                <title>{part.label}</title>
+              </path>
+            </g>
+          ))}
+        </svg>
       </div>
     );
   };
 
   return (
-    <Card className="w-full">
-      <CardContent className="p-6">
-        <div className="space-y-6">
-          {/* Title */}
-          <div className="text-center">
-            <h2 className="text-2xl font-semibold text-foreground mb-2">Body Injury Diagram</h2>
-            <p className="text-sm text-muted-foreground">
-              Click on any body part to mark injury locations
-            </p>
-          </div>
-
-          {/* Body Diagrams */}
-          <div className="flex flex-col md:flex-row gap-8 justify-center items-start">
-            {renderBodyView("front", "Front View", bodyFront)}
-            {renderBodyView("back", "Back View", bodyBack)}
-          </div>
-
-          {/* Instructions and Legend */}
-          <div className="border-t pt-4 space-y-4">
-            <p className="text-sm text-muted-foreground text-center">
-              Click any body part to mark injuries. Selected areas will be highlighted in red.
-            </p>
-            
-            <div className="flex items-center justify-center gap-6 flex-wrap">
-              <div className="flex items-center gap-2">
-                <div className="w-4 h-4 rounded-full bg-blue-200 border-2 border-blue-400"></div>
-                <span className="text-sm text-foreground">Uninjured</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-4 h-4 rounded-full bg-red-500 border-2 border-red-600"></div>
-                <span className="text-sm text-foreground">Injured</span>
-              </div>
+    <Card>
+      <CardHeader>
+        <CardTitle>Body Injury Diagram</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        <div className="flex flex-col gap-4">
+          <div className="flex items-center gap-6 text-sm">
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 rounded-full bg-primary opacity-20 border-2 border-primary" />
+              <span className="text-muted-foreground">Uninjured</span>
             </div>
-
-            {/* Selected Locations */}
-            <div className="bg-muted/50 rounded-lg p-4">
-              <h4 className="font-medium text-foreground mb-2">Selected Injury Locations:</h4>
-              {selectedParts.length === 0 ? (
-                <p className="text-sm text-muted-foreground italic">No injuries selected</p>
-              ) : (
-                <div className="flex flex-wrap gap-2">
-                  {selectedParts.map((partId) => (
-                    <span
-                      key={partId}
-                      className="inline-flex items-center gap-1 px-3 py-1 bg-background rounded-full text-sm border"
-                    >
-                      {getPartLabel(partId)}
-                      <button
-                        onClick={() => togglePart(partId)}
-                        className="ml-1 hover:text-destructive transition-colors"
-                        aria-label={`Remove ${getPartLabel(partId)}`}
-                      >
-                        ×
-                      </button>
-                    </span>
-                  ))}
-                </div>
-              )}
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 rounded-full bg-destructive opacity-70" />
+              <span className="text-muted-foreground">Injured</span>
             </div>
           </div>
+          
+          <p className="text-sm text-muted-foreground">
+            Click on body parts to mark injury locations
+          </p>
+        </div>
+
+        <div className="grid md:grid-cols-2 gap-8">
+          {renderBodyView("front", "Front View")}
+          {renderBodyView("back", "Back View")}
+        </div>
+
+        <div className="space-y-3">
+          <h3 className="font-semibold text-foreground">Selected Injury Locations:</h3>
+          {selectedParts.length > 0 ? (
+            <div className="flex flex-wrap gap-2">
+              {selectedParts.map((partId) => (
+                <span
+                  key={partId}
+                  className="px-3 py-1 bg-destructive/10 text-destructive rounded-full text-sm border border-destructive/20"
+                >
+                  {getPartLabel(partId)}
+                </span>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground">No injuries selected</p>
+          )}
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="injury-details">Additional Injury Details</Label>
+          <Textarea
+            id="injury-details"
+            placeholder="Describe the nature and severity of the injuries in detail..."
+            className="min-h-[100px]"
+          />
         </div>
       </CardContent>
     </Card>
   );
-};
+}
