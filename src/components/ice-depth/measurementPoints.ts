@@ -137,6 +137,10 @@ export const measurementPoints: Record<string, MeasurementPoint[]> = {
   "custom": pointsCustom,
 };
 
-export const getPointCount = (templateType: string): number => {
+export const getPointCount = (templateType: string, measurements?: Record<string, number>): number => {
+  if (templateType === "custom" && measurements) {
+    // For custom templates, count the number of measurement keys
+    return Object.keys(measurements).length || 100; // Return 100 as a high default if no measurements yet
+  }
   return measurementPoints[templateType]?.length || 25;
 };

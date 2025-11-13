@@ -35,7 +35,7 @@ export const IceDepthMeasurementForm = ({ userId }: IceDepthMeasurementFormProps
   const getCurrentPointId = () => {
     if (manualCurrentPoint !== null) return manualCurrentPoint;
     const filledCount = Object.values(measurements).filter(v => v > 0).length;
-    const pointCount = getPointCount(templateType);
+    const pointCount = getPointCount(templateType, measurements);
     return filledCount < pointCount ? filledCount + 1 : pointCount;
   };
 
@@ -101,7 +101,7 @@ export const IceDepthMeasurementForm = ({ userId }: IceDepthMeasurementFormProps
     setMeasurements(updatedMeasurements);
 
     // Auto-advance to next unfilled point
-    const pointCount = getPointCount(templateType);
+    const pointCount = getPointCount(templateType, updatedMeasurements);
     let nextPoint = currentPointId + 1;
     
     // Find next unfilled point, wrapping around
@@ -311,6 +311,12 @@ export const IceDepthMeasurementForm = ({ userId }: IceDepthMeasurementFormProps
                 <RadioGroupItem value="47-point" id="47-point" />
                 <Label htmlFor="47-point" className="font-normal cursor-pointer">
                   47-Point Template
+                </Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="custom" id="custom" />
+                <Label htmlFor="custom" className="font-normal cursor-pointer">
+                  Custom Template (Click diagram to add points)
                 </Label>
               </div>
             </RadioGroup>
