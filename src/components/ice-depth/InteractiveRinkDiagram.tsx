@@ -21,6 +21,9 @@ interface InteractiveRinkDiagramProps {
   onPointClick?: (pointId: number) => void;
   onMeasurementChange?: (pointId: number, value: number) => void;
   unit: "in" | "mm";
+  adminMode?: boolean;
+  facilityId?: string;
+  onTemplatesChange?: () => void;
 }
 
 export const InteractiveRinkDiagram = ({
@@ -30,8 +33,11 @@ export const InteractiveRinkDiagram = ({
   onPointClick,
   onMeasurementChange,
   unit,
+  adminMode = false,
+  facilityId,
+  onTemplatesChange,
 }: InteractiveRinkDiagramProps) => {
-  const [devMode, setDevMode] = useState(false);
+  const [devMode, setDevMode] = useState(adminMode);
   const [devTemplate, setDevTemplate] = useState(templateType);
   const [capturedPoints, setCapturedPoints] = useState<{ x: number; y: number; id: number }[]>([]);
   const [savedTemplates, setSavedTemplates] = useState<any[]>([]);
@@ -367,6 +373,7 @@ export const InteractiveRinkDiagram = ({
       .insert({
         name: templateName,
         user_id: user.id,
+        facility_id: facilityId,
         template_data: templateData,
         point_count: capturedPoints.length
       });
@@ -381,6 +388,9 @@ export const InteractiveRinkDiagram = ({
     setTemplateName("");
     setSaveDialogOpen(false);
     fetchSavedTemplates();
+    if (onTemplatesChange) {
+      onTemplatesChange();
+    }
   };
 
   const handleLoadTemplate = async (template: any) => {
@@ -413,23 +423,19 @@ export const InteractiveRinkDiagram = ({
 
     toast.success(`Template "${templateName}" deleted`);
     fetchSavedTemplates();
+    if (onTemplatesChange) {
+      onTemplatesChange();
+    }
   };
 
   return (
     <div className="space-y-4">
-      {/* Dev Mode Controls */}
-      <div className="flex gap-2 items-center justify-end flex-wrap">
-        <Button
-          variant={devMode ? "default" : "outline"}
-          size="sm"
-          onClick={() => setDevMode(!devMode)}
-        >
-          <MapPin className="w-4 h-4 mr-2" />
-          {devMode ? "Exit" : "Enable"} Coordinate Capture
-        </Button>
-        {devMode && (
-          <>
-            <Select value={devTemplate} onValueChange={setDevTemplate}>
+      {/* Dev Mode Controls - Only show in admin mode */}
+      {adminMode && (
+        <div className="flex gap-2 items-center justify-end flex-wrap">
+          {devMode && (
+            <>
+              <Select value={devTemplate} onValueChange={setDevTemplate}>
               <SelectTrigger className="w-[140px] h-9">
                 <SelectValue />
               </SelectTrigger>
@@ -491,7 +497,8 @@ export const InteractiveRinkDiagram = ({
             )}
           </>
         )}
-      </div>
+        </div>
+      )}
 
       <div className="relative w-full bg-white dark:bg-gray-900 rounded-lg overflow-hidden shadow-[var(--shadow-ice)]">
         <img

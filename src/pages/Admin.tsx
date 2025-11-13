@@ -87,6 +87,11 @@ const Admin = () => {
       path: "/admin/incidents",
       icon: AlertCircle,
     },
+    {
+      label: "Ice Depth Templates",
+      path: "/admin/templates",
+      icon: Snowflake,
+    },
   ];
 
   if (loading) {

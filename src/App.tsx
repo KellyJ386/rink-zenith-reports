@@ -15,6 +15,7 @@ import FacilitySettings from "./pages/admin/FacilitySettings";
 import UserManagement from "./pages/admin/UserManagement";
 import ModuleAdministration from "./pages/admin/ModuleAdministration";
 import AdminFormConfig from "./pages/AdminFormConfig";
+import CustomTemplateManager from "./pages/admin/CustomTemplateManager";
 import RefrigerationLog from "./pages/RefrigerationLog";
 import RefrigerationDashboard from "./pages/RefrigerationDashboard";
 import DailyReports from "./pages/DailyReports";
@@ -74,6 +75,7 @@ const App = () => (
             <Route path="reports" element={<AdminFormConfig />} />
             <Route path="modules" element={<ModuleAdministration />} />
             <Route path="incidents" element={<IncidentHistory />} />
+            <Route path="templates" element={<CustomTemplateManager />} />
           </Route>
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
