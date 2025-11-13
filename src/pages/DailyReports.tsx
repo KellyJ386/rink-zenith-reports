@@ -15,6 +15,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { ClipboardList, DollarSign, FileText, Plus, Save, Send, Trash2 } from "lucide-react";
 import { format } from "date-fns";
+import { DynamicFormFields } from "@/components/maintenance/DynamicFormFields";
 
 interface WorkArea {
   id: string;
@@ -74,6 +75,8 @@ export default function DailyReports() {
     payment_method: "cash",
     description: ""
   });
+
+  const [customFields, setCustomFields] = useState<Record<string, any>>({});
 
   useEffect(() => {
     checkAuth();
@@ -181,7 +184,8 @@ export default function DailyReports() {
           total_revenue: totals.revenue,
           total_expenses: totals.expenses,
           petty_cash_balance: totals.pettyCash,
-          notes
+          notes,
+          custom_fields: customFields
         })
         .select()
         .single();
@@ -521,6 +525,15 @@ export default function DailyReports() {
           />
         </CardContent>
       </Card>
+
+      {facilityId && (
+        <DynamicFormFields
+          facilityId={facilityId}
+          formType="daily_report"
+          values={customFields}
+          onChange={setCustomFields}
+        />
+      )}
 
       <div className="flex justify-end gap-4 mt-6">
         <Button

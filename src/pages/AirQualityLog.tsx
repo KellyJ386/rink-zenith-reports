@@ -13,6 +13,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
 import { Wind, Plus, Trash2, Save, Send, AlertTriangle } from "lucide-react";
 import { format } from "date-fns";
+import { DynamicFormFields } from "@/components/maintenance/DynamicFormFields";
 
 interface Resurfacer {
   unit_number: number;
@@ -97,6 +98,8 @@ export default function AirQualityLog() {
   const [postEdgingMeasurements, setPostEdgingMeasurements] = useState<Measurement[]>([]);
   const [immediateAction, setImmediateAction] = useState<ActionRecord | null>(null);
   const [correctiveAction, setCorrectiveAction] = useState<ActionRecord | null>(null);
+
+  const [customFields, setCustomFields] = useState<Record<string, any>>({});
 
   useEffect(() => {
     checkAuth();
@@ -217,7 +220,8 @@ export default function AirQualityLog() {
           staff_trained: staffTrained,
           public_signage_present: publicSignage,
           unusual_observations: unusualObservations,
-          status
+          status,
+          custom_fields: customFields
         })
         .select()
         .single();
@@ -837,6 +841,15 @@ export default function AirQualityLog() {
           </CardContent>
         </Card>
       </div>
+
+      {facilityId && (
+        <DynamicFormFields
+          facilityId={facilityId}
+          formType="air_quality_log"
+          values={customFields}
+          onChange={setCustomFields}
+        />
+      )}
 
       <div className="flex justify-end gap-4 mt-6">
         <Button
