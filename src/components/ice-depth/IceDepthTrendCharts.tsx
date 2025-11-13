@@ -2,10 +2,14 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
-import { TrendingUp } from "lucide-react";
+import { TrendingUp, CalendarIcon, X } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface MeasurementData {
   date: string;
@@ -25,6 +29,8 @@ export const IceDepthTrendCharts = () => {
   const [availablePoints, setAvailablePoints] = useState<string[]>([]);
   const [rinks, setRinks] = useState<any[]>([]);
   const [selectedRink, setSelectedRink] = useState<string>("all");
+  const [startDate, setStartDate] = useState<Date | undefined>(undefined);
+  const [endDate, setEndDate] = useState<Date | undefined>(undefined);
 
   useEffect(() => {
     fetchRinks();
@@ -34,7 +40,7 @@ export const IceDepthTrendCharts = () => {
     if (rinks.length > 0) {
       fetchTrendData();
     }
-  }, [rinks, selectedRink]);
+  }, [rinks, selectedRink, startDate, endDate]);
 
   const fetchRinks = async () => {
     try {
@@ -65,6 +71,17 @@ export const IceDepthTrendCharts = () => {
 
       if (selectedRink !== "all") {
         query = query.eq("rink_id", selectedRink);
+      }
+
+      if (startDate) {
+        query = query.gte("measurement_date", startDate.toISOString());
+      }
+
+      if (endDate) {
+        // Add one day to include the end date
+        const endDateTime = new Date(endDate);
+        endDateTime.setDate(endDateTime.getDate() + 1);
+        query = query.lt("measurement_date", endDateTime.toISOString());
       }
 
       const { data, error } = await query;
@@ -162,8 +179,8 @@ export const IceDepthTrendCharts = () => {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex flex-col sm:flex-row gap-4">
-            <div className="flex-1">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div>
               <label className="text-sm font-medium mb-2 block">Rink</label>
               <Select value={selectedRink} onValueChange={setSelectedRink}>
                 <SelectTrigger>
@@ -180,7 +197,7 @@ export const IceDepthTrendCharts = () => {
               </Select>
             </div>
 
-            <div className="flex-1">
+            <div>
               <label className="text-sm font-medium mb-2 block">Measurement Point</label>
               <Select value={selectedPoint} onValueChange={setSelectedPoint}>
                 <SelectTrigger>
@@ -195,7 +212,85 @@ export const IceDepthTrendCharts = () => {
                 </SelectContent>
               </Select>
             </div>
+
+            <div>
+              <label className="text-sm font-medium mb-2 block">Start Date</label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      "w-full justify-start text-left font-normal",
+                      !startDate && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {startDate ? format(startDate, "PPP") : <span>Pick a date</span>}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={startDate}
+                    onSelect={setStartDate}
+                    disabled={(date) => date > new Date() || (endDate && date > endDate)}
+                    initialFocus
+                    className={cn("p-3 pointer-events-auto")}
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+
+            <div>
+              <label className="text-sm font-medium mb-2 block">End Date</label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      "w-full justify-start text-left font-normal",
+                      !endDate && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {endDate ? format(endDate, "PPP") : <span>Pick a date</span>}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={endDate}
+                    onSelect={setEndDate}
+                    disabled={(date) => date > new Date() || (startDate && date < startDate)}
+                    initialFocus
+                    className={cn("p-3 pointer-events-auto")}
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
           </div>
+
+          {(startDate || endDate) && (
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setStartDate(undefined);
+                  setEndDate(undefined);
+                }}
+                className="gap-2"
+              >
+                <X className="h-4 w-4" />
+                Clear Date Filter
+              </Button>
+              {startDate && endDate && (
+                <span className="text-sm text-muted-foreground">
+                  Showing data from {format(startDate, "PPP")} to {format(endDate, "PPP")}
+                </span>
+              )}
+            </div>
+          )}
 
           <div className="mt-6">
             <ResponsiveContainer width="100%" height={400}>
