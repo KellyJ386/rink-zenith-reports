@@ -15,6 +15,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
 import { AlertCircle, Send, CheckCircle, FileText, Clock } from "lucide-react";
 import { format } from "date-fns";
+import { DynamicFormFields } from "@/components/maintenance/DynamicFormFields";
 
 export default function IncidentReport() {
   const navigate = useNavigate();
@@ -69,6 +70,8 @@ export default function IncidentReport() {
 
   // Additional notes
   const [additionalNotes, setAdditionalNotes] = useState("");
+
+  const [customFields, setCustomFields] = useState<Record<string, any>>({});
 
   useEffect(() => {
     checkAuth();
@@ -184,7 +187,8 @@ export default function IncidentReport() {
         staff_email: staffEmail,
         staff_id: user.id,
         additional_notes: additionalNotes,
-        status: "submitted"
+        status: "submitted",
+        custom_fields: customFields
       }).select().single();
 
       if (error) throw error;
@@ -653,6 +657,15 @@ export default function IncidentReport() {
               />
             </CardContent>
           </Card>
+
+          {facilityId && (
+            <DynamicFormFields
+              facilityId={facilityId}
+              formType="incident_report"
+              values={customFields}
+              onChange={setCustomFields}
+            />
+          )}
 
           <div className="flex justify-end">
             <Button
