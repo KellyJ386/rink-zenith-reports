@@ -59,13 +59,6 @@ export const InteractiveRinkDiagram = ({
     }
   }, [devMode]);
 
-  // Auto-enable dev mode when custom template is selected
-  useEffect(() => {
-    if (templateType === "custom") {
-      setDevMode(true);
-      setDevTemplate("custom");
-    }
-  }, [templateType]);
 
   // Helper to convert mm to display unit
   const getDisplayValue = (mmValue: number): string => {
@@ -501,12 +494,11 @@ export const InteractiveRinkDiagram = ({
       )}
 
       <div className="relative w-full bg-white dark:bg-gray-900 rounded-lg shadow-[var(--shadow-ice)]">
-        <div className="w-full aspect-[463/1000] relative">
-          <img
-            src={getImageSource()}
-            alt={`Ice rink ${activeTemplate} measurement template`}
-            className="absolute inset-0 w-full h-full object-contain"
-          />
+        <img
+          src={getImageSource()}
+          alt={`Ice rink ${activeTemplate} measurement template`}
+          className="block w-full h-auto object-contain"
+        />
         
         {/* Measurement point overlays */}
         <div className="absolute inset-0">
@@ -582,7 +574,6 @@ export const InteractiveRinkDiagram = ({
           </div>
         ))}
       </div>
-        </div>
       </div>
 
       {/* Save Template Dialog */}
