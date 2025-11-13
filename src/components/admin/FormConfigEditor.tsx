@@ -29,6 +29,19 @@ export const FormConfigEditor = ({ formType }: FormConfigEditorProps) => {
     <div className="space-y-6">
       <Card>
         <CardHeader>
+          <CardTitle>Form Builder Instructions</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-2 text-sm text-muted-foreground">
+          <p><strong>➕ Add Fields:</strong> Drag field types from the left palette onto the canvas</p>
+          <p><strong>✏️ Edit Fields:</strong> Click any field to edit its properties on the right</p>
+          <p><strong>🗑️ Remove Fields:</strong> Click the trash icon on any field to delete it</p>
+          <p><strong>↕️ Reorder:</strong> Drag fields up/down to rearrange them</p>
+          <p><strong>💾 Save:</strong> Click the Save button to apply your changes</p>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
           <CardTitle>Select Facility</CardTitle>
         </CardHeader>
         <CardContent>
