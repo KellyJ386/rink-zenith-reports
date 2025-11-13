@@ -30,6 +30,24 @@ export const IceDepthMeasurementForm = ({ userId }: IceDepthMeasurementFormProps
     return (localStorage.getItem("ice-depth-unit") as "in" | "mm") || "in";
   });
   const [manualCurrentPoint, setManualCurrentPoint] = useState<number | null>(null);
+  const [hasAdminAccess, setHasAdminAccess] = useState(false);
+
+  // Check if user has admin or manager role
+  useEffect(() => {
+    const checkRole = async () => {
+      const { data: roleData } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", userId);
+
+      const hasAccess = roleData?.some(
+        (r) => r.role === "admin" || r.role === "manager"
+      );
+      setHasAdminAccess(!!hasAccess);
+    };
+
+    checkRole();
+  }, [userId]);
 
   // Calculate current point for progressive input
   const getCurrentPointId = () => {
@@ -313,13 +331,12 @@ export const IceDepthMeasurementForm = ({ userId }: IceDepthMeasurementFormProps
                   47-Point Template
                 </Label>
               </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="custom" id="custom" />
-                <Label htmlFor="custom" className="font-normal cursor-pointer">
-                  Custom Template (Click diagram to add points)
-                </Label>
-              </div>
             </RadioGroup>
+            {!hasAdminAccess && (
+              <p className="text-xs text-muted-foreground mt-2">
+                Custom templates are available in the admin panel for managers and administrators.
+              </p>
+            )}
           </div>
 
           {selectedFacility && selectedRink && (
