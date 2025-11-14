@@ -109,6 +109,7 @@ export type Database = {
           co_monitor_model: string | null
           co_monitor_type: string | null
           created_at: string
+          custom_fields: Json | null
           electric_equipment_consideration: string | null
           facility_id: string
           id: string
@@ -137,6 +138,7 @@ export type Database = {
           co_monitor_model?: string | null
           co_monitor_type?: string | null
           created_at?: string
+          custom_fields?: Json | null
           electric_equipment_consideration?: string | null
           facility_id: string
           id?: string
@@ -165,6 +167,7 @@ export type Database = {
           co_monitor_model?: string | null
           co_monitor_type?: string | null
           created_at?: string
+          custom_fields?: Json | null
           electric_equipment_consideration?: string | null
           facility_id?: string
           id?: string
@@ -312,6 +315,7 @@ export type Database = {
       custom_templates: {
         Row: {
           created_at: string
+          facility_id: string | null
           id: string
           name: string
           point_count: number
@@ -321,6 +325,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          facility_id?: string | null
           id?: string
           name: string
           point_count: number
@@ -330,6 +335,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          facility_id?: string | null
           id?: string
           name?: string
           point_count?: number
@@ -337,7 +343,15 @@ export type Database = {
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "custom_templates_facility_id_fkey"
+            columns: ["facility_id"]
+            isOneToOne: false
+            referencedRelation: "facilities"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       daily_report_financials: {
         Row: {
@@ -457,6 +471,7 @@ export type Database = {
       daily_reports: {
         Row: {
           created_at: string
+          custom_fields: Json | null
           duty_type: string | null
           facility_id: string
           id: string
@@ -472,6 +487,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          custom_fields?: Json | null
           duty_type?: string | null
           facility_id: string
           id?: string
@@ -487,6 +503,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          custom_fields?: Json | null
           duty_type?: string | null
           facility_id?: string
           id?: string
@@ -531,46 +548,67 @@ export type Database = {
       }
       form_configurations: {
         Row: {
+          conditional_logic: Json | null
           created_at: string
+          default_value: string | null
           display_order: number | null
           facility_id: string
           field_label: string
           field_name: string
           field_options: Json | null
           field_type: string
+          field_width: string | null
           form_type: string
+          help_text: string | null
           id: string
           is_active: boolean | null
           is_required: boolean | null
+          placeholder_text: string | null
+          section_id: string | null
           updated_at: string
+          validation_rules: Json | null
         }
         Insert: {
+          conditional_logic?: Json | null
           created_at?: string
+          default_value?: string | null
           display_order?: number | null
           facility_id: string
           field_label: string
           field_name: string
           field_options?: Json | null
           field_type: string
+          field_width?: string | null
           form_type: string
+          help_text?: string | null
           id?: string
           is_active?: boolean | null
           is_required?: boolean | null
+          placeholder_text?: string | null
+          section_id?: string | null
           updated_at?: string
+          validation_rules?: Json | null
         }
         Update: {
+          conditional_logic?: Json | null
           created_at?: string
+          default_value?: string | null
           display_order?: number | null
           facility_id?: string
           field_label?: string
           field_name?: string
           field_options?: Json | null
           field_type?: string
+          field_width?: string | null
           form_type?: string
+          help_text?: string | null
           id?: string
           is_active?: boolean | null
           is_required?: boolean | null
+          placeholder_text?: string | null
+          section_id?: string | null
           updated_at?: string
+          validation_rules?: Json | null
         }
         Relationships: [
           {
@@ -581,6 +619,89 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      form_sections: {
+        Row: {
+          created_at: string | null
+          display_order: number | null
+          facility_id: string
+          form_type: string
+          id: string
+          is_collapsed_by_default: boolean | null
+          is_collapsible: boolean | null
+          section_description: string | null
+          section_name: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          display_order?: number | null
+          facility_id: string
+          form_type: string
+          id?: string
+          is_collapsed_by_default?: boolean | null
+          is_collapsible?: boolean | null
+          section_description?: string | null
+          section_name: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          display_order?: number | null
+          facility_id?: string
+          form_type?: string
+          id?: string
+          is_collapsed_by_default?: boolean | null
+          is_collapsible?: boolean | null
+          section_description?: string | null
+          section_name?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "form_sections_facility_id_fkey"
+            columns: ["facility_id"]
+            isOneToOne: false
+            referencedRelation: "facilities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      form_templates: {
+        Row: {
+          configuration: Json
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          form_type: string
+          id: string
+          is_system_template: boolean | null
+          template_name: string
+          updated_at: string | null
+        }
+        Insert: {
+          configuration?: Json
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          form_type: string
+          id?: string
+          is_system_template?: boolean | null
+          template_name: string
+          updated_at?: string | null
+        }
+        Update: {
+          configuration?: Json
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          form_type?: string
+          id?: string
+          is_system_template?: boolean | null
+          template_name?: string
+          updated_at?: string | null
+        }
+        Relationships: []
       }
       ice_depth_measurements: {
         Row: {
@@ -693,6 +814,7 @@ export type Database = {
           additional_notes: string | null
           ambulance_called: boolean | null
           created_at: string
+          custom_fields: Json | null
           facility_id: string
           id: string
           immediate_action_taken: string
@@ -731,6 +853,7 @@ export type Database = {
           additional_notes?: string | null
           ambulance_called?: boolean | null
           created_at?: string
+          custom_fields?: Json | null
           facility_id: string
           id?: string
           immediate_action_taken: string
@@ -769,6 +892,7 @@ export type Database = {
           additional_notes?: string | null
           ambulance_called?: boolean | null
           created_at?: string
+          custom_fields?: Json | null
           facility_id?: string
           id?: string
           immediate_action_taken?: string
@@ -986,6 +1110,7 @@ export type Database = {
           condenser_fan_status: string | null
           condenser_pressure: number | null
           created_at: string
+          custom_fields: Json | null
           discharge_pressure: number | null
           evaporator_pressure: number | null
           facility_id: string
@@ -1011,6 +1136,7 @@ export type Database = {
           condenser_fan_status?: string | null
           condenser_pressure?: number | null
           created_at?: string
+          custom_fields?: Json | null
           discharge_pressure?: number | null
           evaporator_pressure?: number | null
           facility_id: string
@@ -1036,6 +1162,7 @@ export type Database = {
           condenser_fan_status?: string | null
           condenser_pressure?: number | null
           created_at?: string
+          custom_fields?: Json | null
           discharge_pressure?: number | null
           evaporator_pressure?: number | null
           facility_id?: string
