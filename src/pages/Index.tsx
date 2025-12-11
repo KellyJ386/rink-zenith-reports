@@ -89,12 +89,15 @@ const Index = () => {
 
         <div className="container relative z-10 mx-auto px-4">
           <div className="max-w-3xl">
-            <div className="flex justify-center mb-8">
+            <div className="flex flex-col items-center mb-8">
               <img 
                 src={maxFacilityLogo} 
                 alt="Max Facility" 
                 className="h-24 md:h-36 object-contain"
               />
+              <h1 className="font-bebas text-3xl md:text-4xl text-white tracking-wider mt-2 drop-shadow-2xl">
+                RINK REPORTS
+              </h1>
             </div>
 
             <h2 className="text-3xl md:text-5xl font-bold text-white mb-6 leading-tight text-center">
