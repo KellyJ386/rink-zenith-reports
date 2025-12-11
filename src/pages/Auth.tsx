@@ -89,7 +89,7 @@ const Auth = () => {
             alt="Max Facility Logo" 
             className="h-24 w-auto drop-shadow-2xl"
           />
-          <h1 className="font-bebas text-5xl md:text-6xl text-white drop-shadow-2xl mt-2 tracking-wider">
+          <h1 className="font-bebas font-bold text-5xl md:text-6xl text-white drop-shadow-2xl mt-2 tracking-wider">
             RINK REPORTS
           </h1>
         </div>
