@@ -66,63 +66,63 @@ const Dashboard = () => {
       title: "Ice Depth Log",
       description: "Track ice measurements with AI analysis",
       icon: Snowflake,
-      color: "from-seahawks-navy to-seahawks-green",
+      bgColor: "bg-violet-500 dark:bg-violet-600",
       path: "/ice-depth",
     },
     {
       title: "Ice Maintenance",
       description: "Resurface logs and equipment checks",
       icon: Wrench,
-      color: "from-primary to-seahawks-navy",
+      bgColor: "bg-orange-500 dark:bg-orange-600",
       path: "/ice-maintenance",
     },
     {
       title: "Refrigeration Log",
       description: "Monitor compressor and condenser data",
       icon: Thermometer,
-      color: "from-accent to-seahawks-grey",
+      bgColor: "bg-cyan-500 dark:bg-cyan-600",
       path: "/refrigeration-log",
     },
     {
       title: "Daily Reports",
       description: "Task management and financial tracking",
       icon: FileText,
-      color: "from-seahawks-green to-seahawks-navy",
+      bgColor: "bg-pink-500 dark:bg-pink-600",
       path: "/daily-reports-dashboard",
     },
     {
       title: "Air Quality",
       description: "Track CO and NO2 levels",
       icon: Wind,
-      color: "from-seahawks-grey to-secondary",
+      bgColor: "bg-amber-500 dark:bg-amber-600",
       path: "/air-quality",
     },
     {
       title: "Scheduling",
       description: "Manage employee shifts and hours",
       icon: Calendar,
-      color: "from-seahawks-navy to-primary",
+      bgColor: "bg-indigo-500 dark:bg-indigo-600",
       path: "/schedule/calendar",
     },
     {
       title: "Incident Reports",
       description: "Document and track incidents",
       icon: AlertCircle,
-      color: "from-destructive/80 to-destructive/60",
+      bgColor: "bg-rose-500 dark:bg-rose-600",
       path: "/incident-report",
     },
     {
       title: "Communications",
       description: "Team messaging and announcements",
       icon: MessageSquare,
-      color: "from-primary to-accent",
+      bgColor: "bg-teal-500 dark:bg-teal-600",
       path: null,
     },
     {
       title: "Safety Center",
       description: "Compliance tracking and resources",
       icon: Shield,
-      color: "from-seahawks-navy to-accent",
+      bgColor: "bg-purple-500 dark:bg-purple-600",
       path: null,
     },
   ];
@@ -185,20 +185,20 @@ const Dashboard = () => {
             return (
               <Card
                 key={index}
-                className="group hover:shadow-[var(--shadow-seahawks)] transition-all duration-300 cursor-pointer hover:-translate-y-1"
+                className={`group ${module.bgColor} text-white hover:shadow-xl transition-all duration-300 cursor-pointer hover:-translate-y-1 border-0`}
                 onClick={() => module.path && navigate(module.path)}
               >
                 <CardHeader>
-                  <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${module.color} flex items-center justify-center mb-3`}>
+                  <div className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center mb-3">
                     <Icon className="h-6 w-6 text-white" />
                   </div>
-                  <CardTitle className="text-xl">{module.title}</CardTitle>
-                  <CardDescription>{module.description}</CardDescription>
+                  <CardTitle className="text-xl text-white">{module.title}</CardTitle>
+                  <CardDescription className="text-white/80">{module.description}</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <Button 
-                    variant="outline" 
-                    className="w-full group-hover:bg-primary group-hover:text-primary-foreground transition-colors"
+                    variant="secondary" 
+                    className="w-full bg-white/20 hover:bg-white/30 text-white border-0"
                     disabled={!module.path}
                   >
                     {module.path ? "Open Module" : "Coming Soon"}
