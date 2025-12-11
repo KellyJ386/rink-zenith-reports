@@ -3,7 +3,7 @@ import { MapPin, Copy, Download, Upload, Save, FolderOpen, CheckCircle } from "l
 import rink24Point from "@/assets/rink-24-point.svg";
 import rink35Point from "@/assets/rink-35-point.svg";
 import rink47Point from "@/assets/rink-47-point.svg";
-import rinkCustom from "@/assets/rink-custom.webp";
+import rinkCustom from "@/assets/rink-custom.svg";
 import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
