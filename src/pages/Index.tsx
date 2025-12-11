@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import {
   Snowflake,
   ClipboardList,
@@ -73,13 +74,16 @@ const Index = () => {
     <div className="min-h-screen bg-background">
       {/* Hero Section */}
       <section className="relative h-screen flex items-center overflow-hidden">
+        <div className="absolute top-4 right-4 z-20">
+          <ThemeToggle />
+        </div>
         <div
           className="absolute inset-0 bg-cover bg-center"
           style={{
             backgroundImage: `url(${heroImage})`,
           }}
         >
-          <div className="absolute inset-0 bg-gradient-to-r from-primary/95 via-primary/85 to-accent/75" />
+          <div className="absolute inset-0 bg-gradient-to-r from-seahawks-navy/95 via-seahawks-navy/85 to-seahawks-green/75" />
         </div>
 
         <div className="container relative z-10 mx-auto px-4">
@@ -103,7 +107,7 @@ const Index = () => {
             </p>
 
             <div className="flex flex-wrap gap-4">
-              <Button asChild size="lg" className="bg-white text-primary hover:bg-white/90 shadow-lg">
+              <Button asChild size="lg" className="bg-seahawks-green text-white hover:bg-seahawks-green/90 shadow-lg">
                 <Link to="/auth">
                   Get Started <ArrowRight className="ml-2 h-5 w-5" />
                 </Link>
@@ -119,7 +123,7 @@ const Index = () => {
       </section>
 
       {/* Features Section */}
-      <section className="py-20 bg-gradient-to-b from-background to-ice-frost">
+      <section className="py-20 bg-gradient-to-b from-background to-seahawks-light">
         <div className="container mx-auto px-4">
           <div className="text-center max-w-3xl mx-auto mb-16">
             <h2 className="text-4xl font-bold mb-4">Complete Facility Management</h2>
@@ -134,10 +138,10 @@ const Index = () => {
               return (
                 <Card
                   key={index}
-                  className="hover:shadow-[var(--shadow-ice)] transition-all duration-300 hover:-translate-y-1"
+                  className="hover:shadow-[var(--shadow-seahawks)] transition-all duration-300 hover:-translate-y-1"
                 >
                   <CardHeader>
-                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center mb-3">
+                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-seahawks-navy to-seahawks-green flex items-center justify-center mb-3">
                       <Icon className="h-6 w-6 text-white" />
                     </div>
                     <CardTitle className="text-lg">{feature.title}</CardTitle>
@@ -151,7 +155,7 @@ const Index = () => {
       </section>
 
       {/* Benefits Section */}
-      <section className="py-20 bg-gradient-to-b from-ice-frost to-background">
+      <section className="py-20 bg-gradient-to-b from-seahawks-light to-background">
         <div className="container mx-auto px-4">
           <div className="max-w-5xl mx-auto">
             <div className="grid md:grid-cols-2 gap-12 items-center">
@@ -173,7 +177,7 @@ const Index = () => {
                 </div>
               </div>
 
-              <Card className="shadow-[var(--shadow-ice)]">
+              <Card className="shadow-[var(--shadow-seahawks)]">
                 <CardHeader>
                   <CardTitle className="text-2xl">Ready to Get Started?</CardTitle>
                   <CardDescription>

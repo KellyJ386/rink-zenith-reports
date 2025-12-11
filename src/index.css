@@ -8,120 +8,124 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    --background: 210 30% 98%;
-    --foreground: 215 25% 15%;
+    /* Seattle Seahawks Light Mode */
+    --background: 210 20% 98%;
+    --foreground: 210 100% 13%;
 
     --card: 0 0% 100%;
-    --card-foreground: 215 25% 15%;
+    --card-foreground: 210 100% 13%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 215 25% 15%;
+    --popover-foreground: 210 100% 13%;
 
-    --primary: 200 85% 42%;
+    /* Action Green - Primary */
+    --primary: 93 66% 45%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 195 70% 92%;
-    --secondary-foreground: 215 25% 15%;
+    /* College Navy - Secondary */
+    --secondary: 210 100% 95%;
+    --secondary-foreground: 210 100% 13%;
 
-    --muted: 210 30% 94%;
-    --muted-foreground: 215 15% 45%;
+    /* Wolf Grey - Muted */
+    --muted: 200 5% 92%;
+    --muted-foreground: 210 30% 35%;
 
-    --accent: 185 75% 50%;
+    /* Action Green - Accent */
+    --accent: 93 66% 45%;
     --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 84.2% 60.2%;
+    --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 210 25% 88%;
-    --input: 210 25% 88%;
-    --ring: 200 85% 42%;
+    --border: 200 10% 85%;
+    --input: 200 10% 85%;
+    --ring: 93 66% 45%;
 
     --radius: 0.75rem;
     
-    /* Ice-themed custom colors */
-    --ice-blue: 195 85% 55%;
-    --frost: 200 40% 96%;
-    --glacier: 200 80% 48%;
-    --arctic: 185 60% 65%;
+    /* Seahawks custom colors */
+    --seahawks-navy: 210 100% 13%;
+    --seahawks-green: 93 66% 45%;
+    --seahawks-grey: 200 5% 67%;
+    --seahawks-light: 210 30% 96%;
     
     /* Gradients */
-    --gradient-ice: linear-gradient(135deg, hsl(195, 85%, 55%), hsl(185, 75%, 50%));
-    --gradient-frost: linear-gradient(180deg, hsl(200, 40%, 98%), hsl(210, 30%, 96%));
-    --gradient-hero: linear-gradient(135deg, hsl(200, 85%, 42%) 0%, hsl(185, 75%, 50%) 100%);
+    --gradient-seahawks: linear-gradient(135deg, hsl(210, 100%, 13%), hsl(93, 66%, 45%));
+    --gradient-frost: linear-gradient(180deg, hsl(210, 20%, 98%), hsl(200, 10%, 94%));
+    --gradient-hero: linear-gradient(135deg, hsl(210, 100%, 13%) 0%, hsl(93, 66%, 45%) 100%);
     
     /* Shadows */
-    --shadow-ice: 0 10px 30px -10px hsl(200, 85%, 42%, 0.3);
-    --shadow-frost: 0 4px 20px -4px hsl(200, 60%, 70%, 0.2);
+    --shadow-seahawks: 0 10px 30px -10px hsl(210, 100%, 13%, 0.3);
+    --shadow-frost: 0 4px 20px -4px hsl(200, 5%, 67%, 0.2);
     
     /* Transitions */
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 
-    --sidebar-background: 0 0% 98%;
-
-    --sidebar-foreground: 240 5.3% 26.1%;
-
-    --sidebar-primary: 240 5.9% 10%;
-
-    --sidebar-primary-foreground: 0 0% 98%;
-
-    --sidebar-accent: 240 4.8% 95.9%;
-
-    --sidebar-accent-foreground: 240 5.9% 10%;
-
-    --sidebar-border: 220 13% 91%;
-
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-background: 210 100% 13%;
+    --sidebar-foreground: 0 0% 98%;
+    --sidebar-primary: 93 66% 45%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 210 80% 20%;
+    --sidebar-accent-foreground: 0 0% 98%;
+    --sidebar-border: 210 60% 25%;
+    --sidebar-ring: 93 66% 45%;
   }
 
   .dark {
-    --background: 215 30% 8%;
-    --foreground: 210 30% 96%;
+    /* Seattle Seahawks Dark Mode */
+    --background: 210 100% 8%;
+    --foreground: 210 20% 95%;
 
-    --card: 215 28% 12%;
-    --card-foreground: 210 30% 96%;
+    --card: 210 80% 12%;
+    --card-foreground: 210 20% 95%;
 
-    --popover: 215 28% 12%;
-    --popover-foreground: 210 30% 96%;
+    --popover: 210 80% 12%;
+    --popover-foreground: 210 20% 95%;
 
-    --primary: 195 85% 55%;
-    --primary-foreground: 215 30% 8%;
+    /* Action Green - Primary */
+    --primary: 93 66% 50%;
+    --primary-foreground: 210 100% 8%;
 
-    --secondary: 215 25% 18%;
-    --secondary-foreground: 210 30% 96%;
+    /* College Navy - Secondary */
+    --secondary: 210 60% 18%;
+    --secondary-foreground: 210 20% 95%;
 
-    --muted: 215 25% 18%;
-    --muted-foreground: 215 15% 60%;
+    /* Wolf Grey - Muted */
+    --muted: 210 40% 18%;
+    --muted-foreground: 200 10% 60%;
 
-    --accent: 185 75% 50%;
-    --accent-foreground: 0 0% 100%;
+    /* Action Green - Accent */
+    --accent: 93 66% 50%;
+    --accent-foreground: 210 100% 8%;
 
-    --destructive: 0 62.8% 50%;
-    --destructive-foreground: 210 30% 96%;
+    --destructive: 0 62% 50%;
+    --destructive-foreground: 210 20% 95%;
 
-    --border: 215 25% 20%;
-    --input: 215 25% 20%;
-    --ring: 195 85% 55%;
+    --border: 210 40% 22%;
+    --input: 210 40% 22%;
+    --ring: 93 66% 50%;
     
-    /* Dark mode custom colors */
-    --ice-blue: 195 85% 65%;
-    --frost: 200 30% 18%;
-    --glacier: 200 75% 58%;
-    --arctic: 185 65% 70%;
+    /* Dark mode Seahawks colors */
+    --seahawks-navy: 210 100% 13%;
+    --seahawks-green: 93 66% 50%;
+    --seahawks-grey: 200 5% 50%;
+    --seahawks-light: 210 30% 20%;
     
-    --gradient-ice: linear-gradient(135deg, hsl(195, 85%, 65%), hsl(185, 75%, 60%));
-    --gradient-frost: linear-gradient(180deg, hsl(215, 28%, 14%), hsl(215, 30%, 10%));
-    --gradient-hero: linear-gradient(135deg, hsl(200, 85%, 45%) 0%, hsl(185, 75%, 55%) 100%);
+    --gradient-seahawks: linear-gradient(135deg, hsl(210, 100%, 18%), hsl(93, 66%, 50%));
+    --gradient-frost: linear-gradient(180deg, hsl(210, 80%, 10%), hsl(210, 100%, 8%));
+    --gradient-hero: linear-gradient(135deg, hsl(210, 100%, 18%) 0%, hsl(93, 66%, 50%) 100%);
     
-    --shadow-ice: 0 10px 30px -10px hsl(195, 85%, 55%, 0.4);
-    --shadow-frost: 0 4px 20px -4px hsl(200, 60%, 40%, 0.3);
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --shadow-seahawks: 0 10px 30px -10px hsl(93, 66%, 45%, 0.4);
+    --shadow-frost: 0 4px 20px -4px hsl(210, 100%, 13%, 0.3);
+    
+    --sidebar-background: 210 100% 8%;
+    --sidebar-foreground: 210 20% 95%;
+    --sidebar-primary: 93 66% 50%;
+    --sidebar-primary-foreground: 210 100% 8%;
+    --sidebar-accent: 210 60% 15%;
+    --sidebar-accent-foreground: 210 20% 95%;
+    --sidebar-border: 210 40% 20%;
+    --sidebar-ring: 93 66% 50%;
   }
 }
 

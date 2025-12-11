@@ -5,6 +5,7 @@ import { User } from "@supabase/supabase-js";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import {
   Snowflake,
   ClipboardList,
@@ -64,42 +65,42 @@ const Dashboard = () => {
       title: "Ice Depth Log",
       description: "Track ice measurements with AI analysis",
       icon: Snowflake,
-      color: "from-ice-glacier to-ice-blue",
+      color: "from-seahawks-navy to-seahawks-green",
       path: "/ice-depth",
     },
     {
       title: "Ice Maintenance",
       description: "Resurface logs and equipment checks",
       icon: Wrench,
-      color: "from-primary to-ice-glacier",
+      color: "from-primary to-seahawks-navy",
       path: "/ice-maintenance",
     },
     {
       title: "Refrigeration Log",
       description: "Monitor compressor and condenser data",
       icon: Thermometer,
-      color: "from-accent to-ice-arctic",
+      color: "from-accent to-seahawks-grey",
       path: "/refrigeration-log",
     },
     {
       title: "Daily Reports",
       description: "Task management and financial tracking",
       icon: FileText,
-      color: "from-primary to-ice-blue",
+      color: "from-seahawks-green to-seahawks-navy",
       path: "/daily-reports-dashboard",
     },
     {
       title: "Air Quality",
       description: "Track CO and NO2 levels",
       icon: Wind,
-      color: "from-ice-arctic to-secondary",
+      color: "from-seahawks-grey to-secondary",
       path: "/air-quality",
     },
     {
       title: "Scheduling",
       description: "Manage employee shifts and hours",
       icon: Calendar,
-      color: "from-ice-blue to-primary",
+      color: "from-seahawks-navy to-primary",
       path: "/schedule/calendar",
     },
     {
@@ -120,7 +121,7 @@ const Dashboard = () => {
       title: "Safety Center",
       description: "Compliance tracking and resources",
       icon: Shield,
-      color: "from-ice-glacier to-accent",
+      color: "from-seahawks-navy to-accent",
       path: null,
     },
   ];
@@ -137,11 +138,11 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-ice-frost to-background">
+    <div className="min-h-screen bg-gradient-to-br from-background via-seahawks-light to-background">
       <header className="border-b border-border/50 bg-card/80 backdrop-blur-sm">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-gradient-to-br from-primary to-accent rounded-lg">
+            <div className="p-2 bg-gradient-to-br from-seahawks-navy to-seahawks-green rounded-lg">
               <Snowflake className="h-6 w-6 text-white" />
             </div>
             <div>
@@ -152,6 +153,7 @@ const Dashboard = () => {
             </div>
           </div>
           <div className="flex items-center gap-2">
+            <ThemeToggle />
             <Button variant="outline" onClick={() => navigate("/admin")}>
               <Settings className="h-4 w-4 mr-2" />
               Admin
@@ -178,7 +180,7 @@ const Dashboard = () => {
             return (
               <Card
                 key={index}
-                className="group hover:shadow-[var(--shadow-ice)] transition-all duration-300 cursor-pointer hover:-translate-y-1"
+                className="group hover:shadow-[var(--shadow-seahawks)] transition-all duration-300 cursor-pointer hover:-translate-y-1"
                 onClick={() => module.path && navigate(module.path)}
               >
                 <CardHeader>
