@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import { Resend } from "npm:resend@4.0.0";
 
-const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
+const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -142,21 +143,14 @@ const handler = async (req: Request): Promise<Response> => {
       </html>
     `;
 
-    // Send to all recipients using Resend API directly
+    // Send to all recipients
     const emailPromises = recipientEmails.map(email =>
-      fetch("https://api.resend.com/emails", {
-        method: "POST",
-        headers: {
-          "Authorization": `Bearer ${RESEND_API_KEY}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          from: "Incident Report <onboarding@resend.dev>",
-          to: [email],
-          subject: `${severityLevel === 'critical' || severityLevel === 'serious' ? '🚨 URGENT - ' : ''}Incident Report: ${incidentNumber} - ${formatText(incidentType)}`,
-          html: emailHtml,
-        }),
-      }).then(res => res.json())
+      resend.emails.send({
+        from: "Incident Report <onboarding@resend.dev>",
+        to: [email],
+        subject: `${severityLevel === 'critical' || severityLevel === 'serious' ? '🚨 URGENT - ' : ''}Incident Report: ${incidentNumber} - ${formatText(incidentType)}`,
+        html: emailHtml,
+      })
     );
 
     const results = await Promise.all(emailPromises);

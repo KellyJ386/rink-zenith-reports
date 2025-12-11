@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { Resend } from "npm:resend@4.0.0";
 
-const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
+const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -155,25 +156,16 @@ serve(async (req) => {
 
     const { subject, html } = getEmailContent(request);
 
-    const response = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${RESEND_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        from: "Schedule Notifications <onboarding@resend.dev>",
-        to: [request.staffEmail],
-        subject,
-        html,
-      }),
+    const { data, error } = await resend.emails.send({
+      from: "Schedule Notifications <onboarding@resend.dev>",
+      to: [request.staffEmail],
+      subject,
+      html,
     });
 
-    const data = await response.json();
-
-    if (!response.ok) {
-      console.error("Resend error:", data);
-      throw new Error(data.message || "Failed to send email");
+    if (error) {
+      console.error("Resend error:", error);
+      throw error;
     }
 
     console.log("Email sent successfully:", data);
@@ -182,11 +174,10 @@ serve(async (req) => {
       status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
-  } catch (error: unknown) {
+  } catch (error) {
     console.error("Error in send-timeoff-notification:", error);
-    const errorMessage = error instanceof Error ? error.message : "Unknown error";
     return new Response(
-      JSON.stringify({ error: errorMessage }),
+      JSON.stringify({ error: error.message }),
       {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },

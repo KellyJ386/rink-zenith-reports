@@ -1262,21 +1262,18 @@ export type Database = {
       }
       rinks: {
         Row: {
-          center_ice_logo_url: string | null
           created_at: string
           facility_id: string
           id: string
           name: string
         }
         Insert: {
-          center_ice_logo_url?: string | null
           created_at?: string
           facility_id: string
           id?: string
           name: string
         }
         Update: {
-          center_ice_logo_url?: string | null
           created_at?: string
           facility_id?: string
           id?: string

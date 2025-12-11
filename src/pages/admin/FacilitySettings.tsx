@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import PageHeader from "@/components/PageHeader";
-import { Trash2, Plus, Building2, DoorOpen, Wrench, Upload, X, ImageIcon } from "lucide-react";
+import { Trash2, Plus, Building2, DoorOpen, Wrench } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -29,7 +29,6 @@ interface FacilityForm {
 interface Rink {
   id: string;
   name: string;
-  center_ice_logo_url?: string | null;
 }
 
 interface Machine {
@@ -49,8 +48,6 @@ const FacilitySettings = () => {
   const [deleteTarget, setDeleteTarget] = useState<{ type: string; id: string } | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedTimezone, setSelectedTimezone] = useState<string>("America/New_York");
-  const [uploadingLogo, setUploadingLogo] = useState<string | null>(null);
-  const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
 
   const { register, handleSubmit, setValue } = useForm<FacilityForm>();
 
@@ -69,7 +66,7 @@ const FacilitySettings = () => {
 
     const { data: rinksData } = await supabase
       .from("rinks")
-      .select("id, name, center_ice_logo_url")
+      .select("*")
       .eq("facility_id", facilityData?.id);
     setRinks(rinksData || []);
 
@@ -127,90 +124,6 @@ const FacilitySettings = () => {
       toast({ title: "Success", description: "Rink added successfully" });
       setNewRinkName("");
       loadData();
-    }
-  };
-
-  const handleLogoUpload = async (rinkId: string, file: File) => {
-    if (!file) return;
-
-    // Validate file type
-    if (!file.type.startsWith("image/")) {
-      toast({
-        title: "Error",
-        description: "Please upload an image file",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    // Validate file size (max 2MB)
-    if (file.size > 2 * 1024 * 1024) {
-      toast({
-        title: "Error",
-        description: "Image must be less than 2MB",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setUploadingLogo(rinkId);
-
-    try {
-      const fileExt = file.name.split(".").pop();
-      const fileName = `${rinkId}-${Date.now()}.${fileExt}`;
-      const filePath = `center-ice/${fileName}`;
-
-      // Upload to storage
-      const { error: uploadError } = await supabase.storage
-        .from("rink-logos")
-        .upload(filePath, file, { upsert: true });
-
-      if (uploadError) throw uploadError;
-
-      // Get public URL
-      const { data: { publicUrl } } = supabase.storage
-        .from("rink-logos")
-        .getPublicUrl(filePath);
-
-      // Update rink with logo URL
-      const { error: updateError } = await supabase
-        .from("rinks")
-        .update({ center_ice_logo_url: publicUrl })
-        .eq("id", rinkId);
-
-      if (updateError) throw updateError;
-
-      toast({ title: "Success", description: "Logo uploaded successfully" });
-      loadData();
-    } catch (error: any) {
-      console.error("Logo upload error:", error);
-      toast({
-        title: "Error",
-        description: error.message || "Failed to upload logo",
-        variant: "destructive",
-      });
-    } finally {
-      setUploadingLogo(null);
-    }
-  };
-
-  const handleRemoveLogo = async (rinkId: string) => {
-    try {
-      const { error } = await supabase
-        .from("rinks")
-        .update({ center_ice_logo_url: null })
-        .eq("id", rinkId);
-
-      if (error) throw error;
-
-      toast({ title: "Success", description: "Logo removed" });
-      loadData();
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: "Failed to remove logo",
-        variant: "destructive",
-      });
     }
   };
 
@@ -331,71 +244,17 @@ const FacilitySettings = () => {
           <CardDescription>Manage ice rinks at this facility</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="space-y-4">
+          <div className="space-y-2">
             {rinks.map((rink) => (
-              <div key={rink.id} className="border rounded-lg p-4 space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="font-medium">{rink.name}</span>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setDeleteTarget({ type: "rink", id: rink.id })}
-                  >
-                    <Trash2 className="h-4 w-4 text-destructive" />
-                  </Button>
-                </div>
-                
-                {/* Center Ice Logo Section */}
-                <div className="border-t pt-3">
-                  <Label className="text-sm text-muted-foreground">Center Ice Logo</Label>
-                  <div className="flex items-center gap-3 mt-2">
-                    {rink.center_ice_logo_url ? (
-                      <div className="relative">
-                        <img 
-                          src={rink.center_ice_logo_url} 
-                          alt="Center ice logo" 
-                          className="h-16 w-16 object-contain border rounded-lg bg-white p-1"
-                        />
-                        <Button
-                          variant="destructive"
-                          size="icon"
-                          className="absolute -top-2 -right-2 h-6 w-6"
-                          onClick={() => handleRemoveLogo(rink.id)}
-                        >
-                          <X className="h-3 w-3" />
-                        </Button>
-                      </div>
-                    ) : (
-                      <div className="h-16 w-16 border rounded-lg bg-muted flex items-center justify-center">
-                        <ImageIcon className="h-6 w-6 text-muted-foreground" />
-                      </div>
-                    )}
-                    <div>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        className="hidden"
-                        ref={(el) => (fileInputRefs.current[rink.id] = el)}
-                        onChange={(e) => {
-                          const file = e.target.files?.[0];
-                          if (file) handleLogoUpload(rink.id, file);
-                        }}
-                      />
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => fileInputRefs.current[rink.id]?.click()}
-                        disabled={uploadingLogo === rink.id}
-                      >
-                        <Upload className="h-4 w-4 mr-2" />
-                        {uploadingLogo === rink.id ? "Uploading..." : "Upload Logo"}
-                      </Button>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        PNG, JPG up to 2MB. Shows at center ice.
-                      </p>
-                    </div>
-                  </div>
-                </div>
+              <div key={rink.id} className="flex items-center justify-between p-3 border rounded-lg">
+                <span className="font-medium">{rink.name}</span>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setDeleteTarget({ type: "rink", id: rink.id })}
+                >
+                  <Trash2 className="h-4 w-4 text-destructive" />
+                </Button>
               </div>
             ))}
           </div>

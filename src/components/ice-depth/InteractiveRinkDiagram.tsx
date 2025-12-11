@@ -1,9 +1,9 @@
-import { measurementPoints, MeasurementPoint, getPointCount } from "./measurementPoints";
-import { MapPin, Copy, Download, Upload, Save, FolderOpen, CheckCircle } from "lucide-react";
+import { measurementPoints, MeasurementPoint } from "./measurementPoints";
+import { MapPin, Copy, Download, Upload, Save, FolderOpen } from "lucide-react";
 import rink24Point from "@/assets/rink-24-point.svg";
 import rink35Point from "@/assets/rink-35-point.svg";
 import rink47Point from "@/assets/rink-47-point.svg";
-import rinkCustom from "@/assets/rink-custom.svg";
+import rinkCustom from "@/assets/rink-custom.webp";
 import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -20,12 +20,10 @@ interface InteractiveRinkDiagramProps {
   currentPointId: number;
   onPointClick?: (pointId: number) => void;
   onMeasurementChange?: (pointId: number, value: number) => void;
-  onMeasurementComplete?: () => void;
   unit: "in" | "mm";
   adminMode?: boolean;
   facilityId?: string;
   onTemplatesChange?: () => void;
-  centerIceLogoUrl?: string;
 }
 
 export const InteractiveRinkDiagram = ({
@@ -34,12 +32,10 @@ export const InteractiveRinkDiagram = ({
   currentPointId,
   onPointClick,
   onMeasurementChange,
-  onMeasurementComplete,
   unit,
   adminMode = false,
   facilityId,
   onTemplatesChange,
-  centerIceLogoUrl,
 }: InteractiveRinkDiagramProps) => {
   const [devMode, setDevMode] = useState(adminMode);
   const [devTemplate, setDevTemplate] = useState(templateType);
@@ -155,42 +151,6 @@ export const InteractiveRinkDiagram = ({
       const numValue = parseFloat(editValue);
       if (!isNaN(numValue) && numValue > 0) {
         onMeasurementChange?.(editingPointId, numValue);
-        
-        // Auto-advance to next unfilled point
-        const pointCount = getPointCount(activeTemplate, measurements);
-        const updatedMeasurements = {
-          ...measurements,
-          [`Point ${editingPointId}`]: unit === "in" ? numValue * 25.4 : numValue,
-        };
-        
-        // Find next unfilled point
-        let nextPoint = editingPointId + 1;
-        while (nextPoint <= pointCount) {
-          const nextKey = `Point ${nextPoint}`;
-          if (!updatedMeasurements[nextKey] || updatedMeasurements[nextKey] === 0) {
-            // Found next unfilled point - trigger click on it
-            setTimeout(() => {
-              const nextPointData = points.find(p => p.id === nextPoint);
-              if (nextPointData) {
-                setEditingPointId(nextPoint);
-                setEditValue("");
-                onPointClick?.(nextPoint);
-                setTimeout(() => inputRef.current?.focus(), 50);
-              }
-            }, 100);
-            return;
-          }
-          nextPoint++;
-        }
-        
-        // All points filled
-        const filledCount = Object.values(updatedMeasurements).filter(v => v > 0).length;
-        if (filledCount >= pointCount) {
-          toast.success("All measurement points complete!", {
-            icon: <CheckCircle className="h-4 w-4" />,
-          });
-          onMeasurementComplete?.();
-        }
       }
     }
     setEditingPointId(null);
@@ -198,22 +158,15 @@ export const InteractiveRinkDiagram = ({
   };
 
   const handleInputBlur = () => {
-    // Don't submit on blur if we're auto-advancing
-    if (editingPointId) {
-      handleInputSubmit();
-    }
+    handleInputSubmit();
   };
 
   const handleInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
-      e.preventDefault();
       handleInputSubmit();
     } else if (e.key === 'Escape') {
       setEditingPointId(null);
       setEditValue("");
-    } else if (e.key === 'Tab') {
-      e.preventDefault();
-      handleInputSubmit();
     }
   };
 
@@ -540,35 +493,12 @@ export const InteractiveRinkDiagram = ({
         </div>
       )}
 
-      <div className="relative w-full bg-white dark:bg-gray-900 rounded-lg shadow-[var(--shadow-ice)] overflow-hidden">
-        <div className="relative w-full" style={{ paddingBottom: '42.5%' }}>
-          <img
-            src={getImageSource()}
-            alt={`Ice rink ${activeTemplate} measurement template`}
-            className="absolute inset-0 w-full h-full object-contain"
-          />
-          
-          {/* Center Ice Logo */}
-          {centerIceLogoUrl && !devMode && (
-            <div 
-              className="absolute pointer-events-none"
-              style={{
-                left: '50%',
-                top: '50%',
-                transform: 'translate(-50%, -50%)',
-                width: '12%',
-                height: 'auto',
-                maxWidth: '80px',
-              }}
-            >
-              <img 
-                src={centerIceLogoUrl} 
-                alt="Center ice logo"
-                className="w-full h-auto object-contain opacity-70"
-              />
-            </div>
-          )}
-        </div>
+      <div className="relative w-full bg-white dark:bg-gray-900 rounded-lg shadow-[var(--shadow-ice)]">
+        <img
+          src={getImageSource()}
+          alt={`Ice rink ${activeTemplate} measurement template`}
+          className="block w-full h-auto object-contain"
+        />
         
         {/* Measurement point overlays */}
         <div className="absolute inset-0">
