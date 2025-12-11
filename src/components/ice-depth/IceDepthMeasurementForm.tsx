@@ -370,7 +370,11 @@ export const IceDepthMeasurementForm = ({ userId }: IceDepthMeasurementFormProps
                 [`Point ${pointId}`]: mmValue,
               });
             }}
+            onMeasurementComplete={() => {
+              setManualCurrentPoint(null);
+            }}
             unit={unit}
+            rinkId={selectedRink}
           />
 
           <StatisticsPanel stats={stats} />

@@ -1,0 +1,70 @@
+<svg viewBox="0 0 200 85" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Gradient for ice surface -->
+    <linearGradient id="iceGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#f0f8ff;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#e8f4fc;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#f0f8ff;stop-opacity:1" />
+    </linearGradient>
+    
+    <!-- Pattern for ice texture -->
+    <pattern id="iceTexture" patternUnits="userSpaceOnUse" width="4" height="4">
+      <rect width="4" height="4" fill="url(#iceGradient)"/>
+      <circle cx="2" cy="2" r="0.3" fill="rgba(200,220,240,0.3)"/>
+    </pattern>
+  </defs>
+  
+  <!-- Rink outline with rounded corners -->
+  <rect x="2" y="2" width="196" height="81" rx="15" ry="15" 
+        fill="url(#iceTexture)" 
+        stroke="#1a365d" 
+        stroke-width="2"/>
+  
+  <!-- Red goal lines -->
+  <line x1="13" y1="2" x2="13" y2="83" stroke="#dc2626" stroke-width="2"/>
+  <line x1="187" y1="2" x2="187" y2="83" stroke="#dc2626" stroke-width="2"/>
+  
+  <!-- Blue lines -->
+  <line x1="67" y1="2" x2="67" y2="83" stroke="#2563eb" stroke-width="2"/>
+  <line x1="133" y1="2" x2="133" y2="83" stroke="#2563eb" stroke-width="2"/>
+  
+  <!-- Center red line -->
+  <line x1="100" y1="2" x2="100" y2="83" stroke="#dc2626" stroke-width="1.5"/>
+  
+  <!-- Center ice circle -->
+  <circle cx="100" cy="42.5" r="15" fill="none" stroke="#2563eb" stroke-width="1.5"/>
+  
+  <!-- Center ice dot -->
+  <circle cx="100" cy="42.5" r="1.5" fill="#2563eb"/>
+  
+  <!-- Face-off circles in offensive/defensive zones -->
+  <!-- Left zone circles -->
+  <circle cx="31" cy="21" r="15" fill="none" stroke="#dc2626" stroke-width="1"/>
+  <circle cx="31" cy="21" r="1" fill="#dc2626"/>
+  <circle cx="31" cy="64" r="15" fill="none" stroke="#dc2626" stroke-width="1"/>
+  <circle cx="31" cy="64" r="1" fill="#dc2626"/>
+  
+  <!-- Right zone circles -->
+  <circle cx="169" cy="21" r="15" fill="none" stroke="#dc2626" stroke-width="1"/>
+  <circle cx="169" cy="21" r="1" fill="#dc2626"/>
+  <circle cx="169" cy="64" r="15" fill="none" stroke="#dc2626" stroke-width="1"/>
+  <circle cx="169" cy="64" r="1" fill="#dc2626"/>
+  
+  <!-- Neutral zone face-off dots -->
+  <circle cx="80" cy="21" r="1" fill="#dc2626"/>
+  <circle cx="80" cy="64" r="1" fill="#dc2626"/>
+  <circle cx="120" cy="21" r="1" fill="#dc2626"/>
+  <circle cx="120" cy="64" r="1" fill="#dc2626"/>
+  
+  <!-- Goal creases -->
+  <path d="M 8 36 Q 13 36 13 42.5 Q 13 49 8 49" fill="none" stroke="#2563eb" stroke-width="1"/>
+  <path d="M 192 36 Q 187 36 187 42.5 Q 187 49 192 49" fill="none" stroke="#2563eb" stroke-width="1"/>
+  
+  <!-- Goal nets (simplified) -->
+  <rect x="4" y="38" width="4" height="9" fill="none" stroke="#374151" stroke-width="0.5" rx="1"/>
+  <rect x="192" y="38" width="4" height="9" fill="none" stroke="#374151" stroke-width="0.5" rx="1"/>
+  
+  <!-- Trapezoid behind goals -->
+  <path d="M 8 28 L 2 28 L 2 57 L 8 57" fill="none" stroke="#dc2626" stroke-width="0.5"/>
+  <path d="M 192 28 L 198 28 L 198 57 L 192 57" fill="none" stroke="#dc2626" stroke-width="0.5"/>
+</svg>
