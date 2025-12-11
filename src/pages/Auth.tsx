@@ -78,7 +78,7 @@ const Auth = () => {
       />
       
       {/* Gradient Overlay */}
-      <div className="absolute inset-0 bg-gradient-to-r from-seahawks-navy/95 via-seahawks-navy/85 to-seahawks-green/75" />
+      <div className="absolute inset-0 bg-gradient-to-r from-seahawks-green/75 via-seahawks-navy/85 to-seahawks-navy/95" />
       
       {/* Content */}
       <div className="relative z-10 w-full max-w-md">
