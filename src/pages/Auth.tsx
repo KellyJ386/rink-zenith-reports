@@ -83,12 +83,15 @@ const Auth = () => {
       {/* Content */}
       <div className="relative z-10 w-full max-w-md">
         {/* Logo */}
-        <div className="flex justify-center mb-8">
+        <div className="flex flex-col items-center mb-8">
           <img 
             src={maxLogo} 
             alt="Max Facility Logo" 
             className="h-24 w-auto drop-shadow-2xl"
           />
+          <h1 className="text-3xl font-bold text-white drop-shadow-2xl mt-2 tracking-wide">
+            RINK REPORTS
+          </h1>
         </div>
         
         <Card className="shadow-2xl backdrop-blur-sm bg-white/95 border-0">
