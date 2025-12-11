@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import maxFacilityLogo from "@/assets/max-facility-logo.jpg";
+import maxFacilityLogo from "@/assets/max-facility-logo.png";
 import {
   Snowflake,
   ClipboardList,
@@ -147,7 +147,7 @@ const Dashboard = () => {
             <img 
               src={maxFacilityLogo} 
               alt="Max Facility" 
-              className="h-20 md:h-28 object-contain dark:mix-blend-screen"
+              className="h-20 md:h-28 object-contain"
             />
           </div>
           

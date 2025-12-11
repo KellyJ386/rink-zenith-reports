@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import maxFacilityLogo from "@/assets/max-facility-logo.jpg";
+import maxFacilityLogo from "@/assets/max-facility-logo.png";
 import {
   Snowflake,
   ClipboardList,
@@ -93,7 +93,7 @@ const Index = () => {
               <img 
                 src={maxFacilityLogo} 
                 alt="Max Facility" 
-                className="h-24 md:h-36 object-contain rounded-2xl p-4 bg-white/90 dark:bg-transparent dark:mix-blend-screen"
+                className="h-24 md:h-36 object-contain"
               />
             </div>
 
