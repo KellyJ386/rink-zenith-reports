@@ -107,14 +107,9 @@ const Index = () => {
             </p>
 
             <div className="flex flex-wrap gap-4 justify-center">
-              <Button asChild size="lg" className="bg-seahawks-green text-white hover:bg-seahawks-green/90 shadow-lg">
+              <Button asChild size="lg" className="bg-green-500 hover:bg-green-600 text-white shadow-lg">
                 <Link to="/auth">
-                  Get Started <ArrowRight className="ml-2 h-5 w-5" />
-                </Link>
-              </Button>
-              <Button asChild size="lg" variant="outline" className="border-white/30 text-white hover:bg-white/10 backdrop-blur-sm">
-                <Link to="/auth">
-                  Sign In
+                  Sign In <ArrowRight className="ml-2 h-5 w-5" />
                 </Link>
               </Button>
             </div>
