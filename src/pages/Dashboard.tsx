@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import maxFacilityLogo from "@/assets/max-facility-logo.jpg";
 import {
   Snowflake,
   ClipboardList,
@@ -140,28 +141,32 @@ const Dashboard = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-seahawks-light to-background">
       <header className="border-b border-border/50 bg-card/80 backdrop-blur-sm">
-        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-gradient-to-br from-seahawks-navy to-seahawks-green rounded-lg">
-              <Snowflake className="h-6 w-6 text-white" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold">Rink Reports</h1>
-              <p className="text-sm text-muted-foreground">
-                Welcome back, {user?.user_metadata?.name || user?.email}
-              </p>
-            </div>
+        <div className="container mx-auto px-4 py-4">
+          {/* Logo centered at top */}
+          <div className="flex justify-center mb-4">
+            <img 
+              src={maxFacilityLogo} 
+              alt="Max Facility" 
+              className="h-20 md:h-28 object-contain"
+            />
           </div>
-          <div className="flex items-center gap-2">
-            <ThemeToggle />
-            <Button variant="outline" onClick={() => navigate("/admin")}>
-              <Settings className="h-4 w-4 mr-2" />
-              Admin
-            </Button>
-            <Button variant="outline" onClick={handleLogout}>
-              <LogOut className="h-4 w-4 mr-2" />
-              Logout
-            </Button>
+          
+          {/* Navigation row */}
+          <div className="flex justify-between items-center">
+            <p className="text-sm text-muted-foreground">
+              Welcome back, {user?.user_metadata?.name || user?.email}
+            </p>
+            <div className="flex items-center gap-2">
+              <ThemeToggle />
+              <Button variant="outline" onClick={() => navigate("/admin")}>
+                <Settings className="h-4 w-4 mr-2" />
+                Admin
+              </Button>
+              <Button variant="outline" onClick={handleLogout}>
+                <LogOut className="h-4 w-4 mr-2" />
+                Logout
+              </Button>
+            </div>
           </div>
         </div>
       </header>

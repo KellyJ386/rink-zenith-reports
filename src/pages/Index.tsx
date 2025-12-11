@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import maxFacilityLogo from "@/assets/max-facility-logo.jpg";
 import {
   Snowflake,
   ClipboardList,
@@ -88,25 +89,24 @@ const Index = () => {
 
         <div className="container relative z-10 mx-auto px-4">
           <div className="max-w-3xl">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="p-4 bg-white/10 backdrop-blur-sm rounded-2xl border border-white/20">
-                <Snowflake className="h-12 w-12 text-white" />
-              </div>
-              <h1 className="text-5xl md:text-7xl font-bold text-white">
-                Rink Reports
-              </h1>
+            <div className="flex justify-center mb-8">
+              <img 
+                src={maxFacilityLogo} 
+                alt="Max Facility" 
+                className="h-24 md:h-36 object-contain bg-white/90 backdrop-blur-sm rounded-2xl p-4"
+              />
             </div>
 
-            <h2 className="text-3xl md:text-5xl font-bold text-white mb-6 leading-tight">
+            <h2 className="text-3xl md:text-5xl font-bold text-white mb-6 leading-tight text-center">
               The All-in-One Digital Operating System for Ice Rink Facilities
             </h2>
 
-            <p className="text-xl text-white/90 mb-8 leading-relaxed">
+            <p className="text-xl text-white/90 mb-8 leading-relaxed text-center">
               Streamline operations, ensure safety compliance, and optimize ice quality
               with our comprehensive facility management platform.
             </p>
 
-            <div className="flex flex-wrap gap-4">
+            <div className="flex flex-wrap gap-4 justify-center">
               <Button asChild size="lg" className="bg-seahawks-green text-white hover:bg-seahawks-green/90 shadow-lg">
                 <Link to="/auth">
                   Get Started <ArrowRight className="ml-2 h-5 w-5" />
