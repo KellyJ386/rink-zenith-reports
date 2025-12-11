@@ -140,7 +140,7 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-seahawks-light to-background">
-      <header className="border-b border-border/50 bg-card/80 backdrop-blur-sm">
+      <header className="border-b border-border/30">
         <div className="container mx-auto px-4 py-4">
           {/* Logo centered at top */}
           <div className="flex justify-center mb-4">
