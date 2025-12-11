@@ -143,12 +143,15 @@ const Dashboard = () => {
       <header className="border-b border-border/30">
         <div className="container mx-auto px-4 py-4">
           {/* Logo centered at top */}
-          <div className="flex justify-center mb-4">
+          <div className="flex flex-col items-center mb-4">
             <img 
               src={maxFacilityLogo} 
               alt="Max Facility" 
               className="h-20 md:h-28 object-contain"
             />
+            <h1 className="font-bebas text-2xl md:text-3xl text-seahawks-navy dark:text-white tracking-wider mt-1">
+              RINK REPORTS
+            </h1>
           </div>
           
           {/* Navigation row */}
