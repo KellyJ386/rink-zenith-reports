@@ -149,7 +149,7 @@ const Dashboard = () => {
               alt="Max Facility" 
               className="h-20 md:h-28 object-contain"
             />
-            <h1 className="font-bebas text-2xl md:text-3xl text-seahawks-navy dark:text-white tracking-wider mt-1">
+            <h1 className="font-bebas text-3xl md:text-5xl text-seahawks-navy dark:text-white tracking-wider mt-1">
               RINK REPORTS
             </h1>
           </div>
