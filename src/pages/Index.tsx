@@ -95,7 +95,7 @@ const Index = () => {
                 alt="Max Facility" 
                 className="h-24 md:h-36 object-contain"
               />
-              <h1 className="font-bebas text-5xl md:text-7xl text-white tracking-wider mt-2 drop-shadow-2xl">
+              <h1 className="font-bebas font-bold text-5xl md:text-7xl text-white tracking-wider mt-2 drop-shadow-2xl">
                 RINK REPORTS
               </h1>
             </div>
