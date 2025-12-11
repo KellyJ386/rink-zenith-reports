@@ -8,7 +8,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { Snowflake } from "lucide-react";
-import authBackground from "@/assets/auth-background.jpg";
 
 const Auth = () => {
   const navigate = useNavigate();
@@ -77,12 +76,8 @@ const Auth = () => {
   };
 
   return (
-    <div 
-      className="min-h-screen flex items-center justify-center p-4 bg-cover bg-center bg-no-repeat relative"
-      style={{ backgroundImage: `url(${authBackground})` }}
-    >
-      <div className="absolute inset-0 bg-black/40" />
-      <Card className="w-full max-w-md shadow-2xl relative z-10">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-ice-frost to-background p-4">
+      <Card className="w-full max-w-md shadow-[var(--shadow-ice)]">
         <CardHeader className="space-y-1 text-center">
           <div className="flex justify-center mb-2">
             <div className="p-3 bg-gradient-to-br from-primary to-accent rounded-2xl">
