@@ -147,7 +147,7 @@ const Dashboard = () => {
             <img 
               src={maxFacilityLogo} 
               alt="Max Facility" 
-              className="h-20 md:h-28 object-contain"
+              className="h-20 md:h-28 object-contain dark:mix-blend-screen"
             />
           </div>
           

@@ -93,7 +93,7 @@ const Index = () => {
               <img 
                 src={maxFacilityLogo} 
                 alt="Max Facility" 
-                className="h-24 md:h-36 object-contain bg-white/90 backdrop-blur-sm rounded-2xl p-4"
+                className="h-24 md:h-36 object-contain rounded-2xl p-4 bg-white/90 dark:bg-transparent dark:mix-blend-screen"
               />
             </div>
 
