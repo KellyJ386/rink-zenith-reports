@@ -30,11 +30,20 @@ import {
 } from "@/components/ui/dialog";
 import { SVGRinkDiagram } from "@/components/ice-depth/SVGRinkDiagram";
 import { Separator } from "@/components/ui/separator";
+import { useUserContext } from "@/hooks/useUserContext";
 
 interface FacilityForm {
   name: string;
   address: string;
   timezone: string;
+}
+
+interface Facility {
+  id: string;
+  name: string;
+  address: string | null;
+  timezone: string | null;
+  enabled_templates: unknown;
 }
 
 interface Rink {
@@ -80,7 +89,9 @@ const defaultEnabledTemplates: EnabledTemplates = {
 
 const FacilitySettings = () => {
   const { toast } = useToast();
-  const [facility, setFacility] = useState<any>(null);
+  const { facility: userFacility } = useUserContext();
+  const [facilities, setFacilities] = useState<Facility[]>([]);
+  const [selectedFacilityId, setSelectedFacilityId] = useState<string | null>(null);
   const [rinks, setRinks] = useState<Rink[]>([]);
   const [machines, setMachines] = useState<Machine[]>([]);
   const [newRinkName, setNewRinkName] = useState("");
@@ -97,52 +108,85 @@ const FacilitySettings = () => {
 
   const { register, handleSubmit, setValue } = useForm<FacilityForm>();
 
+  // Load all facilities on mount
   useEffect(() => {
-    loadData();
+    loadFacilities();
   }, []);
 
-  const loadData = async () => {
-    const { data: facilityData } = await supabase.from("facilities").select("*").single();
-    if (facilityData) {
-      setFacility(facilityData);
-      setValue("name", facilityData.name);
-      setValue("address", facilityData.address || "");
-      setSelectedTimezone(facilityData.timezone || "America/New_York");
-      if (facilityData.enabled_templates) {
-        setEnabledTemplates(facilityData.enabled_templates as unknown as EnabledTemplates);
-      }
+  // Load facility-specific data when selection changes
+  useEffect(() => {
+    if (selectedFacilityId) {
+      loadFacilityData(selectedFacilityId);
+    }
+  }, [selectedFacilityId]);
+
+  const loadFacilities = async () => {
+    const { data: facilitiesData, error } = await supabase
+      .from("facilities")
+      .select("*")
+      .order("name");
+
+    if (error) {
+      console.error("Error loading facilities:", error);
+      setLoading(false);
+      return;
     }
 
-    const { data: rinksData } = await supabase
-      .from("rinks")
-      .select("*")
-      .eq("facility_id", facilityData?.id);
-    setRinks(rinksData || []);
+    setFacilities(facilitiesData || []);
 
-    const { data: machinesData } = await supabase
-      .from("resurfacing_machines")
-      .select("*")
-      .eq("facility_id", facilityData?.id);
-    setMachines(machinesData || []);
-
-    // Load custom templates
-    if (facilityData?.id) {
-      const { data: templatesData } = await supabase
-        .from("custom_templates")
-        .select("*")
-        .eq("facility_id", facilityData.id)
-        .order("slot_number");
-      setCustomTemplates((templatesData || []).map(t => ({
-        ...t,
-        template_data: t.template_data as CustomTemplate["template_data"]
-      })));
+    // Auto-select user's facility or first facility
+    if (facilitiesData && facilitiesData.length > 0) {
+      const userFacilityMatch = facilitiesData.find(f => f.id === userFacility?.id);
+      setSelectedFacilityId(userFacilityMatch?.id || facilitiesData[0].id);
     }
 
     setLoading(false);
   };
 
+  const loadFacilityData = async (facilityId: string) => {
+    const selectedFacility = facilities.find(f => f.id === facilityId);
+    
+    if (selectedFacility) {
+      setValue("name", selectedFacility.name);
+      setValue("address", selectedFacility.address || "");
+      setSelectedTimezone(selectedFacility.timezone || "America/New_York");
+      if (selectedFacility.enabled_templates) {
+        setEnabledTemplates(selectedFacility.enabled_templates as unknown as EnabledTemplates);
+      } else {
+        setEnabledTemplates(defaultEnabledTemplates);
+      }
+    }
+
+    // Load rinks for selected facility
+    const { data: rinksData } = await supabase
+      .from("rinks")
+      .select("*")
+      .eq("facility_id", facilityId);
+    setRinks(rinksData || []);
+
+    // Load machines for selected facility
+    const { data: machinesData } = await supabase
+      .from("resurfacing_machines")
+      .select("*")
+      .eq("facility_id", facilityId);
+    setMachines(machinesData || []);
+
+    // Load custom templates for selected facility
+    const { data: templatesData } = await supabase
+      .from("custom_templates")
+      .select("*")
+      .eq("facility_id", facilityId)
+      .order("slot_number");
+    setCustomTemplates((templatesData || []).map(t => ({
+      ...t,
+      template_data: t.template_data as CustomTemplate["template_data"]
+    })));
+  };
+
+  const selectedFacility = facilities.find(f => f.id === selectedFacilityId);
+
   const onSubmit = async (data: FacilityForm) => {
-    if (!facility) return;
+    if (!selectedFacilityId) return;
 
     const { error } = await supabase
       .from("facilities")
@@ -151,7 +195,7 @@ const FacilitySettings = () => {
         address: data.address,
         timezone: selectedTimezone,
       })
-      .eq("id", facility.id);
+      .eq("id", selectedFacilityId);
 
     if (error) {
       toast({
@@ -164,12 +208,15 @@ const FacilitySettings = () => {
         title: "Success",
         description: "Facility settings updated successfully",
       });
-      loadData();
+      // Reload facilities to get updated data
+      const { data: facilitiesData } = await supabase.from("facilities").select("*").order("name");
+      setFacilities(facilitiesData || []);
+      loadFacilityData(selectedFacilityId);
     }
   };
 
   const handleTemplateToggle = async (templateKey: keyof EnabledTemplates, enabled: boolean) => {
-    if (!facility) return;
+    if (!selectedFacilityId) return;
 
     const updated = { ...enabledTemplates, [templateKey]: enabled };
     setEnabledTemplates(updated);
@@ -177,7 +224,7 @@ const FacilitySettings = () => {
     const { error } = await supabase
       .from("facilities")
       .update({ enabled_templates: updated })
-      .eq("id", facility.id);
+      .eq("id", selectedFacilityId);
 
     if (error) {
       toast({
@@ -201,7 +248,7 @@ const FacilitySettings = () => {
   };
 
   const handleSaveCustomTemplate = async () => {
-    if (!facility || editingSlot === null) return;
+    if (!selectedFacilityId || editingSlot === null) return;
 
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
@@ -227,7 +274,7 @@ const FacilitySettings = () => {
         .from("custom_templates")
         .insert({
           name: editingTemplateName,
-          facility_id: facility.id,
+          facility_id: selectedFacilityId,
           user_id: user.id,
           slot_number: editingSlot,
           template_data: { points: editingPoints },
@@ -242,7 +289,7 @@ const FacilitySettings = () => {
 
     toast({ title: "Success", description: "Template saved successfully" });
     setEditingSlot(null);
-    loadData();
+    loadFacilityData(selectedFacilityId);
   };
 
   const handleClearCustomTemplate = async (slot: number) => {
@@ -262,7 +309,7 @@ const FacilitySettings = () => {
     // Disable the template slot
     await handleTemplateToggle(`custom_${slot}` as keyof EnabledTemplates, false);
     toast({ title: "Success", description: "Template cleared" });
-    loadData();
+    if (selectedFacilityId) loadFacilityData(selectedFacilityId);
   };
 
   const handleLogoUpload = async (rinkId: string, file: File) => {
@@ -296,17 +343,17 @@ const FacilitySettings = () => {
       toast({ title: "Error", description: "Failed to update rink", variant: "destructive" });
     } else {
       toast({ title: "Success", description: "Logo uploaded successfully" });
-      loadData();
+      if (selectedFacilityId) loadFacilityData(selectedFacilityId);
     }
 
     setUploadingLogo(null);
   };
 
   const addRink = async () => {
-    if (!newRinkName.trim() || !facility) return;
+    if (!newRinkName.trim() || !selectedFacilityId) return;
 
     const { error } = await supabase.from("rinks").insert({
-      facility_id: facility.id,
+      facility_id: selectedFacilityId,
       name: newRinkName,
     });
 
@@ -319,15 +366,15 @@ const FacilitySettings = () => {
     } else {
       toast({ title: "Success", description: "Rink added successfully" });
       setNewRinkName("");
-      loadData();
+      loadFacilityData(selectedFacilityId);
     }
   };
 
   const addMachine = async () => {
-    if (!newMachine.name.trim() || !facility) return;
+    if (!newMachine.name.trim() || !selectedFacilityId) return;
 
     const { error } = await supabase.from("resurfacing_machines").insert({
-      facility_id: facility.id,
+      facility_id: selectedFacilityId,
       name: newMachine.name,
       model: newMachine.model,
       fuel_type: newMachine.fuel_type,
@@ -342,7 +389,7 @@ const FacilitySettings = () => {
     } else {
       toast({ title: "Success", description: "Machine added successfully" });
       setNewMachine({ name: "", model: "", fuel_type: "electric" });
-      loadData();
+      loadFacilityData(selectedFacilityId);
     }
   };
 
@@ -360,7 +407,7 @@ const FacilitySettings = () => {
       });
     } else {
       toast({ title: "Success", description: `${deleteTarget.type} deleted successfully` });
-      loadData();
+      if (selectedFacilityId) loadFacilityData(selectedFacilityId);
     }
     setDeleteTarget(null);
   };
@@ -376,6 +423,33 @@ const FacilitySettings = () => {
         subtitle="Manage your facility information, rinks, and equipment"
         icon={<Building2 className="h-8 w-8 text-primary" />}
       />
+
+      {/* Facility Selector */}
+      {facilities.length > 1 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Building2 className="h-5 w-5" />
+              Select Facility
+            </CardTitle>
+            <CardDescription>Choose which facility to manage</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Select value={selectedFacilityId || ""} onValueChange={setSelectedFacilityId}>
+              <SelectTrigger className="w-full max-w-md">
+                <SelectValue placeholder="Select a facility" />
+              </SelectTrigger>
+              <SelectContent>
+                {facilities.map((f) => (
+                  <SelectItem key={f.id} value={f.id}>
+                    {f.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </CardContent>
+        </Card>
+      )}
 
       <Card>
         <CardHeader>
