@@ -29,15 +29,21 @@ const ModuleHeader = ({ title, subtitle, icon, actions, showBack = true }: Modul
     return () => clearInterval(interval);
   }, []);
 
-  // Fetch weather when facility changes
+  // Fetch weather when facility changes - use stored coordinates if available
   useEffect(() => {
     const fetchWeather = async () => {
-      if (!facility?.address) return;
+      // Need either coordinates or address
+      if (!facility?.latitude && !facility?.longitude && !facility?.address) return;
       
       setWeatherLoading(true);
       try {
         const { data, error } = await supabase.functions.invoke("get-weather", {
-          body: { address: facility.address },
+          body: { 
+            address: facility.address,
+            latitude: facility.latitude,
+            longitude: facility.longitude,
+            facilityId: facility.id
+          },
         });
 
         if (error) {
@@ -46,6 +52,11 @@ const ModuleHeader = ({ title, subtitle, icon, actions, showBack = true }: Modul
         }
 
         setWeather(data);
+        
+        // If coordinates were geocoded and saved, update local facility state
+        if (data?.coordinatesSaved && !facility.latitude && !facility.longitude) {
+          console.log("Facility coordinates updated from geocoding");
+        }
       } catch (error) {
         console.error("Weather error:", error);
       } finally {
@@ -57,7 +68,7 @@ const ModuleHeader = ({ title, subtitle, icon, actions, showBack = true }: Modul
     // Refresh weather every 30 minutes
     const interval = setInterval(fetchWeather, 30 * 60 * 1000);
     return () => clearInterval(interval);
-  }, [facility?.address]);
+  }, [facility?.id, facility?.latitude, facility?.longitude, facility?.address]);
 
   return (
     <div className="mb-6">
