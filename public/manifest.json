@@ -1,0 +1,48 @@
+{
+  "name": "Rink Reports - Ice Facility Management",
+  "short_name": "Rink Reports",
+  "description": "Comprehensive ice rink facility management system for maintenance, scheduling, and reporting",
+  "start_url": "/dashboard",
+  "display": "standalone",
+  "background_color": "#0a0a0a",
+  "theme_color": "#0284c7",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "64x64",
+      "type": "image/x-icon"
+    },
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["business", "productivity", "utilities"],
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "Ice Maintenance",
+      "url": "/ice-maintenance",
+      "description": "Log ice resurfacing activities"
+    },
+    {
+      "name": "Schedule",
+      "url": "/schedule/calendar",
+      "description": "View staff schedule"
+    },
+    {
+      "name": "Incident Report",
+      "url": "/incident-report",
+      "description": "File an incident report"
+    }
+  ]
+}

@@ -4,8 +4,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { NotificationCenter } from "@/components/dashboard/NotificationCenter";
+import { DashboardAnalytics } from "@/components/dashboard/DashboardAnalytics";
 import maxFacilityLogo from "@/assets/max-facility-logo.png";
 import {
   Snowflake,
@@ -20,6 +23,8 @@ import {
   LogOut,
   Settings,
   FileText,
+  BarChart3,
+  LayoutDashboard,
 } from "lucide-react";
 
 const Dashboard = () => {
@@ -27,6 +32,7 @@ const Dashboard = () => {
   const { toast } = useToast();
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState("modules");
 
   useEffect(() => {
     const checkUser = async () => {
@@ -160,6 +166,7 @@ const Dashboard = () => {
               Welcome back, {user?.user_metadata?.name || user?.email}
             </p>
             <div className="flex items-center gap-2">
+              <NotificationCenter />
               <ThemeToggle />
               <Button variant="outline" onClick={() => navigate("/admin")}>
                 <Settings className="h-4 w-4 mr-2" />
@@ -175,42 +182,62 @@ const Dashboard = () => {
       </header>
 
       <main className="container mx-auto px-4 py-8">
-        <div className="mb-8">
-          <h2 className="text-3xl font-bold mb-2">Dashboard</h2>
-          <p className="text-muted-foreground">
-            Your comprehensive ice rink facility management system
-          </p>
-        </div>
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-8">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h2 className="text-3xl font-bold mb-2">Dashboard</h2>
+              <p className="text-muted-foreground">
+                Your comprehensive ice rink facility management system
+              </p>
+            </div>
+            <TabsList>
+              <TabsTrigger value="modules" className="gap-2">
+                <LayoutDashboard className="h-4 w-4" />
+                Modules
+              </TabsTrigger>
+              <TabsTrigger value="analytics" className="gap-2">
+                <BarChart3 className="h-4 w-4" />
+                Analytics
+              </TabsTrigger>
+            </TabsList>
+          </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {modules.map((module, index) => {
-            const Icon = module.icon;
-            return (
-              <Card
-                key={index}
-                className={`group ${module.bgColor} text-white hover:shadow-xl transition-all duration-300 cursor-pointer hover:-translate-y-1 border-0`}
-                onClick={() => module.path && navigate(module.path)}
-              >
-                <CardHeader>
-                  <div className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center mb-3">
-                    <Icon className="h-6 w-6 text-white" />
-                  </div>
-                  <CardTitle className="text-xl text-white">{module.title}</CardTitle>
-                  <CardDescription className="text-white/80">{module.description}</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <Button 
-                    variant="secondary" 
-                    className="w-full bg-white/20 hover:bg-white/30 text-white border-0"
-                    disabled={!module.path}
+          <TabsContent value="modules" className="mt-0">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {modules.map((module, index) => {
+                const Icon = module.icon;
+                return (
+                  <Card
+                    key={index}
+                    className={`group ${module.bgColor} text-white hover:shadow-xl transition-all duration-300 cursor-pointer hover:-translate-y-1 border-0`}
+                    onClick={() => module.path && navigate(module.path)}
                   >
-                    {module.path ? "Open Module" : "Coming Soon"}
-                  </Button>
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
+                    <CardHeader>
+                      <div className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center mb-3">
+                        <Icon className="h-6 w-6 text-white" />
+                      </div>
+                      <CardTitle className="text-xl text-white">{module.title}</CardTitle>
+                      <CardDescription className="text-white/80">{module.description}</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <Button 
+                        variant="secondary" 
+                        className="w-full bg-white/20 hover:bg-white/30 text-white border-0"
+                        disabled={!module.path}
+                      >
+                        {module.path ? "Open Module" : "Coming Soon"}
+                      </Button>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="analytics" className="mt-0">
+            <DashboardAnalytics />
+          </TabsContent>
+        </Tabs>
 
         <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6">
           <Card>
