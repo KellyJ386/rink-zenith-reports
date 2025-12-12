@@ -12,10 +12,39 @@ import { StatisticsPanel } from "./StatisticsPanel";
 import { BluetoothCaliperControl } from "./BluetoothCaliperControl";
 import { Loader2 } from "lucide-react";
 import { getPointCount } from "./measurementPoints";
+import { Separator } from "@/components/ui/separator";
 
 interface IceDepthMeasurementFormProps {
   userId: string;
 }
+
+interface EnabledTemplates {
+  "24-point": boolean;
+  "35-point": boolean;
+  "47-point": boolean;
+  "custom_1": boolean;
+  "custom_2": boolean;
+  "custom_3": boolean;
+}
+
+interface CustomTemplate {
+  id: string;
+  name: string;
+  slot_number: number;
+  point_count: number;
+  template_data: {
+    points: { id: number; x: number; y: number; name?: string }[];
+  };
+}
+
+const defaultEnabledTemplates: EnabledTemplates = {
+  "24-point": true,
+  "35-point": true,
+  "47-point": true,
+  "custom_1": false,
+  "custom_2": false,
+  "custom_3": false,
+};
 
 export const IceDepthMeasurementForm = ({ userId }: IceDepthMeasurementFormProps) => {
   const { toast } = useToast();
@@ -31,6 +60,8 @@ export const IceDepthMeasurementForm = ({ userId }: IceDepthMeasurementFormProps
   });
   const [manualCurrentPoint, setManualCurrentPoint] = useState<number | null>(null);
   const [hasAdminAccess, setHasAdminAccess] = useState(false);
+  const [enabledTemplates, setEnabledTemplates] = useState<EnabledTemplates>(defaultEnabledTemplates);
+  const [customTemplates, setCustomTemplates] = useState<CustomTemplate[]>([]);
 
   // Check if user has admin or manager role
   useEffect(() => {
@@ -48,6 +79,38 @@ export const IceDepthMeasurementForm = ({ userId }: IceDepthMeasurementFormProps
 
     checkRole();
   }, [userId]);
+
+  // Fetch enabled templates when facility changes
+  useEffect(() => {
+    const fetchTemplateSettings = async () => {
+      if (!selectedFacility) return;
+
+      // Get facility settings
+      const { data: facilityData } = await supabase
+        .from("facilities")
+        .select("enabled_templates")
+        .eq("id", selectedFacility)
+        .single();
+
+      if (facilityData?.enabled_templates) {
+        setEnabledTemplates(facilityData.enabled_templates as unknown as EnabledTemplates);
+      }
+
+      // Get custom templates for this facility
+      const { data: customData } = await supabase
+        .from("custom_templates")
+        .select("*")
+        .eq("facility_id", selectedFacility)
+        .order("slot_number");
+
+      setCustomTemplates((customData || []).map(t => ({
+        ...t,
+        template_data: t.template_data as CustomTemplate["template_data"]
+      })));
+    };
+
+    fetchTemplateSettings();
+  }, [selectedFacility]);
 
   // Calculate current point for progressive input
   const getCurrentPointId = () => {
@@ -261,6 +324,33 @@ export const IceDepthMeasurementForm = ({ userId }: IceDepthMeasurementFormProps
 
   const stats = calculateStatistics();
 
+  // Get available preset templates
+  const availablePresets = [
+    { key: "25-point", label: "24-Point Template", enabled: enabledTemplates["24-point"] },
+    { key: "35-point", label: "35-Point Template", enabled: enabledTemplates["35-point"] },
+    { key: "47-point", label: "47-Point Template", enabled: enabledTemplates["47-point"] },
+  ].filter(t => t.enabled || hasAdminAccess);
+
+  // Get available custom templates
+  const availableCustom = [1, 2, 3].map(slot => {
+    const template = customTemplates.find(t => t.slot_number === slot);
+    const slotKey = `custom_${slot}` as keyof EnabledTemplates;
+    const enabled = enabledTemplates[slotKey];
+    const isConfigured = !!template;
+
+    return {
+      slot,
+      key: `custom_${slot}`,
+      template,
+      enabled,
+      isConfigured,
+      // Show to staff only if enabled AND configured
+      // Show to admin always (but grey out if not configured)
+      visible: hasAdminAccess || (enabled && isConfigured),
+      disabled: !isConfigured,
+    };
+  }).filter(t => t.visible);
+
   return (
     <div className="space-y-6">
       <Card className="shadow-[var(--shadow-ice)]">
@@ -313,28 +403,51 @@ export const IceDepthMeasurementForm = ({ userId }: IceDepthMeasurementFormProps
           <div className="space-y-2">
             <Label>Measurement Template</Label>
             <RadioGroup value={templateType} onValueChange={setTemplateType}>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="25-point" id="25-point" />
-                <Label htmlFor="25-point" className="font-normal cursor-pointer">
-                  25-Point Template
-                </Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="35-point" id="35-point" />
-                <Label htmlFor="35-point" className="font-normal cursor-pointer">
-                  35-Point Template
-                </Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="47-point" id="47-point" />
-                <Label htmlFor="47-point" className="font-normal cursor-pointer">
-                  47-Point Template
-                </Label>
-              </div>
+              {/* Preset Templates */}
+              {availablePresets.map((preset) => (
+                <div key={preset.key} className="flex items-center space-x-2">
+                  <RadioGroupItem value={preset.key} id={preset.key} />
+                  <Label htmlFor={preset.key} className="font-normal cursor-pointer">
+                    {preset.label}
+                  </Label>
+                </div>
+              ))}
+
+              {/* Separator if there are custom templates */}
+              {availableCustom.length > 0 && (
+                <Separator className="my-2" />
+              )}
+
+              {/* Custom Templates */}
+              {availableCustom.map((custom) => (
+                <div key={custom.key} className="flex items-center space-x-2">
+                  <RadioGroupItem 
+                    value={custom.key} 
+                    id={custom.key}
+                    disabled={custom.disabled}
+                  />
+                  <Label 
+                    htmlFor={custom.key} 
+                    className={`font-normal cursor-pointer ${custom.disabled ? "text-muted-foreground" : ""}`}
+                  >
+                    Custom {custom.slot}: {custom.template?.name || "[Not Set]"}
+                    {custom.template && (
+                      <span className="text-muted-foreground ml-1">
+                        ({custom.template.point_count} pts)
+                      </span>
+                    )}
+                    {custom.disabled && hasAdminAccess && (
+                      <span className="text-xs text-muted-foreground ml-2">
+                        (configure in settings)
+                      </span>
+                    )}
+                  </Label>
+                </div>
+              ))}
             </RadioGroup>
-            {!hasAdminAccess && (
+            {!hasAdminAccess && availableCustom.length === 0 && (
               <p className="text-xs text-muted-foreground mt-2">
-                Custom templates are available in the admin panel for managers and administrators.
+                Custom templates are available when configured by administrators.
               </p>
             )}
           </div>
@@ -365,10 +478,33 @@ export const IceDepthMeasurementForm = ({ userId }: IceDepthMeasurementFormProps
             onMeasurementChange={(pointId, value) => {
               // Value comes in display unit, convert to mm
               const mmValue = unit === "in" ? value * 25.4 : value;
-              setMeasurements({
+              const updatedMeasurements = {
                 ...measurements,
                 [`Point ${pointId}`]: mmValue,
-              });
+              };
+              setMeasurements(updatedMeasurements);
+
+              // Auto-advance to next unfilled point
+              const pointCount = getPointCount(templateType, updatedMeasurements);
+              let nextPoint = pointId + 1;
+              
+              while (nextPoint <= pointCount) {
+                if (!updatedMeasurements[`Point ${nextPoint}`] || updatedMeasurements[`Point ${nextPoint}`] === 0) {
+                  setManualCurrentPoint(nextPoint);
+                  return;
+                }
+                nextPoint++;
+              }
+              
+              // Check if all filled
+              const allFilled = Object.values(updatedMeasurements).filter(v => v > 0).length >= pointCount;
+              if (allFilled) {
+                toast({
+                  title: "All Points Complete",
+                  description: "All measurement points have been filled",
+                });
+                setManualCurrentPoint(null);
+              }
             }}
             unit={unit}
           />

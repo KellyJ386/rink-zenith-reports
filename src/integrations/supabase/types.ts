@@ -319,6 +319,7 @@ export type Database = {
           id: string
           name: string
           point_count: number
+          slot_number: number | null
           template_data: Json
           updated_at: string
           user_id: string
@@ -329,6 +330,7 @@ export type Database = {
           id?: string
           name: string
           point_count: number
+          slot_number?: number | null
           template_data: Json
           updated_at?: string
           user_id: string
@@ -339,6 +341,7 @@ export type Database = {
           id?: string
           name?: string
           point_count?: number
+          slot_number?: number | null
           template_data?: Json
           updated_at?: string
           user_id?: string
@@ -523,6 +526,7 @@ export type Database = {
         Row: {
           address: string | null
           created_at: string
+          enabled_templates: Json | null
           id: string
           name: string
           timezone: string | null
@@ -531,6 +535,7 @@ export type Database = {
         Insert: {
           address?: string | null
           created_at?: string
+          enabled_templates?: Json | null
           id?: string
           name: string
           timezone?: string | null
@@ -539,6 +544,7 @@ export type Database = {
         Update: {
           address?: string | null
           created_at?: string
+          enabled_templates?: Json | null
           id?: string
           name?: string
           timezone?: string | null
