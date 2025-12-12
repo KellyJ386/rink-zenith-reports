@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { logAuditEvent } from "@/services/auditLog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -40,8 +41,9 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Plus, Edit, Trash2, Users, Building2 } from "lucide-react";
+import { Plus, Edit, Trash2, Users, Building2, Shield, Wand2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
 
 const MODULES = [
   "Ice Depth Log",
@@ -54,6 +56,24 @@ const MODULES = [
   "Safety & Compliance",
 ];
 
+const JOB_TITLES = [
+  "Facility Manager",
+  "Supervisor",
+  "Maintenance",
+  "Attendant",
+  "Front Desk",
+  "Part-Time",
+  "Zamboni Driver",
+];
+
+const ACCOUNT_STATUSES = [
+  { value: "active", label: "Active", color: "bg-green-500/10 text-green-600" },
+  { value: "inactive", label: "Inactive", color: "bg-gray-500/10 text-gray-600" },
+  { value: "on_leave", label: "On Leave", color: "bg-yellow-500/10 text-yellow-600" },
+  { value: "seasonal", label: "Seasonal", color: "bg-blue-500/10 text-blue-600" },
+  { value: "terminated", label: "Terminated", color: "bg-red-500/10 text-red-600" },
+];
+
 interface User {
   id: string;
   email: string;
@@ -61,6 +81,8 @@ interface User {
   role: string;
   facility_id: string | null;
   facility_name: string | null;
+  job_title: string | null;
+  account_status: string | null;
 }
 
 interface Facility {
@@ -68,10 +90,25 @@ interface Facility {
   name: string;
 }
 
+interface PermissionTemplate {
+  id: string;
+  name: string;
+  description: string | null;
+  modules: Array<{
+    module: string;
+    view: boolean;
+    create: boolean;
+    edit: boolean;
+    delete: boolean;
+    export: boolean;
+  }>;
+}
+
 const UserManagement = () => {
   const { toast } = useToast();
   const [users, setUsers] = useState<User[]>([]);
   const [facilities, setFacilities] = useState<Facility[]>([]);
+  const [permissionTemplates, setPermissionTemplates] = useState<PermissionTemplate[]>([]);
   const [loading, setLoading] = useState(true);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -85,6 +122,8 @@ const UserManagement = () => {
     password: "",
     role: "staff",
     facility_id: "",
+    job_title: "",
+    account_status: "active",
     address: "",
     phone_number: "",
     date_of_birth: "",
@@ -96,6 +135,7 @@ const UserManagement = () => {
   useEffect(() => {
     loadUsers();
     loadFacilities();
+    loadPermissionTemplates();
   }, []);
 
   const loadFacilities = async () => {
@@ -104,6 +144,14 @@ const UserManagement = () => {
       .select("id, name")
       .order("name");
     setFacilities(data || []);
+  };
+
+  const loadPermissionTemplates = async () => {
+    const { data } = await supabase
+      .from("permission_templates")
+      .select("*")
+      .order("name");
+    setPermissionTemplates((data || []) as unknown as PermissionTemplate[]);
   };
 
   const loadUsers = async () => {
@@ -115,6 +163,8 @@ const UserManagement = () => {
           user_id, 
           name,
           facility_id,
+          job_title,
+          account_status,
           facilities:facility_id (name)
         `);
 
@@ -142,6 +192,8 @@ const UserManagement = () => {
             role: roleData?.role || "staff",
             facility_id: profile.facility_id,
             facility_name: facilityData?.name || null,
+            job_title: profile.job_title,
+            account_status: profile.account_status,
           };
         })
       );
@@ -207,6 +259,8 @@ const UserManagement = () => {
           sms_notifications_enabled: formData.sms_notifications_enabled,
           force_email_change: formData.force_email_change,
           facility_id: formData.facility_id || null,
+          job_title: formData.job_title || null,
+          account_status: formData.account_status,
         })
         .eq("user_id", authData.user.id);
 
@@ -220,29 +274,24 @@ const UserManagement = () => {
         console.error("Profile error:", profileError);
         toast({
           title: "Partial Success",
-          description: "User created but some additional data failed to save. Please edit the user to complete setup.",
+          description: "User created but some additional data failed to save.",
           variant: "destructive",
         });
       } else {
+        await logAuditEvent({
+          action: "created user",
+          targetType: "user",
+          targetId: authData.user.id,
+          targetName: formData.name,
+          changes: { role: formData.role, job_title: formData.job_title },
+        });
         toast({ 
           title: "Success", 
           description: `User ${formData.name} created successfully` 
         });
       }
 
-      setFormData({ 
-        name: "", 
-        email: "", 
-        password: "", 
-        role: "staff",
-        facility_id: "",
-        address: "",
-        phone_number: "",
-        date_of_birth: "",
-        email_notifications_enabled: true,
-        sms_notifications_enabled: false,
-        force_email_change: false,
-      });
+      resetFormData();
       setIsAddDialogOpen(false);
       loadUsers();
     } catch (error) {
@@ -253,6 +302,24 @@ const UserManagement = () => {
         variant: "destructive",
       });
     }
+  };
+
+  const resetFormData = () => {
+    setFormData({ 
+      name: "", 
+      email: "", 
+      password: "", 
+      role: "staff",
+      facility_id: "",
+      job_title: "",
+      account_status: "active",
+      address: "",
+      phone_number: "",
+      date_of_birth: "",
+      email_notifications_enabled: true,
+      sms_notifications_enabled: false,
+      force_email_change: false,
+    });
   };
 
   const handleEditUser = async () => {
@@ -268,6 +335,8 @@ const UserManagement = () => {
       .update({ 
         name: formData.name,
         facility_id: formData.facility_id || null,
+        job_title: formData.job_title || null,
+        account_status: formData.account_status,
       })
       .eq("user_id", selectedUser.id);
 
@@ -278,6 +347,17 @@ const UserManagement = () => {
         variant: "destructive",
       });
     } else {
+      await logAuditEvent({
+        action: "updated user",
+        targetType: "user",
+        targetId: selectedUser.id,
+        targetName: formData.name,
+        changes: { 
+          role: formData.role, 
+          job_title: formData.job_title,
+          account_status: formData.account_status,
+        },
+      });
       toast({ title: "Success", description: "User updated successfully" });
       setIsEditDialogOpen(false);
       setSelectedUser(null);
@@ -293,6 +373,33 @@ const UserManagement = () => {
       .eq("can_access", true);
 
     setUserPermissions(data?.map((p) => p.module_name) || []);
+  };
+
+  const handleApplyTemplate = async (templateId: string) => {
+    const template = permissionTemplates.find(t => t.id === templateId);
+    if (!template) return;
+
+    const moduleNames = template.modules
+      .filter(m => m.view)
+      .map(m => {
+        // Map template module names to our MODULES array
+        const moduleMap: Record<string, string> = {
+          "ice_maintenance": "Ice Maintenance Log",
+          "refrigeration": "Refrigeration Log",
+          "ice_depth": "Ice Depth Log",
+          "air_quality": "Air Quality Log",
+          "incidents": "Incident Reports",
+          "daily_reports": "Communications Log",
+          "scheduling": "Employee Scheduling",
+        };
+        return moduleMap[m.module] || m.module;
+      });
+
+    setUserPermissions(moduleNames.filter(m => MODULES.includes(m)));
+    toast({
+      title: "Template Applied",
+      description: `Applied "${template.name}" permissions`,
+    });
   };
 
   const handleSavePermissions = async () => {
@@ -318,6 +425,13 @@ const UserManagement = () => {
         variant: "destructive",
       });
     } else {
+      await logAuditEvent({
+        action: "updated permissions",
+        targetType: "user",
+        targetId: selectedUser.id,
+        targetName: selectedUser.name,
+        changes: { modules: userPermissions },
+      });
       toast({ title: "Success", description: "Permissions updated successfully" });
       setIsPermissionsDialogOpen(false);
       setSelectedUser(null);
@@ -327,16 +441,28 @@ const UserManagement = () => {
   const handleDeleteUser = async () => {
     if (!deleteUserId) return;
 
-    const { error } = await supabase.auth.admin.deleteUser(deleteUserId);
+    const userToDelete = users.find(u => u.id === deleteUserId);
 
-    if (error) {
+    // First update the account status to terminated (soft delete)
+    const { error: profileError } = await supabase
+      .from("profiles")
+      .update({ account_status: "terminated" })
+      .eq("user_id", deleteUserId);
+
+    if (profileError) {
       toast({
         title: "Error",
-        description: "Failed to delete user",
+        description: "Failed to deactivate user",
         variant: "destructive",
       });
     } else {
-      toast({ title: "Success", description: "User deleted successfully" });
+      await logAuditEvent({
+        action: "terminated user",
+        targetType: "user",
+        targetId: deleteUserId,
+        targetName: userToDelete?.name,
+      });
+      toast({ title: "Success", description: "User account terminated" });
       setDeleteUserId(null);
       loadUsers();
     }
@@ -350,6 +476,8 @@ const UserManagement = () => {
       role: user.role, 
       email: user.email,
       facility_id: user.facility_id || "",
+      job_title: user.job_title || "",
+      account_status: user.account_status || "active",
     });
     setIsEditDialogOpen(true);
   };
@@ -358,6 +486,15 @@ const UserManagement = () => {
     setSelectedUser(user);
     await loadUserPermissions(user.id);
     setIsPermissionsDialogOpen(true);
+  };
+
+  const getStatusBadge = (status: string | null) => {
+    const statusConfig = ACCOUNT_STATUSES.find(s => s.value === status) || ACCOUNT_STATUSES[0];
+    return (
+      <Badge variant="secondary" className={statusConfig.color}>
+        {statusConfig.label}
+      </Badge>
+    );
   };
 
   if (loading) {
@@ -371,7 +508,7 @@ const UserManagement = () => {
         subtitle="Manage staff accounts, roles, and facility assignments"
         icon={<Users className="h-8 w-8 text-primary" />}
         actions={
-          <Button onClick={() => setIsAddDialogOpen(true)}>
+          <Button onClick={() => { resetFormData(); setIsAddDialogOpen(true); }}>
             <Plus className="h-4 w-4 mr-2" />
             Add User
           </Button>
@@ -391,18 +528,26 @@ const UserManagement = () => {
             <TableHeader>
               <TableRow>
                 <TableHead>Name</TableHead>
-                <TableHead>Email</TableHead>
+                <TableHead>Job Title</TableHead>
                 <TableHead>Role</TableHead>
+                <TableHead>Status</TableHead>
                 <TableHead>Facility</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {users.map((user) => (
+              {users.filter(u => u.account_status !== "terminated").map((user) => (
                 <TableRow key={user.id}>
                   <TableCell className="font-medium">{user.name}</TableCell>
-                  <TableCell>{user.email}</TableCell>
-                  <TableCell className="capitalize">{user.role}</TableCell>
+                  <TableCell className="text-muted-foreground">
+                    {user.job_title || "-"}
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant="outline" className="capitalize">
+                      {user.role}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>{getStatusBadge(user.account_status)}</TableCell>
                   <TableCell>
                     {user.facility_name ? (
                       <Badge variant="outline" className="gap-1">
@@ -418,7 +563,7 @@ const UserManagement = () => {
                       <Edit className="h-4 w-4" />
                     </Button>
                     <Button variant="ghost" size="sm" onClick={() => openPermissionsDialog(user)}>
-                      Permissions
+                      <Shield className="h-4 w-4" />
                     </Button>
                     <Button
                       variant="ghost"
@@ -435,73 +580,122 @@ const UserManagement = () => {
         </CardContent>
       </Card>
 
+      {/* Add User Dialog */}
       <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-        <DialogContent>
+        <DialogContent className="max-w-lg">
           <DialogHeader>
             <DialogTitle>Add New User</DialogTitle>
             <DialogDescription>Create a new user account with role and facility assignment</DialogDescription>
           </DialogHeader>
           <div className="space-y-4 max-h-[60vh] overflow-y-auto">
-            <div className="space-y-2">
-              <Label htmlFor="name">Name</Label>
-              <Input
-                id="name"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              />
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="name">Full Name</Label>
+                <Input
+                  id="name"
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                />
+              </div>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              />
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="job_title">Job Title</Label>
+                <Select 
+                  value={formData.job_title} 
+                  onValueChange={(val) => setFormData({ ...formData, job_title: val })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select job title" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {JOB_TITLES.map((title) => (
+                      <SelectItem key={title} value={title}>{title}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="role">System Role</Label>
+                <Select value={formData.role} onValueChange={(val) => setFormData({ ...formData, role: val })}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="admin">Admin</SelectItem>
+                    <SelectItem value="manager">Manager</SelectItem>
+                    <SelectItem value="staff">Staff</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="facility">Assigned Facility</Label>
-              <Select 
-                value={formData.facility_id} 
-                onValueChange={(val) => setFormData({ ...formData, facility_id: val })}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select facility" />
-                </SelectTrigger>
-                <SelectContent>
-                  {facilities.map((facility) => (
-                    <SelectItem key={facility.id} value={facility.id}>
-                      {facility.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="facility">Assigned Facility</Label>
+                <Select 
+                  value={formData.facility_id} 
+                  onValueChange={(val) => setFormData({ ...formData, facility_id: val })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select facility" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {facilities.map((facility) => (
+                      <SelectItem key={facility.id} value={facility.id}>
+                        {facility.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="account_status">Account Status</Label>
+                <Select 
+                  value={formData.account_status} 
+                  onValueChange={(val) => setFormData({ ...formData, account_status: val })}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {ACCOUNT_STATUSES.map((status) => (
+                      <SelectItem key={status.value} value={status.value}>
+                        {status.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="address">Address</Label>
-              <Input
-                id="address"
-                value={formData.address}
-                onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="phone">Phone Number</Label>
-              <Input
-                id="phone"
-                type="tel"
-                value={formData.phone_number}
-                onChange={(e) => setFormData({ ...formData, phone_number: e.target.value })}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="dob">Date of Birth</Label>
-              <Input
-                id="dob"
-                type="date"
-                value={formData.date_of_birth}
-                onChange={(e) => setFormData({ ...formData, date_of_birth: e.target.value })}
-              />
+            <Separator />
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="phone">Phone Number</Label>
+                <Input
+                  id="phone"
+                  type="tel"
+                  value={formData.phone_number}
+                  onChange={(e) => setFormData({ ...formData, phone_number: e.target.value })}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="dob">Date of Birth</Label>
+                <Input
+                  id="dob"
+                  type="date"
+                  value={formData.date_of_birth}
+                  onChange={(e) => setFormData({ ...formData, date_of_birth: e.target.value })}
+                />
+              </div>
             </div>
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
@@ -512,54 +706,31 @@ const UserManagement = () => {
                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
               />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="role">Role</Label>
-              <Select value={formData.role} onValueChange={(val) => setFormData({ ...formData, role: val })}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="admin">Admin</SelectItem>
-                  <SelectItem value="manager">Manager</SelectItem>
-                  <SelectItem value="staff">Staff</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="email-notifications"
-                checked={formData.email_notifications_enabled}
-                onCheckedChange={(checked) => 
-                  setFormData({ ...formData, email_notifications_enabled: checked === true })
-                }
-              />
-              <Label htmlFor="email-notifications" className="cursor-pointer">
-                Accept Email Notifications
-              </Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="sms-notifications"
-                checked={formData.sms_notifications_enabled}
-                onCheckedChange={(checked) => 
-                  setFormData({ ...formData, sms_notifications_enabled: checked === true })
-                }
-              />
-              <Label htmlFor="sms-notifications" className="cursor-pointer">
-                Accept SMS Notifications
-              </Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="force-email-change"
-                checked={formData.force_email_change}
-                onCheckedChange={(checked) => 
-                  setFormData({ ...formData, force_email_change: checked === true })
-                }
-              />
-              <Label htmlFor="force-email-change" className="cursor-pointer">
-                Force Email Change on First Login
-              </Label>
+            <div className="space-y-3">
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="email-notifications"
+                  checked={formData.email_notifications_enabled}
+                  onCheckedChange={(checked) => 
+                    setFormData({ ...formData, email_notifications_enabled: checked === true })
+                  }
+                />
+                <Label htmlFor="email-notifications" className="cursor-pointer">
+                  Accept Email Notifications
+                </Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="force-email-change"
+                  checked={formData.force_email_change}
+                  onCheckedChange={(checked) => 
+                    setFormData({ ...formData, force_email_change: checked === true })
+                  }
+                />
+                <Label htmlFor="force-email-change" className="cursor-pointer">
+                  Force Password Change on First Login
+                </Label>
+              </div>
             </div>
           </div>
           <DialogFooter>
@@ -571,6 +742,7 @@ const UserManagement = () => {
         </DialogContent>
       </Dialog>
 
+      {/* Edit User Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent>
           <DialogHeader>
@@ -586,40 +758,74 @@ const UserManagement = () => {
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
               />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="edit-email">Email</Label>
-              <Input id="edit-email" value={formData.email} disabled />
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="edit-job-title">Job Title</Label>
+                <Select 
+                  value={formData.job_title} 
+                  onValueChange={(val) => setFormData({ ...formData, job_title: val })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select job title" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {JOB_TITLES.map((title) => (
+                      <SelectItem key={title} value={title}>{title}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-role">System Role</Label>
+                <Select value={formData.role} onValueChange={(val) => setFormData({ ...formData, role: val })}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="admin">Admin</SelectItem>
+                    <SelectItem value="manager">Manager</SelectItem>
+                    <SelectItem value="staff">Staff</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="edit-facility">Assigned Facility</Label>
-              <Select 
-                value={formData.facility_id} 
-                onValueChange={(val) => setFormData({ ...formData, facility_id: val })}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select facility" />
-                </SelectTrigger>
-                <SelectContent>
-                  {facilities.map((facility) => (
-                    <SelectItem key={facility.id} value={facility.id}>
-                      {facility.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="edit-role">Role</Label>
-              <Select value={formData.role} onValueChange={(val) => setFormData({ ...formData, role: val })}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="admin">Admin</SelectItem>
-                  <SelectItem value="manager">Manager</SelectItem>
-                  <SelectItem value="staff">Staff</SelectItem>
-                </SelectContent>
-              </Select>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="edit-facility">Assigned Facility</Label>
+                <Select 
+                  value={formData.facility_id} 
+                  onValueChange={(val) => setFormData({ ...formData, facility_id: val })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select facility" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {facilities.map((facility) => (
+                      <SelectItem key={facility.id} value={facility.id}>
+                        {facility.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-status">Account Status</Label>
+                <Select 
+                  value={formData.account_status} 
+                  onValueChange={(val) => setFormData({ ...formData, account_status: val })}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {ACCOUNT_STATUSES.map((status) => (
+                      <SelectItem key={status.value} value={status.value}>
+                        {status.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           </div>
           <DialogFooter>
@@ -631,14 +837,41 @@ const UserManagement = () => {
         </DialogContent>
       </Dialog>
 
+      {/* Permissions Dialog */}
       <Dialog open={isPermissionsDialogOpen} onOpenChange={setIsPermissionsDialogOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Module Permissions</DialogTitle>
+            <DialogTitle className="flex items-center gap-2">
+              <Shield className="h-5 w-5" />
+              Module Permissions
+            </DialogTitle>
             <DialogDescription>
               Select which modules {selectedUser?.name} can access
             </DialogDescription>
           </DialogHeader>
+          
+          {/* Permission Templates */}
+          {permissionTemplates.length > 0 && (
+            <div className="space-y-2">
+              <Label className="text-xs text-muted-foreground">Quick Apply Template</Label>
+              <div className="flex flex-wrap gap-2">
+                {permissionTemplates.map((template) => (
+                  <Button
+                    key={template.id}
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleApplyTemplate(template.id)}
+                  >
+                    <Wand2 className="h-3 w-3 mr-1" />
+                    {template.name}
+                  </Button>
+                ))}
+              </div>
+            </div>
+          )}
+          
+          <Separator />
+          
           <div className="space-y-3">
             {MODULES.map((module) => (
               <div key={module} className="flex items-center space-x-2">
@@ -668,18 +901,19 @@ const UserManagement = () => {
         </DialogContent>
       </Dialog>
 
+      {/* Delete Confirmation */}
       <AlertDialog open={!!deleteUserId} onOpenChange={() => setDeleteUserId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Confirm Deletion</AlertDialogTitle>
+            <AlertDialogTitle>Terminate User Account</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete this user? This action cannot be undone and will
-              remove all associated data.
+              This will mark the user as terminated and remove their access. 
+              The account data will be preserved for audit purposes.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeleteUser}>Delete</AlertDialogAction>
+            <AlertDialogAction onClick={handleDeleteUser}>Terminate</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

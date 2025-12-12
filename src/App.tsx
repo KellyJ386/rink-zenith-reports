@@ -17,6 +17,7 @@ import UserManagement from "./pages/admin/UserManagement";
 import ModuleAdministration from "./pages/admin/ModuleAdministration";
 import AdminFormConfig from "./pages/AdminFormConfig";
 import CustomTemplateManager from "./pages/admin/CustomTemplateManager";
+import AuditLog from "./pages/admin/AuditLog";
 import RefrigerationLog from "./pages/RefrigerationLog";
 import RefrigerationDashboard from "./pages/RefrigerationDashboard";
 import DailyReports from "./pages/DailyReports";
@@ -79,6 +80,7 @@ const App = () => (
               <Route path="modules" element={<ModuleAdministration />} />
               <Route path="incidents" element={<IncidentHistory />} />
               <Route path="templates" element={<CustomTemplateManager />} />
+              <Route path="audit" element={<AuditLog />} />
             </Route>
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />

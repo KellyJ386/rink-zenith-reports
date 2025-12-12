@@ -277,6 +277,45 @@ export type Database = {
           },
         ]
       }
+      audit_logs: {
+        Row: {
+          action: string
+          changes: Json | null
+          created_at: string | null
+          id: string
+          ip_address: string | null
+          target_id: string | null
+          target_name: string | null
+          target_type: string | null
+          user_id: string
+          user_name: string
+        }
+        Insert: {
+          action: string
+          changes?: Json | null
+          created_at?: string | null
+          id?: string
+          ip_address?: string | null
+          target_id?: string | null
+          target_name?: string | null
+          target_type?: string | null
+          user_id: string
+          user_name: string
+        }
+        Update: {
+          action?: string
+          changes?: Json | null
+          created_at?: string | null
+          id?: string
+          ip_address?: string | null
+          target_id?: string | null
+          target_name?: string | null
+          target_type?: string | null
+          user_id?: string
+          user_name?: string
+        }
+        Relationships: []
+      }
       circle_checks: {
         Row: {
           activity_id: string
@@ -526,29 +565,50 @@ export type Database = {
         Row: {
           address: string | null
           created_at: string
+          emergency_contact: string | null
           enabled_templates: Json | null
           id: string
+          latitude: number | null
+          longitude: number | null
           name: string
+          phone: string | null
+          season_end: string | null
+          season_start: string | null
           timezone: string | null
           updated_at: string
+          website: string | null
         }
         Insert: {
           address?: string | null
           created_at?: string
+          emergency_contact?: string | null
           enabled_templates?: Json | null
           id?: string
+          latitude?: number | null
+          longitude?: number | null
           name: string
+          phone?: string | null
+          season_end?: string | null
+          season_start?: string | null
           timezone?: string | null
           updated_at?: string
+          website?: string | null
         }
         Update: {
           address?: string | null
           created_at?: string
+          emergency_contact?: string | null
           enabled_templates?: Json | null
           id?: string
+          latitude?: number | null
+          longitude?: number | null
           name?: string
+          phone?: string | null
+          season_end?: string | null
+          season_start?: string | null
           timezone?: string | null
           updated_at?: string
+          website?: string | null
         }
         Relationships: []
       }
@@ -1053,15 +1113,49 @@ export type Database = {
           },
         ]
       }
+      permission_templates: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          is_system_template: boolean | null
+          modules: Json
+          name: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_system_template?: boolean | null
+          modules?: Json
+          name: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_system_template?: boolean | null
+          modules?: Json
+          name?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
+          account_status: string | null
           address: string | null
           created_at: string
           date_of_birth: string | null
           email_notifications_enabled: boolean | null
+          emergency_contact_name: string | null
+          emergency_contact_phone: string | null
           facility_id: string | null
           force_email_change: boolean | null
           id: string
+          job_title: string | null
           name: string
           phone_number: string | null
           sms_notifications_enabled: boolean | null
@@ -1069,13 +1163,17 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          account_status?: string | null
           address?: string | null
           created_at?: string
           date_of_birth?: string | null
           email_notifications_enabled?: boolean | null
+          emergency_contact_name?: string | null
+          emergency_contact_phone?: string | null
           facility_id?: string | null
           force_email_change?: boolean | null
           id: string
+          job_title?: string | null
           name: string
           phone_number?: string | null
           sms_notifications_enabled?: boolean | null
@@ -1083,13 +1181,17 @@ export type Database = {
           user_id: string
         }
         Update: {
+          account_status?: string | null
           address?: string | null
           created_at?: string
           date_of_birth?: string | null
           email_notifications_enabled?: boolean | null
+          emergency_contact_name?: string | null
+          emergency_contact_phone?: string | null
           facility_id?: string | null
           force_email_change?: boolean | null
           id?: string
+          job_title?: string | null
           name?: string
           phone_number?: string | null
           sms_notifications_enabled?: boolean | null
@@ -1233,28 +1335,55 @@ export type Database = {
       }
       resurfacing_machines: {
         Row: {
+          blade_tracking: string | null
           created_at: string
+          current_blade_hours: number | null
+          current_blade_makes: number | null
+          expected_blade_life_hours: number | null
+          expected_blade_life_makes: number | null
           facility_id: string
           fuel_type: string | null
           id: string
+          last_blade_change: string | null
           model: string | null
           name: string
+          serial_number: string | null
+          status: string | null
+          year: number | null
         }
         Insert: {
+          blade_tracking?: string | null
           created_at?: string
+          current_blade_hours?: number | null
+          current_blade_makes?: number | null
+          expected_blade_life_hours?: number | null
+          expected_blade_life_makes?: number | null
           facility_id: string
           fuel_type?: string | null
           id?: string
+          last_blade_change?: string | null
           model?: string | null
           name: string
+          serial_number?: string | null
+          status?: string | null
+          year?: number | null
         }
         Update: {
+          blade_tracking?: string | null
           created_at?: string
+          current_blade_hours?: number | null
+          current_blade_makes?: number | null
+          expected_blade_life_hours?: number | null
+          expected_blade_life_makes?: number | null
           facility_id?: string
           fuel_type?: string | null
           id?: string
+          last_blade_change?: string | null
           model?: string | null
           name?: string
+          serial_number?: string | null
+          status?: string | null
+          year?: number | null
         }
         Relationships: [
           {
@@ -1272,21 +1401,45 @@ export type Database = {
           created_at: string
           facility_id: string
           id: string
+          is_active: boolean | null
+          length_feet: number | null
+          measurement_grid: string | null
           name: string
+          primary_use: string | null
+          target_depth_ideal: number | null
+          target_depth_max: number | null
+          target_depth_min: number | null
+          width_feet: number | null
         }
         Insert: {
           center_ice_logo_url?: string | null
           created_at?: string
           facility_id: string
           id?: string
+          is_active?: boolean | null
+          length_feet?: number | null
+          measurement_grid?: string | null
           name: string
+          primary_use?: string | null
+          target_depth_ideal?: number | null
+          target_depth_max?: number | null
+          target_depth_min?: number | null
+          width_feet?: number | null
         }
         Update: {
           center_ice_logo_url?: string | null
           created_at?: string
           facility_id?: string
           id?: string
+          is_active?: boolean | null
+          length_feet?: number | null
+          measurement_grid?: string | null
           name?: string
+          primary_use?: string | null
+          target_depth_ideal?: number | null
+          target_depth_max?: number | null
+          target_depth_min?: number | null
+          width_feet?: number | null
         }
         Relationships: [
           {
