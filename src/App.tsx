@@ -10,14 +10,6 @@ import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import IceDepthLog from "./pages/IceDepthLog";
 import IceMaintenance from "./pages/IceMaintenance";
-import Admin from "./pages/Admin";
-import AdminDashboard from "./pages/admin/AdminDashboard";
-import FacilitySettings from "./pages/admin/FacilitySettings";
-import UserManagement from "./pages/admin/UserManagement";
-import ModuleAdministration from "./pages/admin/ModuleAdministration";
-import AdminFormConfig from "./pages/AdminFormConfig";
-import CustomTemplateManager from "./pages/admin/CustomTemplateManager";
-import AuditLog from "./pages/admin/AuditLog";
 import RefrigerationLog from "./pages/RefrigerationLog";
 import RefrigerationDashboard from "./pages/RefrigerationDashboard";
 import DailyReports from "./pages/DailyReports";
@@ -25,6 +17,15 @@ import DailyReportsDashboard from "./pages/DailyReportsDashboard";
 import AirQualityLog from "./pages/AirQualityLog";
 import IncidentReport from "./pages/IncidentReport";
 import IncidentHistory from "./pages/IncidentHistory";
+import Admin from "./pages/Admin";
+import AdminFormConfig from "./pages/AdminFormConfig";
+import AdminDashboard from "./pages/admin/AdminDashboard";
+import FacilitySettings from "./pages/admin/FacilitySettings";
+import UserManagement from "./pages/admin/UserManagement";
+import ModuleAdministration from "./pages/admin/ModuleAdministration";
+import CustomTemplateManager from "./pages/admin/CustomTemplateManager";
+import AuditLog from "./pages/admin/AuditLog";
+import FormTemplateLibrary from "./pages/admin/FormTemplateLibrary";
 import Schedule from "./pages/schedule/Schedule";
 import ScheduleCalendar from "./pages/schedule/ScheduleCalendar";
 import ScheduleStaff from "./pages/schedule/ScheduleStaff";
@@ -77,6 +78,7 @@ const App = () => (
               <Route path="users" element={<UserManagement />} />
               <Route path="reports" element={<AdminFormConfig />} />
               <Route path="form-config" element={<AdminFormConfig />} />
+              <Route path="form-templates" element={<FormTemplateLibrary />} />
               <Route path="modules" element={<ModuleAdministration />} />
               <Route path="incidents" element={<IncidentHistory />} />
               <Route path="templates" element={<CustomTemplateManager />} />

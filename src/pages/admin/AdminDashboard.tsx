@@ -19,6 +19,7 @@ import {
   CheckCircle,
   XCircle,
   History,
+  Library,
 } from "lucide-react";
 
 interface Stats {
@@ -108,10 +109,10 @@ const AdminDashboard = () => {
       color: "from-ice-glacier to-ice-blue",
     },
     {
-      title: "Form Configuration",
-      description: "Customize form fields and options",
-      icon: FileText,
-      path: "/admin/forms",
+      title: "Form Templates",
+      description: "Manage reusable form templates with versioning",
+      icon: Library,
+      path: "/admin/form-templates",
       color: "from-accent to-ice-arctic",
     },
     {
@@ -126,6 +127,7 @@ const AdminDashboard = () => {
   const quickActions = [
     { label: "Add User", icon: Users, action: () => navigate("/admin/users") },
     { label: "Add Rink", icon: Plus, action: () => navigate("/admin/facility") },
+    { label: "Form Templates", icon: Library, action: () => navigate("/admin/form-templates") },
     { label: "View Audit Log", icon: History, action: () => navigate("/admin/audit") },
   ];
 
