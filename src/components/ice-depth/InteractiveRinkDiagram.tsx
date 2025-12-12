@@ -4,6 +4,7 @@ import rink24Point from "@/assets/rink-24-point.svg";
 import rink35Point from "@/assets/rink-35-point.svg";
 import rink47Point from "@/assets/rink-47-point.svg";
 import rinkBase from "@/assets/rink-base.svg";
+import USAHockeyRink from "./USAHockeyRink";
 import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -178,6 +179,8 @@ export const InteractiveRinkDiagram = ({
         return rink35Point;
       case "47-point":
         return rink47Point;
+      case "usa-hockey":
+        return null; // Use SVG component instead
       case "custom":
       case "custom_1":
       case "custom_2":
@@ -187,6 +190,8 @@ export const InteractiveRinkDiagram = ({
         return rink24Point;
     }
   };
+
+  const isUSAHockeyTemplate = activeTemplate === "usa-hockey";
 
   const handleDiagramClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!devMode) return;
@@ -432,13 +437,14 @@ export const InteractiveRinkDiagram = ({
           {devMode && (
             <>
               <Select value={devTemplate} onValueChange={setDevTemplate}>
-              <SelectTrigger className="w-[140px] h-9">
+              <SelectTrigger className="w-[160px] h-9">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="25-point">25-point</SelectItem>
                 <SelectItem value="35-point">35-point</SelectItem>
                 <SelectItem value="47-point">47-point</SelectItem>
+                <SelectItem value="usa-hockey">USA Hockey (Official)</SelectItem>
                 <SelectItem value="custom">Custom</SelectItem>
               </SelectContent>
             </Select>
@@ -496,87 +502,103 @@ export const InteractiveRinkDiagram = ({
         </div>
       )}
 
-      <div className="relative w-full bg-white dark:bg-gray-900 rounded-lg shadow-[var(--shadow-ice)]">
-        <img
-          src={getImageSource()}
-          alt={`Ice rink ${activeTemplate} measurement template`}
-          className="block w-full h-auto object-contain"
-        />
+      <div 
+        className="relative w-full bg-white dark:bg-gray-900 rounded-lg shadow-[var(--shadow-ice)]"
+        onClick={devMode ? handleDiagramClick : undefined}
+      >
+        {isUSAHockeyTemplate ? (
+          <USAHockeyRink 
+            showPoints={!devMode}
+            points={points}
+            measurements={measurements}
+            currentPointId={currentPointId}
+            onPointClick={onPointClick}
+            unit={unit}
+          />
+        ) : (
+          <img
+            src={getImageSource() || rinkBase}
+            alt={`Ice rink ${activeTemplate} measurement template`}
+            className="block w-full h-auto object-contain"
+          />
+        )}
         
-        {/* Measurement point overlays */}
-        <div className="absolute inset-0">
-        {!devMode && points.map((point) => {
-          const state = getPointState(point);
-          const measurementKey = `Point ${point.id}`;
-          const measurementValue = measurements[measurementKey];
-          const hasValue = measurementValue !== undefined && measurementValue > 0;
-          
-          const isEditing = editingPointId === point.id;
-          
-          return (
-            <div key={point.id}>
-              {/* Measurement point circle */}
-              <div
-                className={`${getPointStyles(state, measurementValue)} pointer-events-auto`}
-                style={{
-                  left: `${point.x}%`,
-                  top: `${point.y}%`,
-                  transform: "translate(-50%, -50%)",
-                }}
-                onClick={() => handlePointClick(point)}
-                title={point.isSpecial ? point.specialLabel : point.name}
-              >
-                {state === "complete" && hasValue ? (
-                  <span className="text-xs md:text-sm font-bold">
-                    {getDisplayValue(measurementValue)}
-                  </span>
-                ) : (
-                  <span>{point.id}</span>
-                )}
-              </div>
-
-              {/* Inline input for editing */}
-              {isEditing && (
+        {/* Measurement point overlays - only show for non-USA Hockey templates or in dev mode */}
+        {!isUSAHockeyTemplate && (
+          <div className="absolute inset-0">
+          {!devMode && points.map((point) => {
+            const state = getPointState(point);
+            const measurementKey = `Point ${point.id}`;
+            const measurementValue = measurements[measurementKey];
+            const hasValue = measurementValue !== undefined && measurementValue > 0;
+            
+            const isEditing = editingPointId === point.id;
+            
+            return (
+              <div key={point.id}>
+                {/* Measurement point circle */}
                 <div
-                  className="absolute pointer-events-auto z-50"
+                  className={`${getPointStyles(state, measurementValue)} pointer-events-auto`}
                   style={{
                     left: `${point.x}%`,
                     top: `${point.y}%`,
-                    transform: "translate(-50%, -120%)",
+                    transform: "translate(-50%, -50%)",
                   }}
+                  onClick={() => handlePointClick(point)}
+                  title={point.isSpecial ? point.specialLabel : point.name}
                 >
-                  <Input
-                    ref={inputRef}
-                    type="number"
-                    step="0.01"
-                    value={editValue}
-                    onChange={(e) => handleInputChange(e.target.value)}
-                    onBlur={handleInputBlur}
-                    onKeyDown={handleInputKeyDown}
-                    className="w-20 h-10 text-center text-sm font-bold bg-background border-2 border-primary shadow-lg"
-                    placeholder="0.00"
-                  />
+                  {state === "complete" && hasValue ? (
+                    <span className="text-xs md:text-sm font-bold">
+                      {getDisplayValue(measurementValue)}
+                    </span>
+                  ) : (
+                    <span>{point.id}</span>
+                  )}
                 </div>
-              )}
+
+                {/* Inline input for editing */}
+                {isEditing && (
+                  <div
+                    className="absolute pointer-events-auto z-50"
+                    style={{
+                      left: `${point.x}%`,
+                      top: `${point.y}%`,
+                      transform: "translate(-50%, -120%)",
+                    }}
+                  >
+                    <Input
+                      ref={inputRef}
+                      type="number"
+                      step="0.01"
+                      value={editValue}
+                      onChange={(e) => handleInputChange(e.target.value)}
+                      onBlur={handleInputBlur}
+                      onKeyDown={handleInputKeyDown}
+                      className="w-20 h-10 text-center text-sm font-bold bg-background border-2 border-primary shadow-lg"
+                      placeholder="0.00"
+                    />
+                  </div>
+                )}
+              </div>
+            );
+          })}
+          
+          {/* Captured points in dev mode */}
+          {devMode && capturedPoints.map((point) => (
+            <div
+              key={point.id}
+              className="absolute w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-xs font-bold pointer-events-none"
+              style={{
+                left: `${point.x}%`,
+                top: `${point.y}%`,
+                transform: "translate(-50%, -50%)",
+              }}
+            >
+              {point.id}
             </div>
-          );
-        })}
-        
-        {/* Captured points in dev mode */}
-        {devMode && capturedPoints.map((point) => (
-          <div
-            key={point.id}
-            className="absolute w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-xs font-bold pointer-events-none"
-            style={{
-              left: `${point.x}%`,
-              top: `${point.y}%`,
-              transform: "translate(-50%, -50%)",
-            }}
-          >
-            {point.id}
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+        )}
       </div>
 
       {/* Save Template Dialog */}
