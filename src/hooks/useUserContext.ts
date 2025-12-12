@@ -12,6 +12,8 @@ interface UserContext {
     id: string;
     name: string;
     address: string | null;
+    latitude: number | null;
+    longitude: number | null;
   } | null;
   role: "admin" | "manager" | "staff" | null;
   loading: boolean;
@@ -48,7 +50,9 @@ export const useUserContext = () => {
             facilities:facility_id (
               id,
               name,
-              address
+              address,
+              latitude,
+              longitude
             )
           `)
           .eq("user_id", user.id)
@@ -65,7 +69,7 @@ export const useUserContext = () => {
           .eq("user_id", user.id)
           .single();
 
-        const facility = profileData?.facilities as unknown as { id: string; name: string; address: string | null } | null;
+        const facility = profileData?.facilities as unknown as { id: string; name: string; address: string | null; latitude: number | null; longitude: number | null } | null;
 
         setContext({
           user,

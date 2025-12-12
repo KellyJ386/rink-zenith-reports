@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -12,12 +13,13 @@ serve(async (req) => {
   }
 
   try {
-    const { address, latitude, longitude } = await req.json();
+    const { address, latitude, longitude, facilityId } = await req.json();
     
-    console.log("Weather request:", { address, latitude, longitude });
+    console.log("Weather request:", { address, latitude, longitude, facilityId });
 
     let lat = latitude;
     let lon = longitude;
+    let coordinatesSaved = false;
 
     // If no coordinates provided, geocode the address
     if (!lat || !lon) {
@@ -65,6 +67,29 @@ serve(async (req) => {
       lat = geocodeData.results[0].latitude;
       lon = geocodeData.results[0].longitude;
       console.log("Geocoded coordinates:", { lat, lon });
+      
+      // Save coordinates back to facility if facilityId provided
+      if (facilityId) {
+        try {
+          const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+          const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+          const supabase = createClient(supabaseUrl, supabaseKey);
+          
+          const { error: updateError } = await supabase
+            .from('facilities')
+            .update({ latitude: lat, longitude: lon })
+            .eq('id', facilityId);
+          
+          if (updateError) {
+            console.error("Failed to save coordinates:", updateError);
+          } else {
+            console.log("Saved geocoded coordinates to facility:", facilityId);
+            coordinatesSaved = true;
+          }
+        } catch (saveError) {
+          console.error("Error saving coordinates:", saveError);
+        }
+      }
     }
 
     // Fetch weather from Open-Meteo (free, no API key needed)
@@ -120,6 +145,7 @@ serve(async (req) => {
       weatherCode,
       description: weatherDescriptions[weatherCode] || "Unknown",
       coordinates: { lat, lon },
+      coordinatesSaved,
     };
 
     console.log("Weather result:", result);
