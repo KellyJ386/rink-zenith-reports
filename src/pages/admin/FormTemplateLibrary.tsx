@@ -11,7 +11,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import PageHeader from "@/components/PageHeader";
-import { Library, Plus, Search, FileCode, Clock, User, Copy, Trash2, Eye, History } from "lucide-react";
+import { VersionComparisonDialog } from "@/components/admin/form-builder/VersionComparisonDialog";
+import { Library, Plus, Search, FileCode, Clock, User, Copy, Trash2, Eye, History, GitCompare } from "lucide-react";
 import { format } from "date-fns";
 
 interface FormTemplate {
@@ -60,6 +61,7 @@ const FormTemplateLibrary = () => {
   const [versions, setVersions] = useState<TemplateVersion[]>([]);
   const [isVersionDialogOpen, setIsVersionDialogOpen] = useState(false);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [isCompareDialogOpen, setIsCompareDialogOpen] = useState(false);
   const [newTemplate, setNewTemplate] = useState({
     template_name: "",
     form_type: "",
@@ -363,7 +365,19 @@ const FormTemplateLibrary = () => {
                             <Button
                               variant="outline"
                               size="sm"
+                              onClick={() => {
+                                setSelectedTemplate(template);
+                                setIsCompareDialogOpen(true);
+                              }}
+                              title="Compare Versions"
+                            >
+                              <GitCompare className="h-3 w-3" />
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
                               onClick={() => handleDuplicateTemplate(template)}
+                              title="Duplicate"
                             >
                               <Copy className="h-3 w-3" />
                             </Button>
@@ -372,6 +386,7 @@ const FormTemplateLibrary = () => {
                                 variant="outline"
                                 size="sm"
                                 onClick={() => handleDeleteTemplate(template)}
+                                title="Delete"
                               >
                                 <Trash2 className="h-3 w-3" />
                               </Button>
@@ -496,6 +511,16 @@ const FormTemplateLibrary = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Version Comparison Dialog */}
+      {selectedTemplate && (
+        <VersionComparisonDialog
+          open={isCompareDialogOpen}
+          onOpenChange={setIsCompareDialogOpen}
+          templateId={selectedTemplate.id}
+          templateName={selectedTemplate.template_name}
+        />
+      )}
     </div>
   );
 };
