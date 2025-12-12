@@ -733,41 +733,102 @@ export type Database = {
           },
         ]
       }
+      form_template_versions: {
+        Row: {
+          changed_by: string
+          changed_by_name: string
+          changelog: string | null
+          configuration: Json
+          created_at: string | null
+          id: string
+          template_id: string
+          version: number
+        }
+        Insert: {
+          changed_by: string
+          changed_by_name: string
+          changelog?: string | null
+          configuration?: Json
+          created_at?: string | null
+          id?: string
+          template_id: string
+          version: number
+        }
+        Update: {
+          changed_by?: string
+          changed_by_name?: string
+          changelog?: string | null
+          configuration?: Json
+          created_at?: string | null
+          id?: string
+          template_id?: string
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "form_template_versions_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "form_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       form_templates: {
         Row: {
+          changelog: string | null
           configuration: Json
           created_at: string | null
           created_by: string | null
           description: string | null
           form_type: string
           id: string
+          is_latest: boolean | null
           is_system_template: boolean | null
+          parent_template_id: string | null
           template_name: string
           updated_at: string | null
+          version: number
         }
         Insert: {
+          changelog?: string | null
           configuration?: Json
           created_at?: string | null
           created_by?: string | null
           description?: string | null
           form_type: string
           id?: string
+          is_latest?: boolean | null
           is_system_template?: boolean | null
+          parent_template_id?: string | null
           template_name: string
           updated_at?: string | null
+          version?: number
         }
         Update: {
+          changelog?: string | null
           configuration?: Json
           created_at?: string | null
           created_by?: string | null
           description?: string | null
           form_type?: string
           id?: string
+          is_latest?: boolean | null
           is_system_template?: boolean | null
+          parent_template_id?: string | null
           template_name?: string
           updated_at?: string | null
+          version?: number
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "form_templates_parent_template_id_fkey"
+            columns: ["parent_template_id"]
+            isOneToOne: false
+            referencedRelation: "form_templates"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       ice_depth_measurements: {
         Row: {
