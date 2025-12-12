@@ -3,7 +3,7 @@ import { MapPin, Copy, Download, Upload, Save, FolderOpen } from "lucide-react";
 import rink24Point from "@/assets/rink-24-point.svg";
 import rink35Point from "@/assets/rink-35-point.svg";
 import rink47Point from "@/assets/rink-47-point.svg";
-import rinkCustom from "@/assets/rink-custom.webp";
+import rinkBase from "@/assets/rink-base.svg";
 import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -179,7 +179,10 @@ export const InteractiveRinkDiagram = ({
       case "47-point":
         return rink47Point;
       case "custom":
-        return rinkCustom;
+      case "custom_1":
+      case "custom_2":
+      case "custom_3":
+        return rinkBase;
       default:
         return rink24Point;
     }
