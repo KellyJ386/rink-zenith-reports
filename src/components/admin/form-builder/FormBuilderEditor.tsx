@@ -6,9 +6,13 @@ import { useToast } from "@/hooks/use-toast";
 import { FieldPalette } from "./FieldPalette";
 import { FormCanvas } from "./FormCanvas";
 import { FieldPropertiesPanel } from "./FieldPropertiesPanel";
+import { SaveAsTemplateDialog } from "./SaveAsTemplateDialog";
+import { ApplyTemplateDialog } from "./ApplyTemplateDialog";
+import { FormPreviewDialog } from "./FormPreviewDialog";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Save, Eye, Download, Upload } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Save, Eye, Download, Upload, Library, ChevronDown, FileUp, FileDown } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
@@ -38,6 +42,9 @@ export const FormBuilderEditor = ({ facilityId, formType }: FormBuilderEditorPro
   const [activeId, setActiveId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
+  const [isSaveTemplateDialogOpen, setIsSaveTemplateDialogOpen] = useState(false);
+  const [isApplyTemplateDialogOpen, setIsApplyTemplateDialogOpen] = useState(false);
+  const [isPreviewDialogOpen, setIsPreviewDialogOpen] = useState(false);
   const [templateName, setTemplateName] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -286,6 +293,11 @@ export const FormBuilderEditor = ({ facilityId, formType }: FormBuilderEditorPro
 
   const selectedField = fields.find(f => f.id === selectedFieldId) || null;
 
+  const handleApplyTemplate = (templateFields: FormField[]) => {
+    setFields(templateFields);
+    setSelectedFieldId(null);
+  };
+
   return (
     <div className="flex flex-col h-[calc(100vh-12rem)]">
       <div className="flex items-center justify-between px-6 py-3 border-b bg-card">
@@ -294,15 +306,35 @@ export const FormBuilderEditor = ({ facilityId, formType }: FormBuilderEditorPro
           <p className="text-sm text-muted-foreground">{fields.length} fields</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" size="sm" onClick={handleExportTemplate}>
-            <Download className="h-4 w-4 mr-2" />
-            Export
-          </Button>
-          <Button variant="outline" size="sm" onClick={handleImportClick}>
-            <Upload className="h-4 w-4 mr-2" />
-            Import
-          </Button>
-          <Button variant="outline" size="sm">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm">
+                <Library className="h-4 w-4 mr-2" />
+                Templates
+                <ChevronDown className="h-4 w-4 ml-1" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => setIsSaveTemplateDialogOpen(true)}>
+                <Save className="h-4 w-4 mr-2" />
+                Save as Template
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setIsApplyTemplateDialogOpen(true)}>
+                <Library className="h-4 w-4 mr-2" />
+                Apply Template
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={handleExportTemplate}>
+                <FileDown className="h-4 w-4 mr-2" />
+                Export to JSON
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={handleImportClick}>
+                <FileUp className="h-4 w-4 mr-2" />
+                Import from JSON
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          <Button variant="outline" size="sm" onClick={() => setIsPreviewDialogOpen(true)}>
             <Eye className="h-4 w-4 mr-2" />
             Preview
           </Button>
@@ -380,6 +412,28 @@ export const FormBuilderEditor = ({ facilityId, formType }: FormBuilderEditorPro
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <SaveAsTemplateDialog
+        open={isSaveTemplateDialogOpen}
+        onOpenChange={setIsSaveTemplateDialogOpen}
+        fields={fields}
+        formType={formType}
+      />
+
+      <ApplyTemplateDialog
+        open={isApplyTemplateDialogOpen}
+        onOpenChange={setIsApplyTemplateDialogOpen}
+        formType={formType}
+        currentFieldCount={fields.length}
+        onApplyTemplate={handleApplyTemplate}
+      />
+
+      <FormPreviewDialog
+        open={isPreviewDialogOpen}
+        onOpenChange={setIsPreviewDialogOpen}
+        fields={fields}
+        formType={formType}
+      />
     </div>
   );
 };
