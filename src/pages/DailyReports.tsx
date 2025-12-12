@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import PageHeader from "@/components/PageHeader";
+import ModuleHeader from "@/components/ModuleHeader";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -235,7 +235,7 @@ export default function DailyReports() {
 
   return (
     <div className="container mx-auto p-6">
-      <PageHeader
+      <ModuleHeader
         title="Daily Reports"
         subtitle="Comprehensive daily task and financial reporting"
         icon={<ClipboardList className="h-8 w-8 text-primary" />}

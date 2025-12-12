@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import PageHeader from "@/components/PageHeader";
+import ModuleHeader from "@/components/ModuleHeader";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -292,7 +292,7 @@ export default function AirQualityLog() {
 
   return (
     <div className="container mx-auto p-6 max-w-7xl">
-      <PageHeader
+      <ModuleHeader
         title="Air Quality Monitoring Log"
         subtitle="Indoor air quality monitoring for ice arenas"
         icon={<Wind className="h-8 w-8 text-primary" />}

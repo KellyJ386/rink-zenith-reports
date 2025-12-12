@@ -1,19 +1,15 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button";
-import { useToast } from "@/hooks/use-toast";
 import { IceDepthMeasurementForm } from "@/components/ice-depth/IceDepthMeasurementForm";
 import { IceDepthHistory } from "@/components/ice-depth/IceDepthHistory";
 import { IceDepthTrendCharts } from "@/components/ice-depth/IceDepthTrendCharts";
-import PageHeader from "@/components/PageHeader";
+import ModuleHeader from "@/components/ModuleHeader";
 import { Snowflake } from "lucide-react";
 
 const IceDepthLog = () => {
   const navigate = useNavigate();
-  const { toast } = useToast();
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
@@ -56,7 +52,7 @@ const IceDepthLog = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-ice-frost to-background p-6">
       <div className="max-w-7xl mx-auto">
-        <PageHeader
+        <ModuleHeader
           title="Ice Depth Log"
           subtitle="Monitor and analyze ice surface measurements"
           icon={<Snowflake className="h-8 w-8 text-primary" />}

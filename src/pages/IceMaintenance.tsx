@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
@@ -10,7 +9,7 @@ import { BladeChangeForm } from "@/components/maintenance/BladeChangeForm";
 import { EdgingForm } from "@/components/maintenance/EdgingForm";
 import { CircleCheckForm } from "@/components/maintenance/CircleCheckForm";
 import { ActivityFeed } from "@/components/maintenance/ActivityFeed";
-import PageHeader from "@/components/PageHeader";
+import ModuleHeader from "@/components/ModuleHeader";
 import { Wrench, Settings } from "lucide-react";
 
 const IceMaintenance = () => {
@@ -67,7 +66,7 @@ const IceMaintenance = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-ice-frost to-background p-6">
       <div className="max-w-7xl mx-auto">
-        <PageHeader
+        <ModuleHeader
           title="Ice Maintenance Log"
           subtitle="Track resurfacing, blade changes, and equipment checks"
           icon={<Wrench className="h-8 w-8 text-primary" />}
@@ -75,6 +74,7 @@ const IceMaintenance = () => {
             <>
               <Button
                 variant="outline"
+                size="sm"
                 onClick={() => navigate("/admin/form-config")}
               >
                 <Settings className="h-4 w-4 mr-2" />
@@ -82,6 +82,7 @@ const IceMaintenance = () => {
               </Button>
               <Button
                 variant={showFeed ? "default" : "outline"}
+                size="sm"
                 onClick={() => setShowFeed(!showFeed)}
               >
                 {showFeed ? "Hide" : "Show"} Activity Feed

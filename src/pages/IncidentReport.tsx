@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import PageHeader from "@/components/PageHeader";
+import ModuleHeader from "@/components/ModuleHeader";
 import { BodyDiagramSelector } from "@/components/incident/BodyDiagramSelector";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -241,12 +241,12 @@ export default function IncidentReport() {
 
   return (
     <div className="container mx-auto p-6 max-w-6xl">
-      <PageHeader
+      <ModuleHeader
         title="Report Incident"
         subtitle="Complete this form immediately following any incident"
         icon={<AlertCircle className="h-8 w-8 text-destructive" />}
         actions={
-          <Button variant="outline" onClick={() => navigate("/admin/incidents")}>
+          <Button variant="outline" size="sm" onClick={() => navigate("/admin/incidents")}>
             <FileText className="h-4 w-4 mr-2" />
             Incident History
           </Button>
