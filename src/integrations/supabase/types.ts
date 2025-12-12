@@ -776,6 +776,7 @@ export type Database = {
       }
       form_templates: {
         Row: {
+          category: string | null
           changelog: string | null
           configuration: Json
           created_at: string | null
@@ -786,11 +787,13 @@ export type Database = {
           is_latest: boolean | null
           is_system_template: boolean | null
           parent_template_id: string | null
+          tags: string[] | null
           template_name: string
           updated_at: string | null
           version: number
         }
         Insert: {
+          category?: string | null
           changelog?: string | null
           configuration?: Json
           created_at?: string | null
@@ -801,11 +804,13 @@ export type Database = {
           is_latest?: boolean | null
           is_system_template?: boolean | null
           parent_template_id?: string | null
+          tags?: string[] | null
           template_name: string
           updated_at?: string | null
           version?: number
         }
         Update: {
+          category?: string | null
           changelog?: string | null
           configuration?: Json
           created_at?: string | null
@@ -816,6 +821,7 @@ export type Database = {
           is_latest?: boolean | null
           is_system_template?: boolean | null
           parent_template_id?: string | null
+          tags?: string[] | null
           template_name?: string
           updated_at?: string | null
           version?: number

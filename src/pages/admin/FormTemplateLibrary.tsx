@@ -12,8 +12,17 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import PageHeader from "@/components/PageHeader";
 import { VersionComparisonDialog } from "@/components/admin/form-builder/VersionComparisonDialog";
-import { Library, Plus, Search, FileCode, Clock, User, Copy, Trash2, Eye, History, GitCompare } from "lucide-react";
+import { Library, Plus, Search, FileCode, Clock, User, Copy, Trash2, Eye, History, GitCompare, Tag, FolderOpen, RotateCcw } from "lucide-react";
 import { format } from "date-fns";
+
+const TEMPLATE_CATEGORIES = [
+  { value: "standard", label: "Standard" },
+  { value: "compliance", label: "Compliance" },
+  { value: "safety", label: "Safety" },
+  { value: "maintenance", label: "Maintenance" },
+  { value: "reporting", label: "Reporting" },
+  { value: "custom", label: "Custom" },
+];
 
 interface FormTemplate {
   id: string;
@@ -26,6 +35,8 @@ interface FormTemplate {
   created_at: string;
   updated_at: string;
   created_by: string | null;
+  category: string | null;
+  tags: string[] | null;
 }
 
 interface TemplateVersion {
@@ -62,10 +73,15 @@ const FormTemplateLibrary = () => {
   const [isVersionDialogOpen, setIsVersionDialogOpen] = useState(false);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isCompareDialogOpen, setIsCompareDialogOpen] = useState(false);
+  const [filterCategory, setFilterCategory] = useState<string>("all");
+  const [filterTag, setFilterTag] = useState<string>("");
+  const [allTags, setAllTags] = useState<string[]>([]);
   const [newTemplate, setNewTemplate] = useState({
     template_name: "",
     form_type: "",
     description: "",
+    category: "",
+    tags: "",
   });
 
   useEffect(() => {
@@ -81,7 +97,15 @@ const FormTemplateLibrary = () => {
         .order("template_name");
 
       if (error) throw error;
-      setTemplates((data as FormTemplate[]) || []);
+      const templateData = (data as FormTemplate[]) || [];
+      setTemplates(templateData);
+      
+      // Extract all unique tags
+      const tags = new Set<string>();
+      templateData.forEach(t => {
+        (t.tags || []).forEach(tag => tags.add(tag));
+      });
+      setAllTags(Array.from(tags).sort());
     } catch (error) {
       console.error("Error fetching templates:", error);
       toast({
@@ -128,6 +152,11 @@ const FormTemplateLibrary = () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       
+      const tagsArray = newTemplate.tags
+        .split(",")
+        .map(t => t.trim())
+        .filter(t => t.length > 0);
+      
       const { error } = await supabase
         .from("form_templates")
         .insert({
@@ -137,6 +166,8 @@ const FormTemplateLibrary = () => {
           configuration: [],
           is_system_template: false,
           created_by: user?.id,
+          category: newTemplate.category || null,
+          tags: tagsArray,
         });
 
       if (error) throw error;
@@ -147,7 +178,7 @@ const FormTemplateLibrary = () => {
       });
 
       setIsCreateDialogOpen(false);
-      setNewTemplate({ template_name: "", form_type: "", description: "" });
+      setNewTemplate({ template_name: "", form_type: "", description: "", category: "", tags: "" });
       fetchTemplates();
     } catch (error) {
       console.error("Error creating template:", error);
@@ -228,9 +259,12 @@ const FormTemplateLibrary = () => {
 
   const filteredTemplates = templates.filter((template) => {
     const matchesSearch = template.template_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      template.description?.toLowerCase().includes(searchQuery.toLowerCase());
+      template.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (template.tags || []).some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()));
     const matchesType = filterFormType === "all" || template.form_type === filterFormType;
-    return matchesSearch && matchesType;
+    const matchesCategory = filterCategory === "all" || template.category === filterCategory;
+    const matchesTag = !filterTag || (template.tags || []).includes(filterTag);
+    return matchesSearch && matchesType && matchesCategory && matchesTag;
   });
 
   const groupedTemplates = filteredTemplates.reduce((acc, template) => {
@@ -276,8 +310,8 @@ const FormTemplateLibrary = () => {
                 />
               </div>
               <Select value={filterFormType} onValueChange={setFilterFormType}>
-                <SelectTrigger className="w-[200px]">
-                  <SelectValue placeholder="Filter by type" />
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="Form Type" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Types</SelectItem>
@@ -286,6 +320,30 @@ const FormTemplateLibrary = () => {
                   ))}
                 </SelectContent>
               </Select>
+              <Select value={filterCategory} onValueChange={setFilterCategory}>
+                <SelectTrigger className="w-[150px]">
+                  <SelectValue placeholder="Category" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Categories</SelectItem>
+                  {TEMPLATE_CATEGORIES.map(cat => (
+                    <SelectItem key={cat.value} value={cat.value}>{cat.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {allTags.length > 0 && (
+                <Select value={filterTag} onValueChange={setFilterTag}>
+                  <SelectTrigger className="w-[140px]">
+                    <SelectValue placeholder="Tag" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">All Tags</SelectItem>
+                    {allTags.map(tag => (
+                      <SelectItem key={tag} value={tag}>{tag}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -333,13 +391,37 @@ const FormTemplateLibrary = () => {
                                 </p>
                               )}
                             </div>
-                            <div className="flex gap-1">
-                              {template.is_system_template && (
-                                <Badge variant="secondary" className="text-xs">System</Badge>
+                            <div className="flex flex-col gap-1 items-end">
+                              <div className="flex gap-1">
+                                {template.is_system_template && (
+                                  <Badge variant="secondary" className="text-xs">System</Badge>
+                                )}
+                                <Badge variant="outline" className="text-xs">v{template.version}</Badge>
+                              </div>
+                              {template.category && (
+                                <Badge variant="outline" className="text-xs">
+                                  <FolderOpen className="h-2 w-2 mr-1" />
+                                  {TEMPLATE_CATEGORIES.find(c => c.value === template.category)?.label || template.category}
+                                </Badge>
                               )}
-                              <Badge variant="outline" className="text-xs">v{template.version}</Badge>
                             </div>
                           </div>
+                          
+                          {(template.tags || []).length > 0 && (
+                            <div className="flex flex-wrap gap-1 mb-2">
+                              {(template.tags || []).slice(0, 3).map(tag => (
+                                <Badge key={tag} variant="secondary" className="text-xs">
+                                  <Tag className="h-2 w-2 mr-1" />
+                                  {tag}
+                                </Badge>
+                              ))}
+                              {(template.tags || []).length > 3 && (
+                                <Badge variant="secondary" className="text-xs">
+                                  +{(template.tags || []).length - 3}
+                                </Badge>
+                              )}
+                            </div>
+                          )}
 
                           <div className="flex items-center gap-4 text-xs text-muted-foreground mb-3">
                             <span className="flex items-center gap-1">
@@ -445,6 +527,31 @@ const FormTemplateLibrary = () => {
                 onChange={(e) => setNewTemplate({ ...newTemplate, description: e.target.value })}
               />
             </div>
+            <div className="space-y-2">
+              <Label>Category</Label>
+              <Select
+                value={newTemplate.category}
+                onValueChange={(value) => setNewTemplate({ ...newTemplate, category: value })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select category (optional)" />
+                </SelectTrigger>
+                <SelectContent>
+                  {TEMPLATE_CATEGORIES.map(cat => (
+                    <SelectItem key={cat.value} value={cat.value}>{cat.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Tags</Label>
+              <Input
+                placeholder="Enter tags separated by commas (e.g., daily, safety, ice)"
+                value={newTemplate.tags}
+                onChange={(e) => setNewTemplate({ ...newTemplate, tags: e.target.value })}
+              />
+              <p className="text-xs text-muted-foreground">Separate tags with commas</p>
+            </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
@@ -519,6 +626,7 @@ const FormTemplateLibrary = () => {
           onOpenChange={setIsCompareDialogOpen}
           templateId={selectedTemplate.id}
           templateName={selectedTemplate.template_name}
+          onVersionRestored={fetchTemplates}
         />
       )}
     </div>
