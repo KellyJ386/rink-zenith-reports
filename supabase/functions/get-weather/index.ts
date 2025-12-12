@@ -34,26 +34,21 @@ serve(async (req) => {
       let searchQuery = address;
       
       if (addressParts.length >= 2) {
-        // Get state from second part (remove ZIP code)
-        const statePart = addressParts[1].replace(/\d{5}(-\d{4})?/, '').trim();
-        
-        // For "123 Street City, State" format, extract last word from first part as city
-        // For "Street, City, State" format, use second-to-last part
+        // For "123 Street City, State ZIP" format, extract last word from first part as city
         if (addressParts.length >= 3) {
-          // Format: "Street, City, State ZIP"
-          searchQuery = `${addressParts[1]} ${statePart}`.trim();
+          // Format: "Street, City, State ZIP" - use the second part as city
+          searchQuery = addressParts[1];
         } else {
           // Format: "123 Street City, State ZIP" - city is the last word before comma
           const firstPartWords = addressParts[0].split(' ');
-          const cityName = firstPartWords[firstPartWords.length - 1];
-          searchQuery = `${cityName} ${statePart}`.trim();
+          searchQuery = firstPartWords[firstPartWords.length - 1];
         }
       }
       
       console.log("Extracted search query from address:", searchQuery);
       
-      // Use Open-Meteo's geocoding API
-      const geocodeUrl = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(searchQuery)}&count=1&language=en&format=json`;
+      // Use Open-Meteo's geocoding API - use just city name for better results
+      const geocodeUrl = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(searchQuery)}&count=5&language=en&format=json`;
       console.log("Geocoding URL:", geocodeUrl);
       
       const geocodeResponse = await fetch(geocodeUrl);
