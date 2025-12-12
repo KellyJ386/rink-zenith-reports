@@ -28,8 +28,24 @@ serve(async (req) => {
         );
       }
 
+      // Extract city name from address (Open-Meteo geocoding only works with city names)
+      // Try to parse city from formats like "123 Street, City, State ZIP" or "City, State"
+      const addressParts = address.split(',').map((p: string) => p.trim());
+      let searchQuery = address;
+      
+      if (addressParts.length >= 2) {
+        // Try the second part (usually the city) or combine city and state
+        const cityPart = addressParts.length >= 3 ? addressParts[1] : addressParts[0];
+        const statePart = addressParts.length >= 3 ? addressParts[2] : addressParts[1];
+        // Remove ZIP code from state part if present
+        const stateClean = statePart.replace(/\d{5}(-\d{4})?/, '').trim();
+        searchQuery = `${cityPart} ${stateClean}`.trim();
+      }
+      
+      console.log("Extracted search query from address:", searchQuery);
+      
       // Use Open-Meteo's geocoding API
-      const geocodeUrl = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(address)}&count=1&language=en&format=json`;
+      const geocodeUrl = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(searchQuery)}&count=1&language=en&format=json`;
       console.log("Geocoding URL:", geocodeUrl);
       
       const geocodeResponse = await fetch(geocodeUrl);
