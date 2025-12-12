@@ -44,6 +44,23 @@ export const MeasurementInput = ({
     });
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, point: number) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      // Find next unfilled point
+      let nextPoint = point + 1;
+      while (nextPoint <= pointCount) {
+        const nextValue = measurements[`Point ${nextPoint}`];
+        if (!nextValue || nextValue === 0) {
+          const nextInput = inputRefs.current[nextPoint];
+          nextInput?.focus();
+          return;
+        }
+        nextPoint++;
+      }
+    }
+  };
+
   const getDisplayValue = (point: number): string => {
     const mmValue = measurements[`Point ${point}`];
     if (!mmValue) return "";
@@ -130,6 +147,7 @@ export const MeasurementInput = ({
                     placeholder={unit === "in" ? "0.000" : "0.00"}
                     value={getDisplayValue(point)}
                     onChange={(e) => handleMeasurementChange(point, e.target.value)}
+                    onKeyDown={(e) => handleKeyDown(e, point)}
                     disabled={isDisabled}
                     className={`text-center ${
                       isCurrent ? "ring-2 ring-primary" : ""
