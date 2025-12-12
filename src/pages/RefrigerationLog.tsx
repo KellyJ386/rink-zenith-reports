@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "@/hooks/use-toast";
-import PageHeader from "@/components/PageHeader";
+import ModuleHeader from "@/components/ModuleHeader";
 import { Thermometer, AlertTriangle, BarChart3 } from "lucide-react";
 import { format } from "date-fns";
 import { DynamicFormFields } from "@/components/maintenance/DynamicFormFields";
@@ -204,12 +204,12 @@ export default function RefrigerationLog() {
 
   return (
     <div className="container mx-auto p-6 space-y-6">
-      <PageHeader
+      <ModuleHeader
         title="Refrigeration Equipment Logbook"
         subtitle="Record daily operational readings for refrigeration equipment"
         icon={<Thermometer className="h-8 w-8 text-primary" />}
         actions={
-          <Button variant="outline" onClick={() => navigate("/refrigeration-dashboard")}>
+          <Button variant="outline" size="sm" onClick={() => navigate("/refrigeration-dashboard")}>
             <BarChart3 className="mr-2 h-4 w-4" />
             View Dashboard
           </Button>

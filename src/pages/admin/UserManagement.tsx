@@ -40,7 +40,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Plus, Edit, Trash2, Users } from "lucide-react";
+import { Plus, Edit, Trash2, Users, Building2 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
 const MODULES = [
   "Ice Depth Log",
@@ -58,11 +59,19 @@ interface User {
   email: string;
   name: string;
   role: string;
+  facility_id: string | null;
+  facility_name: string | null;
+}
+
+interface Facility {
+  id: string;
+  name: string;
 }
 
 const UserManagement = () => {
   const { toast } = useToast();
   const [users, setUsers] = useState<User[]>([]);
+  const [facilities, setFacilities] = useState<Facility[]>([]);
   const [loading, setLoading] = useState(true);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -75,6 +84,7 @@ const UserManagement = () => {
     email: "",
     password: "",
     role: "staff",
+    facility_id: "",
     address: "",
     phone_number: "",
     date_of_birth: "",
@@ -85,13 +95,28 @@ const UserManagement = () => {
 
   useEffect(() => {
     loadUsers();
+    loadFacilities();
   }, []);
+
+  const loadFacilities = async () => {
+    const { data } = await supabase
+      .from("facilities")
+      .select("id, name")
+      .order("name");
+    setFacilities(data || []);
+  };
 
   const loadUsers = async () => {
     try {
       const { data: profilesData } = await supabase
         .from("profiles")
-        .select("id, user_id, name");
+        .select(`
+          id, 
+          user_id, 
+          name,
+          facility_id,
+          facilities:facility_id (name)
+        `);
 
       if (!profilesData) {
         setLoading(false);
@@ -106,15 +131,17 @@ const UserManagement = () => {
             .eq("user_id", profile.user_id)
             .maybeSingle();
 
-          // Get email from auth metadata if available
           const { data: { user } } = await supabase.auth.getUser();
           const isCurrentUser = user?.id === profile.user_id;
+          const facilityData = profile.facilities as unknown as { name: string } | null;
           
           return {
             id: profile.user_id,
             email: isCurrentUser ? (user?.email || "N/A") : "N/A",
             name: profile.name,
             role: roleData?.role || "staff",
+            facility_id: profile.facility_id,
+            facility_name: facilityData?.name || null,
           };
         })
       );
@@ -133,7 +160,6 @@ const UserManagement = () => {
   };
 
   const handleAddUser = async () => {
-    // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(formData.email)) {
       toast({
@@ -144,7 +170,6 @@ const UserManagement = () => {
       return;
     }
 
-    // Validate password length
     if (formData.password.length < 6) {
       toast({
         title: "Invalid Password",
@@ -172,7 +197,6 @@ const UserManagement = () => {
         return;
       }
 
-      // Update profile with additional fields
       const { error: profileError } = await supabase
         .from("profiles")
         .update({
@@ -182,6 +206,7 @@ const UserManagement = () => {
           email_notifications_enabled: formData.email_notifications_enabled,
           sms_notifications_enabled: formData.sms_notifications_enabled,
           force_email_change: formData.force_email_change,
+          facility_id: formData.facility_id || null,
         })
         .eq("user_id", authData.user.id);
 
@@ -210,6 +235,7 @@ const UserManagement = () => {
         email: "", 
         password: "", 
         role: "staff",
+        facility_id: "",
         address: "",
         phone_number: "",
         date_of_birth: "",
@@ -239,7 +265,10 @@ const UserManagement = () => {
 
     const { error: profileError } = await supabase
       .from("profiles")
-      .update({ name: formData.name })
+      .update({ 
+        name: formData.name,
+        facility_id: formData.facility_id || null,
+      })
       .eq("user_id", selectedUser.id);
 
     if (roleError || profileError) {
@@ -315,7 +344,13 @@ const UserManagement = () => {
 
   const openEditDialog = (user: User) => {
     setSelectedUser(user);
-    setFormData({ ...formData, name: user.name, role: user.role, email: user.email });
+    setFormData({ 
+      ...formData, 
+      name: user.name, 
+      role: user.role, 
+      email: user.email,
+      facility_id: user.facility_id || "",
+    });
     setIsEditDialogOpen(true);
   };
 
@@ -333,7 +368,7 @@ const UserManagement = () => {
     <div className="space-y-6">
       <PageHeader
         title="User Management"
-        subtitle="Manage staff accounts, roles, and permissions"
+        subtitle="Manage staff accounts, roles, and facility assignments"
         icon={<Users className="h-8 w-8 text-primary" />}
         actions={
           <Button onClick={() => setIsAddDialogOpen(true)}>
@@ -358,6 +393,7 @@ const UserManagement = () => {
                 <TableHead>Name</TableHead>
                 <TableHead>Email</TableHead>
                 <TableHead>Role</TableHead>
+                <TableHead>Facility</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -367,6 +403,16 @@ const UserManagement = () => {
                   <TableCell className="font-medium">{user.name}</TableCell>
                   <TableCell>{user.email}</TableCell>
                   <TableCell className="capitalize">{user.role}</TableCell>
+                  <TableCell>
+                    {user.facility_name ? (
+                      <Badge variant="outline" className="gap-1">
+                        <Building2 className="h-3 w-3" />
+                        {user.facility_name}
+                      </Badge>
+                    ) : (
+                      <span className="text-muted-foreground text-sm">Not assigned</span>
+                    )}
+                  </TableCell>
                   <TableCell className="text-right space-x-2">
                     <Button variant="ghost" size="sm" onClick={() => openEditDialog(user)}>
                       <Edit className="h-4 w-4" />
@@ -393,7 +439,7 @@ const UserManagement = () => {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Add New User</DialogTitle>
-            <DialogDescription>Create a new user account with role assignment</DialogDescription>
+            <DialogDescription>Create a new user account with role and facility assignment</DialogDescription>
           </DialogHeader>
           <div className="space-y-4 max-h-[60vh] overflow-y-auto">
             <div className="space-y-2">
@@ -412,6 +458,24 @@ const UserManagement = () => {
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
               />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="facility">Assigned Facility</Label>
+              <Select 
+                value={formData.facility_id} 
+                onValueChange={(val) => setFormData({ ...formData, facility_id: val })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select facility" />
+                </SelectTrigger>
+                <SelectContent>
+                  {facilities.map((facility) => (
+                    <SelectItem key={facility.id} value={facility.id}>
+                      {facility.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div className="space-y-2">
               <Label htmlFor="address">Address</Label>
@@ -511,7 +575,7 @@ const UserManagement = () => {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Edit User</DialogTitle>
-            <DialogDescription>Update user information and role</DialogDescription>
+            <DialogDescription>Update user information, role and facility assignment</DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-2">
@@ -525,6 +589,24 @@ const UserManagement = () => {
             <div className="space-y-2">
               <Label htmlFor="edit-email">Email</Label>
               <Input id="edit-email" value={formData.email} disabled />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-facility">Assigned Facility</Label>
+              <Select 
+                value={formData.facility_id} 
+                onValueChange={(val) => setFormData({ ...formData, facility_id: val })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select facility" />
+                </SelectTrigger>
+                <SelectContent>
+                  {facilities.map((facility) => (
+                    <SelectItem key={facility.id} value={facility.id}>
+                      {facility.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div className="space-y-2">
               <Label htmlFor="edit-role">Role</Label>

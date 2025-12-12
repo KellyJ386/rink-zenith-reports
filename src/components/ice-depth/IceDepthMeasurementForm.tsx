@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -48,9 +49,9 @@ const defaultEnabledTemplates: EnabledTemplates = {
 
 export const IceDepthMeasurementForm = ({ userId }: IceDepthMeasurementFormProps) => {
   const { toast } = useToast();
-  const [facilities, setFacilities] = useState<any[]>([]);
   const [rinks, setRinks] = useState<any[]>([]);
-  const [selectedFacility, setSelectedFacility] = useState<string>("");
+  const [facilityId, setFacilityId] = useState<string>("");
+  const [facilityName, setFacilityName] = useState<string>("");
   const [selectedRink, setSelectedRink] = useState<string>("");
   const [templateType, setTemplateType] = useState<string>("25-point");
   const [measurements, setMeasurements] = useState<Record<string, number>>({});
@@ -62,6 +63,26 @@ export const IceDepthMeasurementForm = ({ userId }: IceDepthMeasurementFormProps
   const [hasAdminAccess, setHasAdminAccess] = useState(false);
   const [enabledTemplates, setEnabledTemplates] = useState<EnabledTemplates>(defaultEnabledTemplates);
   const [customTemplates, setCustomTemplates] = useState<CustomTemplate[]>([]);
+
+  // Fetch user's facility on mount
+  useEffect(() => {
+    const fetchUserFacility = async () => {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("facility_id, facilities:facility_id(id, name)")
+        .eq("user_id", userId)
+        .single();
+
+      if (profile?.facility_id) {
+        setFacilityId(profile.facility_id);
+        const facilityData = profile.facilities as unknown as { id: string; name: string } | null;
+        setFacilityName(facilityData?.name || "");
+        fetchRinks(profile.facility_id);
+      }
+    };
+
+    fetchUserFacility();
+  }, [userId]);
 
   // Check if user has admin or manager role
   useEffect(() => {
@@ -83,24 +104,22 @@ export const IceDepthMeasurementForm = ({ userId }: IceDepthMeasurementFormProps
   // Fetch enabled templates when facility changes
   useEffect(() => {
     const fetchTemplateSettings = async () => {
-      if (!selectedFacility) return;
+      if (!facilityId) return;
 
-      // Get facility settings
       const { data: facilityData } = await supabase
         .from("facilities")
         .select("enabled_templates")
-        .eq("id", selectedFacility)
+        .eq("id", facilityId)
         .single();
 
       if (facilityData?.enabled_templates) {
         setEnabledTemplates(facilityData.enabled_templates as unknown as EnabledTemplates);
       }
 
-      // Get custom templates for this facility
       const { data: customData } = await supabase
         .from("custom_templates")
         .select("*")
-        .eq("facility_id", selectedFacility)
+        .eq("facility_id", facilityId)
         .order("slot_number");
 
       setCustomTemplates((customData || []).map(t => ({
@@ -110,9 +129,8 @@ export const IceDepthMeasurementForm = ({ userId }: IceDepthMeasurementFormProps
     };
 
     fetchTemplateSettings();
-  }, [selectedFacility]);
+  }, [facilityId]);
 
-  // Calculate current point for progressive input
   const getCurrentPointId = () => {
     if (manualCurrentPoint !== null) return manualCurrentPoint;
     const filledCount = Object.values(measurements).filter(v => v > 0).length;
@@ -126,39 +144,11 @@ export const IceDepthMeasurementForm = ({ userId }: IceDepthMeasurementFormProps
     localStorage.setItem("ice-depth-unit", unit);
   }, [unit]);
 
-  useEffect(() => {
-    fetchFacilities();
-  }, []);
-
-  useEffect(() => {
-    if (selectedFacility) {
-      fetchRinks(selectedFacility);
-    }
-  }, [selectedFacility]);
-
-  const fetchFacilities = async () => {
-    const { data, error } = await supabase
-      .from("facilities")
-      .select("*")
-      .order("name");
-
-    if (error) {
-      toast({
-        title: "Error",
-        description: "Failed to load facilities",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setFacilities(data || []);
-  };
-
-  const fetchRinks = async (facilityId: string) => {
+  const fetchRinks = async (facId: string) => {
     const { data, error } = await supabase
       .from("rinks")
       .select("*")
-      .eq("facility_id", facilityId)
+      .eq("facility_id", facId)
       .order("name");
 
     if (error) {
@@ -233,10 +223,10 @@ export const IceDepthMeasurementForm = ({ userId }: IceDepthMeasurementFormProps
   };
 
   const handleSave = async () => {
-    if (!selectedFacility || !selectedRink) {
+    if (!facilityId || !selectedRink) {
       toast({
         title: "Missing Information",
-        description: "Please select a facility and rink",
+        description: "Please select a rink",
         variant: "destructive",
       });
       return;
@@ -274,7 +264,7 @@ export const IceDepthMeasurementForm = ({ userId }: IceDepthMeasurementFormProps
       const { data: savedMeasurement, error } = await supabase
         .from("ice_depth_measurements")
         .insert({
-          facility_id: selectedFacility,
+          facility_id: facilityId,
           rink_id: selectedRink,
           template_type: templateType,
           operator_id: userId,
@@ -294,7 +284,7 @@ export const IceDepthMeasurementForm = ({ userId }: IceDepthMeasurementFormProps
       supabase.functions.invoke("send-ice-depth-notification", {
         body: {
           measurementId: savedMeasurement.id,
-          facilityId: selectedFacility,
+          facilityId: facilityId,
         },
       }).then(({ error: notifError }) => {
         if (notifError) {
@@ -369,23 +359,12 @@ export const IceDepthMeasurementForm = ({ userId }: IceDepthMeasurementFormProps
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>Facility</Label>
-              <Select value={selectedFacility} onValueChange={setSelectedFacility}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select facility" />
-                </SelectTrigger>
-                <SelectContent>
-                  {facilities.map((facility) => (
-                    <SelectItem key={facility.id} value={facility.id}>
-                      {facility.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Input value={facilityName || "No facility assigned"} disabled className="bg-muted" />
             </div>
 
             <div className="space-y-2">
               <Label>Rink</Label>
-              <Select value={selectedRink} onValueChange={setSelectedRink} disabled={!selectedFacility}>
+              <Select value={selectedRink} onValueChange={setSelectedRink} disabled={!facilityId}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select rink" />
                 </SelectTrigger>
@@ -452,7 +431,7 @@ export const IceDepthMeasurementForm = ({ userId }: IceDepthMeasurementFormProps
             )}
           </div>
 
-          {selectedFacility && selectedRink && (
+          {facilityId && selectedRink && (
             <BluetoothCaliperControl 
               onReading={handleBluetoothReading}
               currentPoint={currentPointId}
@@ -462,7 +441,7 @@ export const IceDepthMeasurementForm = ({ userId }: IceDepthMeasurementFormProps
         </CardContent>
       </Card>
 
-      {selectedFacility && selectedRink && (
+      {facilityId && selectedRink && (
         <>
 
           <TemplateSelection
