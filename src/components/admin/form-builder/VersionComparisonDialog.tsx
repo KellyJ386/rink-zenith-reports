@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { GitCompare, Plus, Minus, Edit2, ArrowRight } from "lucide-react";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { GitCompare, Plus, Minus, Edit2, ArrowRight, RotateCcw, Loader2 } from "lucide-react";
 import { format } from "date-fns";
 
 interface TemplateVersion {
@@ -24,6 +25,7 @@ interface VersionComparisonDialogProps {
   onOpenChange: (open: boolean) => void;
   templateId: string;
   templateName: string;
+  onVersionRestored?: () => void;
 }
 
 interface FieldDiff {
@@ -39,13 +41,17 @@ export const VersionComparisonDialog = ({
   onOpenChange,
   templateId,
   templateName,
+  onVersionRestored,
 }: VersionComparisonDialogProps) => {
   const { toast } = useToast();
   const [versions, setVersions] = useState<TemplateVersion[]>([]);
   const [loading, setLoading] = useState(true);
+  const [restoring, setRestoring] = useState(false);
   const [version1, setVersion1] = useState<string>("");
   const [version2, setVersion2] = useState<string>("");
   const [diffs, setDiffs] = useState<FieldDiff[]>([]);
+  const [restoreConfirmOpen, setRestoreConfirmOpen] = useState(false);
+  const [versionToRestore, setVersionToRestore] = useState<TemplateVersion | null>(null);
 
   useEffect(() => {
     if (open && templateId) {
@@ -332,12 +338,118 @@ export const VersionComparisonDialog = ({
           </>
         )}
 
-        <div className="flex justify-end pt-4 border-t">
+        <div className="flex justify-between pt-4 border-t">
+          <div>
+            {version1 && (
+              <Button
+                variant="outline"
+                onClick={() => {
+                  const v = versions.find(v => v.id === version1);
+                  if (v) {
+                    setVersionToRestore(v);
+                    setRestoreConfirmOpen(true);
+                  }
+                }}
+                disabled={restoring}
+              >
+                <RotateCcw className="h-4 w-4 mr-2" />
+                Restore v{versions.find(v => v.id === version1)?.version}
+              </Button>
+            )}
+          </div>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Close
           </Button>
         </div>
       </DialogContent>
+
+      <AlertDialog open={restoreConfirmOpen} onOpenChange={setRestoreConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Restore Version {versionToRestore?.version}?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will update the template to use the configuration from version {versionToRestore?.version}. 
+              A new version will be created with the restored configuration. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={restoring}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={async () => {
+                if (!versionToRestore) return;
+                setRestoring(true);
+                try {
+                  const { data: { user } } = await supabase.auth.getUser();
+                  const { data: profile } = await supabase
+                    .from("profiles")
+                    .select("name")
+                    .eq("user_id", user?.id)
+                    .single();
+
+                  // Get current template version
+                  const { data: currentTemplate } = await supabase
+                    .from("form_templates")
+                    .select("version")
+                    .eq("id", templateId)
+                    .single();
+
+                  const newVersion = (currentTemplate?.version || 0) + 1;
+
+                  // Update template with restored configuration
+                  const { error: updateError } = await supabase
+                    .from("form_templates")
+                    .update({
+                      configuration: versionToRestore.configuration,
+                      version: newVersion,
+                      changelog: `Restored from version ${versionToRestore.version}`,
+                    })
+                    .eq("id", templateId);
+
+                  if (updateError) throw updateError;
+
+                  // Create version history entry
+                  await supabase.from("form_template_versions").insert({
+                    template_id: templateId,
+                    version: newVersion,
+                    configuration: versionToRestore.configuration,
+                    changed_by: user?.id,
+                    changed_by_name: profile?.name || user?.email || "Unknown",
+                    changelog: `Restored from version ${versionToRestore.version}`,
+                  });
+
+                  toast({
+                    title: "Version Restored",
+                    description: `Successfully restored to version ${versionToRestore.version}`,
+                  });
+
+                  setRestoreConfirmOpen(false);
+                  onOpenChange(false);
+                  onVersionRestored?.();
+                } catch (error) {
+                  console.error("Error restoring version:", error);
+                  toast({
+                    title: "Error",
+                    description: "Failed to restore version",
+                    variant: "destructive",
+                  });
+                } finally {
+                  setRestoring(false);
+                }
+              }}
+              disabled={restoring}
+            >
+              {restoring ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Restoring...
+                </>
+              ) : (
+                "Restore Version"
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Dialog>
   );
 };
