@@ -5,9 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, AlertCircle, CheckCircle, XCircle } from "lucide-react";
+import { Loader2, CheckCircle, XCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { DynamicFormFields } from "./DynamicFormFields";
 
@@ -30,82 +30,97 @@ const defaultCheckItems = [
 export const CircleCheckForm = ({ userId, onSuccess }: CircleCheckFormProps) => {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
-  const [facilities, setFacilities] = useState<any[]>([]);
+  const [facilityId, setFacilityId] = useState<string>("");
   const [machines, setMachines] = useState<any[]>([]);
-  const [selectedFacility, setSelectedFacility] = useState<string>("");
   const [selectedMachine, setSelectedMachine] = useState<string>("");
-  const [checkItems, setCheckItems] = useState<Record<string, { status: string; notes: string }>>(
+  const [checkItems, setCheckItems] = useState<Record<string, { passed: boolean; notes: string }>>(
     defaultCheckItems.reduce((acc, item) => ({
       ...acc,
-      [item]: { status: "ok", notes: "" }
+      [item]: { passed: true, notes: "" }
     }), {})
   );
   const [generalNotes, setGeneralNotes] = useState<string>("");
   const [customFields, setCustomFields] = useState<Record<string, any>>({});
 
   useEffect(() => {
-    fetchFacilities();
-  }, []);
+    fetchUserFacility();
+  }, [userId]);
 
   useEffect(() => {
-    if (selectedFacility) {
-      fetchMachines(selectedFacility);
+    if (facilityId) {
+      fetchMachines(facilityId);
     }
-  }, [selectedFacility]);
+  }, [facilityId]);
 
-  const fetchFacilities = async () => {
-    const { data } = await supabase.from("facilities").select("*").order("name");
-    setFacilities(data || []);
+  const fetchUserFacility = async () => {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("facility_id")
+      .eq("user_id", userId)
+      .single();
+    
+    if (profile?.facility_id) {
+      setFacilityId(profile.facility_id);
+    } else {
+      // Fallback: get first facility
+      const { data: facilities } = await supabase
+        .from("facilities")
+        .select("id")
+        .order("name")
+        .limit(1);
+      if (facilities?.[0]) {
+        setFacilityId(facilities[0].id);
+      }
+    }
   };
 
   const fetchMachines = async (facilityId: string) => {
-    const { data } = await supabase.from("resurfacing_machines").select("*").eq("facility_id", facilityId).order("name");
+    const { data } = await supabase
+      .from("resurfacing_machines")
+      .select("*")
+      .eq("facility_id", facilityId)
+      .order("name");
     setMachines(data || []);
   };
 
-  const updateCheckItem = (item: string, field: "status" | "notes", value: string) => {
+  const toggleCheckItem = (item: string) => {
     setCheckItems(prev => ({
       ...prev,
       [item]: {
         ...prev[item],
-        [field]: value
+        passed: !prev[item].passed,
+        notes: prev[item].passed ? prev[item].notes : "" // Clear notes when passing
       }
     }));
   };
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case "ok":
-        return <CheckCircle className="h-4 w-4 text-green-600" />;
-      case "needs_attention":
-        return <AlertCircle className="h-4 w-4 text-yellow-600" />;
-      case "critical":
-        return <XCircle className="h-4 w-4 text-red-600" />;
-      default:
-        return null;
-    }
+  const updateCheckItemNotes = (item: string, notes: string) => {
+    setCheckItems(prev => ({
+      ...prev,
+      [item]: { ...prev[item], notes }
+    }));
   };
 
-  const getCriticalCount = () => {
-    return Object.values(checkItems).filter(item => item.status === "critical" || item.status === "needs_attention").length;
+  const getFailedCount = () => {
+    return Object.values(checkItems).filter(item => !item.passed).length;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!selectedFacility || !selectedMachine) {
+    if (!selectedMachine) {
       toast({
         title: "Missing Information",
-        description: "Please select facility and machine",
+        description: "Please select a machine",
         variant: "destructive",
       });
       return;
     }
 
-    const criticalCount = getCriticalCount();
-    if (criticalCount > 0) {
+    const failedCount = getFailedCount();
+    if (failedCount > 0) {
       const confirm = window.confirm(
-        `You have ${criticalCount} item(s) that need attention. Are you sure you want to proceed?`
+        `You have ${failedCount} failed item(s). Are you sure you want to proceed?`
       );
       if (!confirm) return;
     }
@@ -115,7 +130,7 @@ export const CircleCheckForm = ({ userId, onSuccess }: CircleCheckFormProps) => 
       const { data: activityData, error: activityError } = await supabase
         .from("maintenance_activities")
         .insert({
-          facility_id: selectedFacility,
+          facility_id: facilityId,
           activity_type: "circle_check",
           machine_id: selectedMachine,
           operator_id: userId,
@@ -127,11 +142,11 @@ export const CircleCheckForm = ({ userId, onSuccess }: CircleCheckFormProps) => 
 
       if (activityError) throw activityError;
 
-      // Insert all check items
+      // Insert all check items - map passed/failed to ok/critical for DB compatibility
       const checkItemsData = Object.entries(checkItems).map(([item, data]) => ({
         activity_id: activityData.id,
         check_item: item,
-        status: data.status,
+        status: data.passed ? "ok" : "critical",
         notes: data.notes || null,
       }));
 
@@ -147,15 +162,15 @@ export const CircleCheckForm = ({ userId, onSuccess }: CircleCheckFormProps) => 
       setSelectedMachine("");
       setCheckItems(defaultCheckItems.reduce((acc, item) => ({
         ...acc,
-        [item]: { status: "ok", notes: "" }
+        [item]: { passed: true, notes: "" }
       }), {}));
       setGeneralNotes("");
       setCustomFields({});
 
       toast({
         title: "Circle Check Complete",
-        description: criticalCount > 0 
-          ? `Logged with ${criticalCount} item(s) needing attention`
+        description: failedCount > 0 
+          ? `Logged with ${failedCount} failed item(s)`
           : "All items passed inspection",
       });
     } catch (error: any) {
@@ -175,95 +190,79 @@ export const CircleCheckForm = ({ userId, onSuccess }: CircleCheckFormProps) => 
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle>Digital Circle Check</CardTitle>
-          {getCriticalCount() > 0 && (
+          {getFailedCount() > 0 && (
             <Badge variant="destructive">
-              {getCriticalCount()} Issues Found
+              {getFailedCount()} Failed
             </Badge>
           )}
         </div>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label>Facility *</Label>
-              <Select value={selectedFacility} onValueChange={setSelectedFacility}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select facility" />
-                </SelectTrigger>
-                <SelectContent>
-                  {facilities.map((facility) => (
-                    <SelectItem key={facility.id} value={facility.id}>
-                      {facility.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label>Machine *</Label>
-              <Select value={selectedMachine} onValueChange={setSelectedMachine} disabled={!selectedFacility}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select machine" />
-                </SelectTrigger>
-                <SelectContent>
-                  {machines.map((machine) => (
-                    <SelectItem key={machine.id} value={machine.id}>
-                      {machine.name} {machine.model && `(${machine.model})`}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+          <div className="space-y-2">
+            <Label>Machine *</Label>
+            <Select value={selectedMachine} onValueChange={setSelectedMachine}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select machine" />
+              </SelectTrigger>
+              <SelectContent>
+                {machines.map((machine) => (
+                  <SelectItem key={machine.id} value={machine.id}>
+                    {machine.name} {machine.model && `(${machine.model})`}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
-          <div className="space-y-4">
+          <div className="space-y-3">
             <Label className="text-lg font-semibold">Pre-Operation Checklist</Label>
             {defaultCheckItems.map((item) => (
-              <Card key={item} className="border-border/50">
-                <CardContent className="pt-4">
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <Label className="font-medium">{item}</Label>
-                      {getStatusIcon(checkItems[item].status)}
-                    </div>
-                    
-                    <RadioGroup
-                      value={checkItems[item].status}
-                      onValueChange={(value) => updateCheckItem(item, "status", value)}
-                      className="flex gap-4"
-                    >
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="ok" id={`${item}-ok`} />
-                        <Label htmlFor={`${item}-ok`} className="font-normal cursor-pointer">OK</Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="needs_attention" id={`${item}-attention`} />
-                        <Label htmlFor={`${item}-attention`} className="font-normal cursor-pointer">Needs Attention</Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="critical" id={`${item}-critical`} />
-                        <Label htmlFor={`${item}-critical`} className="font-normal cursor-pointer">Critical</Label>
-                      </div>
-                    </RadioGroup>
-
-                    {checkItems[item].status !== "ok" && (
-                      <Textarea
-                        placeholder="Describe the issue..."
-                        value={checkItems[item].notes}
-                        onChange={(e) => updateCheckItem(item, "notes", e.target.value)}
-                        rows={2}
-                      />
+              <div 
+                key={item} 
+                className={`p-4 rounded-lg border ${
+                  checkItems[item].passed 
+                    ? "border-border/50 bg-background" 
+                    : "border-destructive/50 bg-destructive/5"
+                }`}
+              >
+                <div className="flex items-center justify-between gap-4">
+                  <div className="flex items-center gap-3 flex-1">
+                    {checkItems[item].passed ? (
+                      <CheckCircle className="h-5 w-5 text-green-600 shrink-0" />
+                    ) : (
+                      <XCircle className="h-5 w-5 text-destructive shrink-0" />
                     )}
+                    <span className="font-medium">{item}</span>
                   </div>
-                </CardContent>
-              </Card>
+                  <div className="flex items-center gap-2">
+                    <span className={`text-sm ${checkItems[item].passed ? "text-green-600" : "text-destructive"}`}>
+                      {checkItems[item].passed ? "Pass" : "Fail"}
+                    </span>
+                    <Switch
+                      checked={checkItems[item].passed}
+                      onCheckedChange={() => toggleCheckItem(item)}
+                    />
+                  </div>
+                </div>
+
+                {!checkItems[item].passed && (
+                  <div className="mt-3">
+                    <Textarea
+                      placeholder="Describe the issue..."
+                      value={checkItems[item].notes}
+                      onChange={(e) => updateCheckItemNotes(item, e.target.value)}
+                      rows={2}
+                      className="bg-background"
+                    />
+                  </div>
+                )}
+              </div>
             ))}
           </div>
 
           <DynamicFormFields
-            facilityId={selectedFacility}
+            facilityId={facilityId}
             formType="circle_check"
             values={customFields}
             onChange={setCustomFields}
