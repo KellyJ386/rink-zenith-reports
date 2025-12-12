@@ -29,17 +29,25 @@ serve(async (req) => {
       }
 
       // Extract city name from address (Open-Meteo geocoding only works with city names)
-      // Try to parse city from formats like "123 Street, City, State ZIP" or "City, State"
+      // Address format: "123 Street Name City, State ZIP" or "City, State"
       const addressParts = address.split(',').map((p: string) => p.trim());
       let searchQuery = address;
       
       if (addressParts.length >= 2) {
-        // Try the second part (usually the city) or combine city and state
-        const cityPart = addressParts.length >= 3 ? addressParts[1] : addressParts[0];
-        const statePart = addressParts.length >= 3 ? addressParts[2] : addressParts[1];
-        // Remove ZIP code from state part if present
-        const stateClean = statePart.replace(/\d{5}(-\d{4})?/, '').trim();
-        searchQuery = `${cityPart} ${stateClean}`.trim();
+        // Get state from second part (remove ZIP code)
+        const statePart = addressParts[1].replace(/\d{5}(-\d{4})?/, '').trim();
+        
+        // For "123 Street City, State" format, extract last word from first part as city
+        // For "Street, City, State" format, use second-to-last part
+        if (addressParts.length >= 3) {
+          // Format: "Street, City, State ZIP"
+          searchQuery = `${addressParts[1]} ${statePart}`.trim();
+        } else {
+          // Format: "123 Street City, State ZIP" - city is the last word before comma
+          const firstPartWords = addressParts[0].split(' ');
+          const cityName = firstPartWords[firstPartWords.length - 1];
+          searchQuery = `${cityName} ${statePart}`.trim();
+        }
       }
       
       console.log("Extracted search query from address:", searchQuery);
