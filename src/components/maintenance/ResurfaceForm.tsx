@@ -25,6 +25,9 @@ export const ResurfaceForm = ({ userId, onSuccess }: ResurfaceFormProps) => {
   const [selectedMachine, setSelectedMachine] = useState<string>("");
   const [waterUsed, setWaterUsed] = useState<string>("");
   const [machineHours, setMachineHours] = useState<string>("");
+  const [snowPercentage, setSnowPercentage] = useState<string>("");
+  const [timeOn, setTimeOn] = useState<string>("");
+  const [timeOff, setTimeOff] = useState<string>("");
   const [notes, setNotes] = useState<string>("");
   const [customFields, setCustomFields] = useState<Record<string, any>>({});
 
@@ -94,7 +97,12 @@ export const ResurfaceForm = ({ userId, onSuccess }: ResurfaceFormProps) => {
         water_used: waterUsed ? parseFloat(waterUsed) : null,
         machine_hours: machineHours ? parseFloat(machineHours) : null,
         notes,
-        custom_fields: customFields,
+        custom_fields: {
+          ...customFields,
+          snow_percentage: snowPercentage ? parseFloat(snowPercentage) : null,
+          time_on: timeOn || null,
+          time_off: timeOff || null,
+        },
       });
 
       if (error) throw error;
@@ -105,6 +113,9 @@ export const ResurfaceForm = ({ userId, onSuccess }: ResurfaceFormProps) => {
       setSelectedMachine("");
       setWaterUsed("");
       setMachineHours("");
+      setSnowPercentage("");
+      setTimeOn("");
+      setTimeOff("");
       setNotes("");
       setCustomFields({});
     } catch (error: any) {
@@ -178,6 +189,36 @@ export const ResurfaceForm = ({ userId, onSuccess }: ResurfaceFormProps) => {
                 value={machineHours}
                 onChange={(e) => setMachineHours(e.target.value)}
                 placeholder="0.00"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Snow Taken (%)</Label>
+              <Input
+                type="number"
+                min="0"
+                max="100"
+                value={snowPercentage}
+                onChange={(e) => setSnowPercentage(e.target.value)}
+                placeholder="0-100"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Time On</Label>
+              <Input
+                type="time"
+                value={timeOn}
+                onChange={(e) => setTimeOn(e.target.value)}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Time Off</Label>
+              <Input
+                type="time"
+                value={timeOff}
+                onChange={(e) => setTimeOff(e.target.value)}
               />
             </div>
           </div>
