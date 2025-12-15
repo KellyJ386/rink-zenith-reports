@@ -356,12 +356,7 @@ export const IceDepthMeasurementForm = ({ userId }: IceDepthMeasurementFormProps
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label>Facility</Label>
-              <Input value={facilityName || "No facility assigned"} disabled className="bg-muted" />
-            </div>
-
+          <div className="grid grid-cols-1 gap-4">
             <div className="space-y-2">
               <Label>Rink</Label>
               <Select value={selectedRink} onValueChange={setSelectedRink} disabled={!facilityId}>

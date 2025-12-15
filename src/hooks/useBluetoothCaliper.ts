@@ -12,16 +12,43 @@ interface BluetoothCaliperState {
   deviceName: string | null;
 }
 
-interface CustomUUIDs {
+export interface CustomUUIDs {
   serviceUUID: string;
   characteristicUUID: string;
 }
+
+interface SavedDeviceInfo {
+  deviceName: string;
+  profile: CaliperProfile;
+  customUUIDs?: CustomUUIDs;
+  lastConnected: string;
+}
+
+const STORAGE_KEY = "bt-caliper-saved-device";
 
 const IGAGING_SERVICE_UUID = "0000fff0-0000-1000-8000-00805f9b34fb";
 const IGAGING_CHARACTERISTIC_UUID = "0000fff1-0000-1000-8000-00805f9b34fb";
 
 const HID_SERVICE_UUID = "00001812-0000-1000-8000-00805f9b34fb";
 const HID_CHARACTERISTIC_UUID = "00002a4d-0000-1000-8000-00805f9b34fb";
+
+// Helper functions for device persistence
+export const getSavedDevice = (): SavedDeviceInfo | null => {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    return saved ? JSON.parse(saved) : null;
+  } catch {
+    return null;
+  }
+};
+
+export const saveDevice = (info: SavedDeviceInfo): void => {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(info));
+};
+
+export const clearSavedDevice = (): void => {
+  localStorage.removeItem(STORAGE_KEY);
+};
 
 export const useBluetoothCaliper = () => {
   const [state, setState] = useState<BluetoothCaliperState>({
@@ -96,9 +123,24 @@ export const useBluetoothCaliper = () => {
     }
   }, [parseReading]);
 
+  const getUUIDs = useCallback((profile: CaliperProfile, customUUIDs?: CustomUUIDs) => {
+    switch (profile) {
+      case "igaging":
+        return { serviceUUID: IGAGING_SERVICE_UUID, characteristicUUID: IGAGING_CHARACTERISTIC_UUID };
+      case "hid":
+        return { serviceUUID: HID_SERVICE_UUID, characteristicUUID: HID_CHARACTERISTIC_UUID };
+      case "custom":
+        if (!customUUIDs) {
+          throw new Error("Custom UUIDs required for custom profile");
+        }
+        return { serviceUUID: customUUIDs.serviceUUID, characteristicUUID: customUUIDs.characteristicUUID };
+    }
+  }, []);
+
   const connect = useCallback(async (
     profile: CaliperProfile = "igaging",
-    customUUIDs?: CustomUUIDs
+    customUUIDs?: CustomUUIDs,
+    rememberDevice: boolean = true
   ) => {
     if (!navigator.bluetooth) {
       setState(prev => ({
@@ -112,26 +154,7 @@ export const useBluetoothCaliper = () => {
     setState(prev => ({ ...prev, status: "connecting", error: null }));
 
     try {
-      let serviceUUID: string;
-      let characteristicUUID: string;
-
-      switch (profile) {
-        case "igaging":
-          serviceUUID = IGAGING_SERVICE_UUID;
-          characteristicUUID = IGAGING_CHARACTERISTIC_UUID;
-          break;
-        case "hid":
-          serviceUUID = HID_SERVICE_UUID;
-          characteristicUUID = HID_CHARACTERISTIC_UUID;
-          break;
-        case "custom":
-          if (!customUUIDs) {
-            throw new Error("Custom UUIDs required for custom profile");
-          }
-          serviceUUID = customUUIDs.serviceUUID;
-          characteristicUUID = customUUIDs.characteristicUUID;
-          break;
-      }
+      const { serviceUUID, characteristicUUID } = getUUIDs(profile, customUUIDs);
 
       const device = await navigator.bluetooth.requestDevice({
         filters: [{ services: [serviceUUID] }],
@@ -159,11 +182,23 @@ export const useBluetoothCaliper = () => {
       await characteristic.startNotifications();
       characteristic.addEventListener("characteristicvaluechanged", handleNotification);
 
+      const deviceName = device.name || "Unknown Device";
+
+      // Save device info if remember is enabled
+      if (rememberDevice) {
+        saveDevice({
+          deviceName,
+          profile,
+          customUUIDs: profile === "custom" ? customUUIDs : undefined,
+          lastConnected: new Date().toISOString(),
+        });
+      }
+
       setState({
         status: "connected",
         error: null,
         lastValueMm: null,
-        deviceName: device.name || "Unknown Device",
+        deviceName,
       });
     } catch (error: any) {
       console.error("Connection error:", error);
@@ -173,7 +208,7 @@ export const useBluetoothCaliper = () => {
         error: error.message || "Failed to connect to device",
       }));
     }
-  }, [handleNotification]);
+  }, [handleNotification, getUUIDs]);
 
   const disconnect = useCallback(async () => {
     if (characteristicRef.current) {
@@ -221,5 +256,7 @@ export const useBluetoothCaliper = () => {
     disconnect,
     onReading,
     isSupported: typeof navigator !== "undefined" && !!navigator.bluetooth,
+    getSavedDevice,
+    clearSavedDevice,
   };
 };

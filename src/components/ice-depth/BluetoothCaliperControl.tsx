@@ -1,12 +1,12 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
-import { Bluetooth, BluetoothConnected, BluetoothOff, Loader2 } from "lucide-react";
-import { useBluetoothCaliper, CaliperProfile } from "@/hooks/useBluetoothCaliper";
+import { Bluetooth, BluetoothConnected, BluetoothOff, Loader2, Trash2 } from "lucide-react";
+import { useBluetoothCaliper, CaliperProfile, getSavedDevice, clearSavedDevice } from "@/hooks/useBluetoothCaliper";
 import { useToast } from "@/hooks/use-toast";
 
 interface BluetoothCaliperControlProps {
@@ -36,6 +36,12 @@ export const BluetoothCaliperControl = ({
     const saved = localStorage.getItem("bt-auto-advance");
     return saved === null ? true : saved === "true";
   });
+  const [rememberDevice, setRememberDevice] = useState(() => {
+    const saved = localStorage.getItem("bt-remember-device");
+    return saved === null ? true : saved === "true";
+  });
+  const [isAutoReconnecting, setIsAutoReconnecting] = useState(false);
+  const [savedDeviceInfo, setSavedDeviceInfo] = useState(getSavedDevice());
 
   useEffect(() => {
     localStorage.setItem("bt-caliper-profile", profile);
@@ -44,6 +50,10 @@ export const BluetoothCaliperControl = ({
   useEffect(() => {
     localStorage.setItem("bt-auto-advance", String(autoAdvance));
   }, [autoAdvance]);
+
+  useEffect(() => {
+    localStorage.setItem("bt-remember-device", String(rememberDevice));
+  }, [rememberDevice]);
 
   useEffect(() => {
     if (customServiceUUID) {
@@ -60,20 +70,56 @@ export const BluetoothCaliperControl = ({
     });
   }, [setOnReading, onReading]);
 
+  // Auto-reconnect on mount if device is saved and remember is enabled
+  useEffect(() => {
+    const attemptAutoReconnect = async () => {
+      const saved = getSavedDevice();
+      if (!saved || !rememberDevice || state.status !== "disconnected") return;
+      
+      // Don't auto-reconnect if already attempted
+      if (isAutoReconnecting) return;
+      
+      setIsAutoReconnecting(true);
+      setSavedDeviceInfo(saved);
+      
+      toast({
+        title: "Reconnecting...",
+        description: `Attempting to reconnect to ${saved.deviceName}`,
+      });
+
+      try {
+        await connect(
+          saved.profile,
+          saved.customUUIDs,
+          true
+        );
+      } catch (error) {
+        console.log("Auto-reconnect failed, user will need to manually connect");
+      } finally {
+        setIsAutoReconnecting(false);
+      }
+    };
+
+    // Small delay before auto-reconnect attempt
+    const timer = setTimeout(attemptAutoReconnect, 500);
+    return () => clearTimeout(timer);
+  }, []); // Only run on mount
+
   useEffect(() => {
     if (state.status === "connected") {
       toast({
         title: "Caliper Connected",
         description: `${state.deviceName || "Device"} is ready to measure`,
       });
-    } else if (state.status === "error" && state.error) {
+      setSavedDeviceInfo(getSavedDevice());
+    } else if (state.status === "error" && state.error && !isAutoReconnecting) {
       toast({
         title: "Connection Error",
         description: state.error,
         variant: "destructive",
       });
     }
-  }, [state.status, state.error, state.deviceName, toast]);
+  }, [state.status, state.error, state.deviceName, toast, isAutoReconnecting]);
 
   const handleConnect = async () => {
     if (profile === "custom" && (!customServiceUUID || !customCharUUID)) {
@@ -89,11 +135,30 @@ export const BluetoothCaliperControl = ({
       profile,
       profile === "custom"
         ? { serviceUUID: customServiceUUID, characteristicUUID: customCharUUID }
-        : undefined
+        : undefined,
+      rememberDevice
     );
   };
 
+  const handleForgetDevice = () => {
+    clearSavedDevice();
+    setSavedDeviceInfo(null);
+    toast({
+      title: "Device Forgotten",
+      description: "Saved device info has been cleared",
+    });
+  };
+
   const getStatusBadge = () => {
+    if (isAutoReconnecting) {
+      return (
+        <Badge variant="secondary">
+          <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+          Reconnecting...
+        </Badge>
+      );
+    }
+    
     switch (state.status) {
       case "connected":
         return (
@@ -163,6 +228,24 @@ export const BluetoothCaliperControl = ({
       <div className="p-3 space-y-3">
         {state.status === "disconnected" || state.status === "error" ? (
           <>
+            {/* Show saved device info if available */}
+            {savedDeviceInfo && rememberDevice && (
+              <div className="flex items-center justify-between p-2 bg-muted/30 rounded text-xs">
+                <div>
+                  <span className="text-muted-foreground">Last device: </span>
+                  <span className="font-medium">{savedDeviceInfo.deviceName}</span>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-6 px-2"
+                  onClick={handleForgetDevice}
+                >
+                  <Trash2 className="w-3 h-3" />
+                </Button>
+              </div>
+            )}
+            
             <div className="grid grid-cols-2 gap-2">
               <div className="space-y-1">
                 <Label className="text-xs">Device Profile</Label>
@@ -182,7 +265,7 @@ export const BluetoothCaliperControl = ({
                   onClick={handleConnect} 
                   size="sm"
                   className="w-full h-8"
-                  disabled={!(state.status === "disconnected" || state.status === "error")}
+                  disabled={isAutoReconnecting}
                 >
                   <Bluetooth className="w-3 h-3 mr-1" />
                   Connect
@@ -209,15 +292,27 @@ export const BluetoothCaliperControl = ({
               </div>
             )}
 
-            <div className="flex items-center justify-between py-1">
-              <Label htmlFor="auto-advance" className="text-xs cursor-pointer">
-                Auto-advance
-              </Label>
-              <Switch
-                id="auto-advance"
-                checked={autoAdvance}
-                onCheckedChange={setAutoAdvance}
-              />
+            <div className="space-y-2">
+              <div className="flex items-center justify-between py-1">
+                <Label htmlFor="remember-device" className="text-xs cursor-pointer">
+                  Remember Device
+                </Label>
+                <Switch
+                  id="remember-device"
+                  checked={rememberDevice}
+                  onCheckedChange={setRememberDevice}
+                />
+              </div>
+              <div className="flex items-center justify-between py-1">
+                <Label htmlFor="auto-advance" className="text-xs cursor-pointer">
+                  Auto-advance
+                </Label>
+                <Switch
+                  id="auto-advance"
+                  checked={autoAdvance}
+                  onCheckedChange={setAutoAdvance}
+                />
+              </div>
             </div>
           </>
         ) : (
