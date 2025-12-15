@@ -18,10 +18,9 @@ interface ResurfaceFormProps {
 export const ResurfaceForm = ({ userId, onSuccess }: ResurfaceFormProps) => {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
-  const [facilities, setFacilities] = useState<any[]>([]);
+  const [facilityId, setFacilityId] = useState<string>("");
   const [rinks, setRinks] = useState<any[]>([]);
   const [machines, setMachines] = useState<any[]>([]);
-  const [selectedFacility, setSelectedFacility] = useState<string>("");
   const [selectedRink, setSelectedRink] = useState<string>("");
   const [selectedMachine, setSelectedMachine] = useState<string>("");
   const [waterUsed, setWaterUsed] = useState<string>("");
@@ -30,19 +29,36 @@ export const ResurfaceForm = ({ userId, onSuccess }: ResurfaceFormProps) => {
   const [customFields, setCustomFields] = useState<Record<string, any>>({});
 
   useEffect(() => {
-    fetchFacilities();
-  }, []);
+    fetchUserFacility();
+  }, [userId]);
 
   useEffect(() => {
-    if (selectedFacility) {
-      fetchRinks(selectedFacility);
-      fetchMachines(selectedFacility);
+    if (facilityId) {
+      fetchRinks(facilityId);
+      fetchMachines(facilityId);
     }
-  }, [selectedFacility]);
+  }, [facilityId]);
 
-  const fetchFacilities = async () => {
-    const { data } = await supabase.from("facilities").select("*").order("name");
-    setFacilities(data || []);
+  const fetchUserFacility = async () => {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("facility_id")
+      .eq("user_id", userId)
+      .single();
+    
+    if (profile?.facility_id) {
+      setFacilityId(profile.facility_id);
+    } else {
+      // Fallback: get first facility
+      const { data: facilities } = await supabase
+        .from("facilities")
+        .select("id")
+        .order("name")
+        .limit(1);
+      if (facilities?.[0]) {
+        setFacilityId(facilities[0].id);
+      }
+    }
   };
 
   const fetchRinks = async (facilityId: string) => {
@@ -58,7 +74,7 @@ export const ResurfaceForm = ({ userId, onSuccess }: ResurfaceFormProps) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!selectedFacility || !selectedRink || !selectedMachine) {
+    if (!facilityId || !selectedRink || !selectedMachine) {
       toast({
         title: "Missing Information",
         description: "Please fill in all required fields",
@@ -70,7 +86,7 @@ export const ResurfaceForm = ({ userId, onSuccess }: ResurfaceFormProps) => {
     setLoading(true);
     try {
       const { error } = await supabase.from("maintenance_activities").insert({
-        facility_id: selectedFacility,
+        facility_id: facilityId,
         activity_type: "resurface",
         rink_id: selectedRink,
         machine_id: selectedMachine,
@@ -112,24 +128,8 @@ export const ResurfaceForm = ({ userId, onSuccess }: ResurfaceFormProps) => {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label>Facility *</Label>
-              <Select value={selectedFacility} onValueChange={setSelectedFacility}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select facility" />
-                </SelectTrigger>
-                <SelectContent>
-                  {facilities.map((facility) => (
-                    <SelectItem key={facility.id} value={facility.id}>
-                      {facility.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
               <Label>Rink *</Label>
-              <Select value={selectedRink} onValueChange={setSelectedRink} disabled={!selectedFacility}>
+              <Select value={selectedRink} onValueChange={setSelectedRink}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select rink" />
                 </SelectTrigger>
@@ -145,7 +145,7 @@ export const ResurfaceForm = ({ userId, onSuccess }: ResurfaceFormProps) => {
 
             <div className="space-y-2">
               <Label>Machine *</Label>
-              <Select value={selectedMachine} onValueChange={setSelectedMachine} disabled={!selectedFacility}>
+              <Select value={selectedMachine} onValueChange={setSelectedMachine}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select machine" />
                 </SelectTrigger>
@@ -183,7 +183,7 @@ export const ResurfaceForm = ({ userId, onSuccess }: ResurfaceFormProps) => {
           </div>
 
           <DynamicFormFields
-            facilityId={selectedFacility}
+            facilityId={facilityId}
             formType="resurface"
             values={customFields}
             onChange={setCustomFields}
