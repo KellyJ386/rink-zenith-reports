@@ -17,27 +17,43 @@ interface EdgingFormProps {
 export const EdgingForm = ({ userId, onSuccess }: EdgingFormProps) => {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
-  const [facilities, setFacilities] = useState<any[]>([]);
+  const [facilityId, setFacilityId] = useState<string>("");
   const [rinks, setRinks] = useState<any[]>([]);
-  const [selectedFacility, setSelectedFacility] = useState<string>("");
   const [selectedRink, setSelectedRink] = useState<string>("");
   const [edgingType, setEdgingType] = useState<string>("full");
   const [notes, setNotes] = useState<string>("");
   const [customFields, setCustomFields] = useState<Record<string, any>>({});
 
   useEffect(() => {
-    fetchFacilities();
-  }, []);
+    fetchUserFacility();
+  }, [userId]);
 
   useEffect(() => {
-    if (selectedFacility) {
-      fetchRinks(selectedFacility);
+    if (facilityId) {
+      fetchRinks(facilityId);
     }
-  }, [selectedFacility]);
+  }, [facilityId]);
 
-  const fetchFacilities = async () => {
-    const { data } = await supabase.from("facilities").select("*").order("name");
-    setFacilities(data || []);
+  const fetchUserFacility = async () => {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("facility_id")
+      .eq("user_id", userId)
+      .single();
+    
+    if (profile?.facility_id) {
+      setFacilityId(profile.facility_id);
+    } else {
+      // Fallback: get first facility
+      const { data: facilities } = await supabase
+        .from("facilities")
+        .select("id")
+        .order("name")
+        .limit(1);
+      if (facilities?.[0]) {
+        setFacilityId(facilities[0].id);
+      }
+    }
   };
 
   const fetchRinks = async (facilityId: string) => {
@@ -48,10 +64,10 @@ export const EdgingForm = ({ userId, onSuccess }: EdgingFormProps) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!selectedFacility || !selectedRink) {
+    if (!facilityId || !selectedRink) {
       toast({
         title: "Missing Information",
-        description: "Please select facility and rink",
+        description: "Please select a rink",
         variant: "destructive",
       });
       return;
@@ -60,7 +76,7 @@ export const EdgingForm = ({ userId, onSuccess }: EdgingFormProps) => {
     setLoading(true);
     try {
       const { error } = await supabase.from("maintenance_activities").insert({
-        facility_id: selectedFacility,
+        facility_id: facilityId,
         activity_type: "edging",
         rink_id: selectedRink,
         operator_id: userId,
@@ -98,24 +114,8 @@ export const EdgingForm = ({ userId, onSuccess }: EdgingFormProps) => {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label>Facility *</Label>
-              <Select value={selectedFacility} onValueChange={setSelectedFacility}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select facility" />
-                </SelectTrigger>
-                <SelectContent>
-                  {facilities.map((facility) => (
-                    <SelectItem key={facility.id} value={facility.id}>
-                      {facility.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
               <Label>Rink *</Label>
-              <Select value={selectedRink} onValueChange={setSelectedRink} disabled={!selectedFacility}>
+              <Select value={selectedRink} onValueChange={setSelectedRink}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select rink" />
                 </SelectTrigger>
@@ -129,7 +129,7 @@ export const EdgingForm = ({ userId, onSuccess }: EdgingFormProps) => {
               </Select>
             </div>
 
-            <div className="space-y-2 md:col-span-2">
+            <div className="space-y-2">
               <Label>Edging Type *</Label>
               <Select value={edgingType} onValueChange={setEdgingType}>
                 <SelectTrigger>
@@ -146,7 +146,7 @@ export const EdgingForm = ({ userId, onSuccess }: EdgingFormProps) => {
           </div>
 
           <DynamicFormFields
-            facilityId={selectedFacility}
+            facilityId={facilityId}
             formType="edging"
             values={customFields}
             onChange={setCustomFields}

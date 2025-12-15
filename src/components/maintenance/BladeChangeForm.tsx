@@ -18,9 +18,8 @@ interface BladeChangeFormProps {
 export const BladeChangeForm = ({ userId, onSuccess }: BladeChangeFormProps) => {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
-  const [facilities, setFacilities] = useState<any[]>([]);
+  const [facilityId, setFacilityId] = useState<string>("");
   const [machines, setMachines] = useState<any[]>([]);
-  const [selectedFacility, setSelectedFacility] = useState<string>("");
   const [selectedMachine, setSelectedMachine] = useState<string>("");
   const [oldBladeHours, setOldBladeHours] = useState<string>("");
   const [newBladeId, setNewBladeId] = useState<string>("");
@@ -28,18 +27,35 @@ export const BladeChangeForm = ({ userId, onSuccess }: BladeChangeFormProps) => 
   const [customFields, setCustomFields] = useState<Record<string, any>>({});
 
   useEffect(() => {
-    fetchFacilities();
-  }, []);
+    fetchUserFacility();
+  }, [userId]);
 
   useEffect(() => {
-    if (selectedFacility) {
-      fetchMachines(selectedFacility);
+    if (facilityId) {
+      fetchMachines(facilityId);
     }
-  }, [selectedFacility]);
+  }, [facilityId]);
 
-  const fetchFacilities = async () => {
-    const { data } = await supabase.from("facilities").select("*").order("name");
-    setFacilities(data || []);
+  const fetchUserFacility = async () => {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("facility_id")
+      .eq("user_id", userId)
+      .single();
+    
+    if (profile?.facility_id) {
+      setFacilityId(profile.facility_id);
+    } else {
+      // Fallback: get first facility
+      const { data: facilities } = await supabase
+        .from("facilities")
+        .select("id")
+        .order("name")
+        .limit(1);
+      if (facilities?.[0]) {
+        setFacilityId(facilities[0].id);
+      }
+    }
   };
 
   const fetchMachines = async (facilityId: string) => {
@@ -50,10 +66,10 @@ export const BladeChangeForm = ({ userId, onSuccess }: BladeChangeFormProps) => 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!selectedFacility || !selectedMachine) {
+    if (!facilityId || !selectedMachine) {
       toast({
         title: "Missing Information",
-        description: "Please select facility and machine",
+        description: "Please select a machine",
         variant: "destructive",
       });
       return;
@@ -62,7 +78,7 @@ export const BladeChangeForm = ({ userId, onSuccess }: BladeChangeFormProps) => 
     setLoading(true);
     try {
       const { error } = await supabase.from("maintenance_activities").insert({
-        facility_id: selectedFacility,
+        facility_id: facilityId,
         activity_type: "blade_change",
         machine_id: selectedMachine,
         operator_id: userId,
@@ -102,24 +118,8 @@ export const BladeChangeForm = ({ userId, onSuccess }: BladeChangeFormProps) => 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label>Facility *</Label>
-              <Select value={selectedFacility} onValueChange={setSelectedFacility}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select facility" />
-                </SelectTrigger>
-                <SelectContent>
-                  {facilities.map((facility) => (
-                    <SelectItem key={facility.id} value={facility.id}>
-                      {facility.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
               <Label>Machine *</Label>
-              <Select value={selectedMachine} onValueChange={setSelectedMachine} disabled={!selectedFacility}>
+              <Select value={selectedMachine} onValueChange={setSelectedMachine}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select machine" />
                 </SelectTrigger>
@@ -144,7 +144,7 @@ export const BladeChangeForm = ({ userId, onSuccess }: BladeChangeFormProps) => 
               />
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-2 md:col-span-2">
               <Label>New Blade ID</Label>
               <Input
                 type="text"
@@ -156,7 +156,7 @@ export const BladeChangeForm = ({ userId, onSuccess }: BladeChangeFormProps) => 
           </div>
 
           <DynamicFormFields
-            facilityId={selectedFacility}
+            facilityId={facilityId}
             formType="blade_change"
             values={customFields}
             onChange={setCustomFields}
