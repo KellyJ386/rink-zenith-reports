@@ -84,7 +84,7 @@ const Index = () => {
             backgroundImage: `url(${authRinkBg})`,
           }}
         >
-          <div className="absolute inset-0 bg-gradient-to-r from-seahawks-navy/95 via-seahawks-navy/85 to-seahawks-green/75" />
+          <div className="absolute inset-0 bg-gradient-to-r from-seahawks-green/75 via-seahawks-navy/85 to-seahawks-navy/95" />
         </div>
 
         <div className="container relative z-10 mx-auto px-4">
