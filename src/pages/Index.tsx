@@ -16,7 +16,7 @@ import {
   ArrowRight,
   CheckCircle,
 } from "lucide-react";
-import heroImage from "@/assets/hero-ice-rink.jpg";
+import authRinkBg from "@/assets/auth-rink.jpg";
 
 const Index = () => {
   const features = [
@@ -81,7 +81,7 @@ const Index = () => {
         <div
           className="absolute inset-0 bg-cover bg-center"
           style={{
-            backgroundImage: `url(${heroImage})`,
+            backgroundImage: `url(${authRinkBg})`,
           }}
         >
           <div className="absolute inset-0 bg-gradient-to-r from-seahawks-navy/95 via-seahawks-navy/85 to-seahawks-green/75" />
