@@ -356,8 +356,10 @@ export type Database = {
           created_at: string
           facility_id: string | null
           id: string
+          is_preset_override: boolean | null
           name: string
           point_count: number
+          preset_template_key: string | null
           slot_number: number | null
           template_data: Json
           updated_at: string
@@ -367,8 +369,10 @@ export type Database = {
           created_at?: string
           facility_id?: string | null
           id?: string
+          is_preset_override?: boolean | null
           name: string
           point_count: number
+          preset_template_key?: string | null
           slot_number?: number | null
           template_data: Json
           updated_at?: string
@@ -378,8 +382,10 @@ export type Database = {
           created_at?: string
           facility_id?: string | null
           id?: string
+          is_preset_override?: boolean | null
           name?: string
           point_count?: number
+          preset_template_key?: string | null
           slot_number?: number | null
           template_data?: Json
           updated_at?: string

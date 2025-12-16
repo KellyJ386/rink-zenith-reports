@@ -14,6 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { useTemplateOverrides } from "@/hooks/useTemplateOverrides";
 
 interface InteractiveRinkDiagramProps {
   templateType: string;
@@ -50,8 +51,14 @@ export const InteractiveRinkDiagram = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   
+  // Use template overrides hook for facility-specific calibrated points
+  const { getPointsForTemplate, hasOverride } = useTemplateOverrides(facilityId);
+  
   const activeTemplate = devMode ? devTemplate : templateType;
-  const points = measurementPoints[activeTemplate] || [];
+  // Get points from facility override or fall back to defaults
+  const points = devMode 
+    ? (measurementPoints[activeTemplate] || [])
+    : getPointsForTemplate(activeTemplate);
 
   // Fetch saved templates when entering dev mode
   useEffect(() => {
