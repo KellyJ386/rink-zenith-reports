@@ -2,18 +2,12 @@ import { useEffect, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
 import { getRecentAuditLogs } from "@/services/auditLog";
-import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import {
   Settings,
   Users,
-  FileText,
   LayoutDashboard,
-  Activity,
-  AlertCircle,
-  TrendingUp,
   Plus,
   Clock,
   CheckCircle,
@@ -21,13 +15,6 @@ import {
   History,
   Library,
 } from "lucide-react";
-
-interface Stats {
-  totalUsers: number;
-  activeModules: number;
-  rinksConfigured: number;
-  pendingApprovals: number;
-}
 
 interface AuditLogEntry {
   id: string;
@@ -39,12 +26,6 @@ interface AuditLogEntry {
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
-  const [stats, setStats] = useState<Stats>({
-    totalUsers: 0,
-    activeModules: 7,
-    rinksConfigured: 0,
-    pendingApprovals: 0,
-  });
   const [recentActivity, setRecentActivity] = useState<AuditLogEntry[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -54,35 +35,6 @@ const AdminDashboard = () => {
 
   const loadDashboardData = async () => {
     try {
-      // Get total users count
-      const { count: usersCount } = await supabase
-        .from("profiles")
-        .select("*", { count: "exact", head: true });
-
-      // Get rinks count
-      const { count: rinksCount } = await supabase
-        .from("rinks")
-        .select("*", { count: "exact", head: true });
-
-      // Get pending time-off requests
-      const { count: pendingTimeOff } = await supabase
-        .from("schedule_time_off")
-        .select("*", { count: "exact", head: true })
-        .eq("status", "pending");
-
-      // Get pending shift swaps
-      const { count: pendingSwaps } = await supabase
-        .from("schedule_shift_swaps")
-        .select("*", { count: "exact", head: true })
-        .eq("status", "pending");
-
-      setStats({
-        totalUsers: usersCount || 0,
-        activeModules: 7,
-        rinksConfigured: rinksCount || 0,
-        pendingApprovals: (pendingTimeOff || 0) + (pendingSwaps || 0),
-      });
-
       // Get recent audit logs
       const logs = await getRecentAuditLogs(10);
       setRecentActivity(logs as AuditLogEntry[]);
@@ -131,13 +83,6 @@ const AdminDashboard = () => {
     { label: "View Audit Log", icon: History, action: () => navigate("/admin/audit") },
   ];
 
-  const statsConfig = [
-    { label: "Total Users", value: stats.totalUsers, icon: Users },
-    { label: "Active Modules", value: stats.activeModules, icon: Activity },
-    { label: "Rinks Configured", value: stats.rinksConfigured, icon: TrendingUp },
-    { label: "Pending Approvals", value: stats.pendingApprovals, icon: AlertCircle },
-  ];
-
   const getActionIcon = (action: string) => {
     if (action.includes("created") || action.includes("added")) return <CheckCircle className="h-4 w-4 text-green-500" />;
     if (action.includes("deleted") || action.includes("removed")) return <XCircle className="h-4 w-4 text-red-500" />;
@@ -155,26 +100,6 @@ const AdminDashboard = () => {
         <p className="text-muted-foreground">
           System overview and management controls
         </p>
-      </div>
-
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        {statsConfig.map((stat, index) => {
-          const Icon = stat.icon;
-          return (
-            <Card key={index}>
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">
-                  {stat.label}
-                </CardTitle>
-                <Icon className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{stat.value}</div>
-              </CardContent>
-            </Card>
-          );
-        })}
       </div>
 
       {/* Quick Actions */}
