@@ -430,6 +430,7 @@ export const IceDepthMeasurementForm = ({ userId }: IceDepthMeasurementFormProps
             templateType={templateType} 
             measurements={measurements}
             currentPointId={currentPointId}
+            facilityId={facilityId}
             onPointClick={(pointId) => {
               // Allow clicking any point to jump to it
               setManualCurrentPoint(pointId);

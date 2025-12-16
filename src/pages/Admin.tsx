@@ -12,6 +12,7 @@ import {
   Snowflake,
   Home,
   AlertCircle,
+  Crosshair,
 } from "lucide-react";
 
 const Admin = () => {
@@ -91,6 +92,11 @@ const Admin = () => {
       label: "Ice Depth Templates",
       path: "/admin/templates",
       icon: Snowflake,
+    },
+    {
+      label: "Calibrate Templates",
+      path: "/admin/calibration",
+      icon: Crosshair,
     },
   ];
 
