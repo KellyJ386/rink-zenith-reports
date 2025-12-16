@@ -110,7 +110,7 @@ const Index = () => {
             </p>
 
             <div className="flex flex-wrap gap-4 justify-center">
-              <Button asChild size="lg" className="bg-green-500 hover:bg-green-600 text-white shadow-lg">
+              <Button asChild size="lg" className="bg-seahawks-green hover:bg-seahawks-green/90 text-white shadow-[0_0_30px_rgba(105,190,40,0.5)] hover:shadow-[0_0_40px_rgba(105,190,40,0.7)] transition-all duration-300 border border-white/20">
                 <Link to="/auth">
                   Sign In <ArrowRight className="ml-2 h-5 w-5" />
                 </Link>
