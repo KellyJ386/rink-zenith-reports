@@ -87,7 +87,7 @@ const Index = () => {
           <div className="absolute inset-0 bg-gradient-to-r from-seahawks-green/75 via-seahawks-navy/85 to-seahawks-navy/95" />
         </div>
 
-        <div className="container relative z-10 mx-auto px-4">
+        <div className="container relative z-10 mx-auto px-4 flex justify-end">
           <div className="max-w-3xl">
             <div className="flex flex-col items-center mb-8">
               <img 
