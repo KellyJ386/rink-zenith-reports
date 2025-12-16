@@ -1,11 +1,12 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
-import { Bluetooth, BluetoothConnected, BluetoothOff, Loader2, Trash2 } from "lucide-react";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Bluetooth, BluetoothConnected, BluetoothOff, Loader2, Trash2, ChevronDown } from "lucide-react";
 import { useBluetoothCaliper, CaliperProfile, getSavedDevice, clearSavedDevice } from "@/hooks/useBluetoothCaliper";
 import { useToast } from "@/hooks/use-toast";
 
@@ -214,133 +215,119 @@ export const BluetoothCaliperControl = ({
     );
   }
 
+  const [isOpen, setIsOpen] = useState(state.status === "connected");
+
+  // Auto-expand when connected
+  useEffect(() => {
+    if (state.status === "connected") {
+      setIsOpen(true);
+    }
+  }, [state.status]);
+
   return (
-    <div className="border border-primary/20 rounded-lg bg-card">
-      <div className="p-3 border-b border-border">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Bluetooth className="w-4 h-4 text-primary" />
-            <span className="text-sm font-medium">Bluetooth Caliper</span>
-          </div>
-          {getStatusBadge()}
-        </div>
-      </div>
-      <div className="p-3 space-y-3">
-        {state.status === "disconnected" || state.status === "error" ? (
-          <>
-            {/* Show saved device info if available */}
-            {savedDeviceInfo && rememberDevice && (
-              <div className="flex items-center justify-between p-2 bg-muted/30 rounded text-xs">
-                <div>
-                  <span className="text-muted-foreground">Last device: </span>
-                  <span className="font-medium">{savedDeviceInfo.deviceName}</span>
+    <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+      <div className="border border-primary/20 rounded-lg bg-card">
+        <CollapsibleTrigger asChild>
+          <button className="w-full p-2.5 flex items-center justify-between hover:bg-muted/50 transition-colors rounded-t-lg">
+            <div className="flex items-center gap-2">
+              <Bluetooth className="w-4 h-4 text-primary" />
+              <span className="text-sm font-medium">Bluetooth Caliper</span>
+            </div>
+            <div className="flex items-center gap-2">
+              {getStatusBadge()}
+              <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform ${isOpen ? "rotate-180" : ""}`} />
+            </div>
+          </button>
+        </CollapsibleTrigger>
+        
+        <CollapsibleContent>
+          <div className="p-2.5 pt-0 space-y-2">
+            {state.status === "disconnected" || state.status === "error" ? (
+              <>
+                {/* Saved device info - compact */}
+                {savedDeviceInfo && rememberDevice && (
+                  <div className="flex items-center justify-between px-2 py-1.5 bg-muted/30 rounded text-xs">
+                    <span className="text-muted-foreground">Last: <span className="font-medium text-foreground">{savedDeviceInfo.deviceName}</span></span>
+                    <Button variant="ghost" size="sm" className="h-5 w-5 p-0" onClick={handleForgetDevice}>
+                      <Trash2 className="w-3 h-3" />
+                    </Button>
+                  </div>
+                )}
+                
+                {/* Profile + Connect - same row */}
+                <div className="grid grid-cols-2 gap-2">
+                  <Select value={profile} onValueChange={(v) => setProfile(v as CaliperProfile)}>
+                    <SelectTrigger className="h-8 text-xs">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="igaging">iGaging</SelectItem>
+                      <SelectItem value="hid">HID Protocol</SelectItem>
+                      <SelectItem value="custom">Custom</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Button onClick={handleConnect} size="sm" className="h-8" disabled={isAutoReconnecting}>
+                    <Bluetooth className="w-3 h-3 mr-1" />
+                    Connect
+                  </Button>
                 </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-6 px-2"
-                  onClick={handleForgetDevice}
-                >
-                  <Trash2 className="w-3 h-3" />
+
+                {profile === "custom" && (
+                  <div className="grid grid-cols-2 gap-2">
+                    <Input
+                      placeholder="Service UUID"
+                      value={customServiceUUID}
+                      onChange={(e) => setCustomServiceUUID(e.target.value)}
+                      className="h-7 text-xs font-mono"
+                    />
+                    <Input
+                      placeholder="Char UUID"
+                      value={customCharUUID}
+                      onChange={(e) => setCustomCharUUID(e.target.value)}
+                      className="h-7 text-xs font-mono"
+                    />
+                  </div>
+                )}
+
+                {/* Toggles - same row */}
+                <div className="flex items-center justify-between gap-4 pt-1">
+                  <div className="flex items-center gap-2">
+                    <Switch id="remember-device" checked={rememberDevice} onCheckedChange={setRememberDevice} className="scale-90" />
+                    <Label htmlFor="remember-device" className="text-xs cursor-pointer">Remember</Label>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Switch id="auto-advance" checked={autoAdvance} onCheckedChange={setAutoAdvance} className="scale-90" />
+                    <Label htmlFor="auto-advance" className="text-xs cursor-pointer">Auto-advance</Label>
+                  </div>
+                </div>
+              </>
+            ) : (
+              <>
+                {/* Connected state - compact grid */}
+                <div className="flex items-center justify-between text-xs px-1">
+                  <div>
+                    <span className="text-muted-foreground">Device: </span>
+                    <span className="font-medium">{state.deviceName || "Unknown"}</span>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground">Point: </span>
+                    <span className="font-medium">#{currentPoint}</span>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground">Reading: </span>
+                    <span className="font-bold text-primary">{formatValue(state.lastValueMm)}</span>
+                  </div>
+                </div>
+
+                <Button onClick={disconnect} variant="outline" size="sm" className="w-full h-7 text-xs">
+                  <BluetoothOff className="w-3 h-3 mr-1" />
+                  Disconnect
                 </Button>
-              </div>
+              </>
             )}
-            
-            <div className="grid grid-cols-2 gap-2">
-              <div className="space-y-1">
-                <Label className="text-xs">Device Profile</Label>
-                <Select value={profile} onValueChange={(v) => setProfile(v as CaliperProfile)}>
-                  <SelectTrigger className="h-8 text-xs">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="igaging">iGaging</SelectItem>
-                    <SelectItem value="hid">HID Protocol</SelectItem>
-                    <SelectItem value="custom">Custom</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="flex items-end">
-                <Button 
-                  onClick={handleConnect} 
-                  size="sm"
-                  className="w-full h-8"
-                  disabled={isAutoReconnecting}
-                >
-                  <Bluetooth className="w-3 h-3 mr-1" />
-                  Connect
-                </Button>
-              </div>
-            </div>
-
-            {profile === "custom" && (
-              <div className="space-y-2 p-2 bg-muted/30 rounded">
-                <Input
-                  id="service-uuid"
-                  placeholder="Service UUID"
-                  value={customServiceUUID}
-                  onChange={(e) => setCustomServiceUUID(e.target.value)}
-                  className="h-8 text-xs font-mono"
-                />
-                <Input
-                  id="char-uuid"
-                  placeholder="Characteristic UUID"
-                  value={customCharUUID}
-                  onChange={(e) => setCustomCharUUID(e.target.value)}
-                  className="h-8 text-xs font-mono"
-                />
-              </div>
-            )}
-
-            <div className="space-y-2">
-              <div className="flex items-center justify-between py-1">
-                <Label htmlFor="remember-device" className="text-xs cursor-pointer">
-                  Remember Device
-                </Label>
-                <Switch
-                  id="remember-device"
-                  checked={rememberDevice}
-                  onCheckedChange={setRememberDevice}
-                />
-              </div>
-              <div className="flex items-center justify-between py-1">
-                <Label htmlFor="auto-advance" className="text-xs cursor-pointer">
-                  Auto-advance
-                </Label>
-                <Switch
-                  id="auto-advance"
-                  checked={autoAdvance}
-                  onCheckedChange={setAutoAdvance}
-                />
-              </div>
-            </div>
-          </>
-        ) : (
-          <>
-            <div className="grid grid-cols-3 gap-3">
-              <div className="space-y-1">
-                <Label className="text-xs text-muted-foreground">Device</Label>
-                <p className="text-xs font-medium truncate">{state.deviceName || "Unknown"}</p>
-              </div>
-              <div className="space-y-1">
-                <Label className="text-xs text-muted-foreground">Point</Label>
-                <p className="text-xs font-medium">#{currentPoint}</p>
-              </div>
-              <div className="space-y-1">
-                <Label className="text-xs text-muted-foreground">Reading</Label>
-                <p className="text-xs font-bold text-primary">
-                  {formatValue(state.lastValueMm)}
-                </p>
-              </div>
-            </div>
-
-            <Button onClick={disconnect} variant="outline" size="sm" className="w-full h-8">
-              <BluetoothOff className="w-3 h-3 mr-1" />
-              Disconnect
-            </Button>
-          </>
-        )}
+          </div>
+        </CollapsibleContent>
       </div>
-    </div>
+    </Collapsible>
   );
 };

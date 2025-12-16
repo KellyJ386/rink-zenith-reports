@@ -1,19 +1,18 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectGroup, SelectLabel, SelectSeparator } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useToast } from "@/hooks/use-toast";
 import { TemplateSelection } from "./TemplateSelection";
 import { StatisticsPanel } from "./StatisticsPanel";
 import { BluetoothCaliperControl } from "./BluetoothCaliperControl";
-import { Loader2 } from "lucide-react";
+import { Loader2, ChevronDown, Bluetooth } from "lucide-react";
 import { getPointCount } from "./measurementPoints";
-import { Separator } from "@/components/ui/separator";
+import { Badge } from "@/components/ui/badge";
 
 interface IceDepthMeasurementFormProps {
   userId: string;
@@ -355,12 +354,13 @@ export const IceDepthMeasurementForm = ({ userId }: IceDepthMeasurementFormProps
             </Tabs>
           </div>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 gap-4">
-            <div className="space-y-2">
-              <Label>Rink</Label>
+        <CardContent className="space-y-3">
+          {/* Rink + Template on same row */}
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1.5">
+              <Label className="text-sm">Rink</Label>
               <Select value={selectedRink} onValueChange={setSelectedRink} disabled={!facilityId}>
-                <SelectTrigger>
+                <SelectTrigger className="h-9">
                   <SelectValue placeholder="Select rink" />
                 </SelectTrigger>
                 <SelectContent>
@@ -372,60 +372,47 @@ export const IceDepthMeasurementForm = ({ userId }: IceDepthMeasurementFormProps
                 </SelectContent>
               </Select>
             </div>
+
+            <div className="space-y-1.5">
+              <Label className="text-sm">Template</Label>
+              <Select value={templateType} onValueChange={setTemplateType}>
+                <SelectTrigger className="h-9">
+                  <SelectValue placeholder="Select template" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectGroup>
+                    <SelectLabel>Preset Templates</SelectLabel>
+                    {availablePresets.map((preset) => (
+                      <SelectItem key={preset.key} value={preset.key}>
+                        {preset.label.replace(" Template", "")}
+                      </SelectItem>
+                    ))}
+                  </SelectGroup>
+                  {availableCustom.length > 0 && (
+                    <>
+                      <SelectSeparator />
+                      <SelectGroup>
+                        <SelectLabel>Custom Templates</SelectLabel>
+                        {availableCustom.map((custom) => (
+                          <SelectItem 
+                            key={custom.key} 
+                            value={custom.key}
+                            disabled={custom.disabled}
+                          >
+                            {custom.template?.name || `Custom ${custom.slot}`}
+                            {custom.template && ` (${custom.template.point_count} pts)`}
+                            {custom.disabled && " - Not Set"}
+                          </SelectItem>
+                        ))}
+                      </SelectGroup>
+                    </>
+                  )}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
-          <div className="space-y-2">
-            <Label>Measurement Template</Label>
-            <RadioGroup value={templateType} onValueChange={setTemplateType}>
-              {/* Preset Templates */}
-              {availablePresets.map((preset) => (
-                <div key={preset.key} className="flex items-center space-x-2">
-                  <RadioGroupItem value={preset.key} id={preset.key} />
-                  <Label htmlFor={preset.key} className="font-normal cursor-pointer">
-                    {preset.label}
-                  </Label>
-                </div>
-              ))}
-
-              {/* Separator if there are custom templates */}
-              {availableCustom.length > 0 && (
-                <Separator className="my-2" />
-              )}
-
-              {/* Custom Templates */}
-              {availableCustom.map((custom) => (
-                <div key={custom.key} className="flex items-center space-x-2">
-                  <RadioGroupItem 
-                    value={custom.key} 
-                    id={custom.key}
-                    disabled={custom.disabled}
-                  />
-                  <Label 
-                    htmlFor={custom.key} 
-                    className={`font-normal cursor-pointer ${custom.disabled ? "text-muted-foreground" : ""}`}
-                  >
-                    Custom {custom.slot}: {custom.template?.name || "[Not Set]"}
-                    {custom.template && (
-                      <span className="text-muted-foreground ml-1">
-                        ({custom.template.point_count} pts)
-                      </span>
-                    )}
-                    {custom.disabled && hasAdminAccess && (
-                      <span className="text-xs text-muted-foreground ml-2">
-                        (configure in settings)
-                      </span>
-                    )}
-                  </Label>
-                </div>
-              ))}
-            </RadioGroup>
-            {!hasAdminAccess && availableCustom.length === 0 && (
-              <p className="text-xs text-muted-foreground mt-2">
-                Custom templates are available when configured by administrators.
-              </p>
-            )}
-          </div>
-
+          {/* Collapsible Bluetooth Section */}
           {facilityId && selectedRink && (
             <BluetoothCaliperControl 
               onReading={handleBluetoothReading}
