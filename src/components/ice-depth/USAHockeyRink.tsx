@@ -128,22 +128,11 @@ const USAHockeyRink: React.FC<USAHockeyRinkProps> = ({
     );
   };
 
-  const GoalNet = ({ x, direction }: { x: number; direction: 'left' | 'right' }) => {
+  const GoalNet = ({ x }: { x: number }) => {
     const goalWidth = 6 * scale / 2;
-    const goalDepth = 3.33 * scale;
-    const dir = direction === 'left' ? -1 : 1;
     
     return (
       <g>
-        <rect
-          x={direction === 'left' ? x + dir * goalDepth : x}
-          y={centerY - goalWidth}
-          width={goalDepth}
-          height={goalWidth * 2}
-          fill="none"
-          stroke={redLine}
-          strokeWidth={3}
-        />
         <circle cx={x} cy={centerY - goalWidth} r={2} fill={redLine} />
         <circle cx={x} cy={centerY + goalWidth} r={2} fill={redLine} />
       </g>
@@ -231,8 +220,8 @@ const USAHockeyRink: React.FC<USAHockeyRinkProps> = ({
           <GoalCrease x={rightGoalLine} direction="right" />
 
           {/* Goal nets */}
-          <GoalNet x={leftGoalLine} direction="left" />
-          <GoalNet x={rightGoalLine} direction="right" />
+          <GoalNet x={leftGoalLine} />
+          <GoalNet x={rightGoalLine} />
 
           {/* End zone faceoff circles */}
           <EndZoneFaceoffCircle cx={endFaceoffX_left} cy={faceoffY_top} />
