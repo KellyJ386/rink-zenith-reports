@@ -19,7 +19,6 @@ const ModuleAdministration = () => {
   const modules = [
     {
       title: "Ice Depth Log",
-      description: "Track ice measurements with AI analysis",
       icon: Snowflake,
       color: "from-ice-glacier to-ice-blue",
       path: "/ice-depth",
@@ -28,7 +27,6 @@ const ModuleAdministration = () => {
     },
     {
       title: "Ice Maintenance",
-      description: "Resurface logs and equipment checks",
       icon: Wrench,
       color: "from-primary to-ice-glacier",
       path: "/ice-maintenance",
@@ -37,7 +35,6 @@ const ModuleAdministration = () => {
     },
     {
       title: "Refrigeration Log",
-      description: "Monitor compressor and condenser data",
       icon: Thermometer,
       color: "from-accent to-ice-arctic",
       path: "/refrigeration-log",
@@ -46,7 +43,6 @@ const ModuleAdministration = () => {
     },
     {
       title: "Air Quality",
-      description: "Track CO and NO2 levels",
       icon: Wind,
       color: "from-ice-arctic to-secondary",
       path: "/air-quality",
@@ -55,7 +51,6 @@ const ModuleAdministration = () => {
     },
     {
       title: "Employee Scheduling",
-      description: "Manage employee shifts and hours",
       icon: Calendar,
       color: "from-ice-blue to-primary",
       path: "/schedule/calendar",
@@ -64,7 +59,6 @@ const ModuleAdministration = () => {
     },
     {
       title: "Incident Reports",
-      description: "Document and track incidents",
       icon: AlertCircle,
       color: "from-destructive/80 to-destructive/60",
       path: "/incident-report",
@@ -73,7 +67,6 @@ const ModuleAdministration = () => {
     },
     {
       title: "Daily Reports",
-      description: "Daily operations and tasks",
       icon: MessageSquare,
       color: "from-primary to-accent",
       path: "/daily-reports",
@@ -82,7 +75,6 @@ const ModuleAdministration = () => {
     },
     {
       title: "Communications Log",
-      description: "Team messaging and announcements",
       icon: MessageSquare,
       color: "from-primary to-accent",
       path: null,
@@ -91,7 +83,6 @@ const ModuleAdministration = () => {
     },
     {
       title: "Safety & Compliance",
-      description: "Compliance tracking and resources",
       icon: Shield,
       color: "from-ice-glacier to-accent",
       path: null,
@@ -124,7 +115,6 @@ const ModuleAdministration = () => {
                   <Icon className="h-6 w-6 text-white" />
                 </div>
                 <CardTitle className="text-xl">{module.title}</CardTitle>
-                <CardDescription>{module.description}</CardDescription>
               </CardHeader>
               <CardContent className="space-y-2">
                 {module.hasFormBuilder && module.implemented && (

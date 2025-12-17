@@ -20,14 +20,46 @@ import authRinkBg from "@/assets/auth-rink.jpg";
 
 const Index = () => {
   const features = [
-    { icon: Snowflake, title: "Ice Depth Log" },
-    { icon: Wrench, title: "Ice Maintenance" },
-    { icon: Thermometer, title: "Refrigeration Log" },
-    { icon: Wind, title: "Air Quality" },
-    { icon: Calendar, title: "Employee Scheduling" },
-    { icon: AlertCircle, title: "Incident Reports" },
-    { icon: MessageSquare, title: "Communications" },
-    { icon: Shield, title: "Safety Center" },
+    {
+      icon: Snowflake,
+      title: "Ice Depth Log",
+      description: "Advanced AI-powered ice measurement tracking with automated analysis and recommendations",
+    },
+    {
+      icon: Wrench,
+      title: "Ice Maintenance",
+      description: "Comprehensive resurfacing logs, blade changes, and digital pre-operation checks",
+    },
+    {
+      icon: Thermometer,
+      title: "Refrigeration Log",
+      description: "Monitor compressor and condenser performance with automated alert systems",
+    },
+    {
+      icon: Wind,
+      title: "Air Quality",
+      description: "Track CO and NO2 levels with compliance dashboards and safety alerts",
+    },
+    {
+      icon: Calendar,
+      title: "Employee Scheduling",
+      description: "Intuitive scheduling with hour tracking, shift management, and staff notifications",
+    },
+    {
+      icon: AlertCircle,
+      title: "Incident Reports",
+      description: "Detailed incident documentation with body diagrams and digital signatures",
+    },
+    {
+      icon: MessageSquare,
+      title: "Communications",
+      description: "Centralized team messaging with priority levels and threaded conversations",
+    },
+    {
+      icon: Shield,
+      title: "Safety Center",
+      description: "Compliance tracking, audit trails, and quick access to emergency procedures",
+    },
   ];
 
   const benefits = [
@@ -111,6 +143,7 @@ const Index = () => {
                       <Icon className="h-6 w-6 text-white" />
                     </div>
                     <CardTitle className="text-lg">{feature.title}</CardTitle>
+                    <CardDescription className="text-sm">{feature.description}</CardDescription>
                   </CardHeader>
                 </Card>
               );
