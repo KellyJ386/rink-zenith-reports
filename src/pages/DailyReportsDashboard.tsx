@@ -508,7 +508,7 @@ export default function DailyReportsDashboard() {
                       <Button
                         variant="ghost"
                         size="icon"
-                        onClick={() => navigate(`/daily-reports?id=${report.id}`)}
+                        onClick={() => navigate(`/daily-reports/${report.id}`)}
                       >
                         <Eye className="h-4 w-4" />
                       </Button>
