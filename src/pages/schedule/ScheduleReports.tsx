@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
 import {
   Table,
   TableBody,
@@ -12,12 +13,14 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Calendar, TrendingUp, Users, Clock, BarChart3 } from "lucide-react";
+import { Calendar, TrendingUp, Users, Clock, BarChart3, FileText, DollarSign, CheckCircle } from "lucide-react";
 import { startOfWeek, endOfWeek, format, subWeeks } from "date-fns";
 import { useScheduleReports } from "@/hooks/useScheduleReports";
 import { ReportExport } from "@/components/schedule/ReportExport";
+import { useNavigate } from "react-router-dom";
 
 const ScheduleReports = () => {
+  const navigate = useNavigate();
   const [startDate, setStartDate] = useState(() => startOfWeek(subWeeks(new Date(), 1), { weekStartsOn: 0 }));
   const [endDate, setEndDate] = useState(() => endOfWeek(subWeeks(new Date(), 1), { weekStartsOn: 0 }));
 
@@ -37,6 +40,10 @@ const ScheduleReports = () => {
     const now = new Date();
     setStartDate(subWeeks(now, 4));
     setEndDate(now);
+  };
+
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
   };
 
   return (
@@ -129,8 +136,12 @@ const ScheduleReports = () => {
             </Card>
           </div>
 
-          <Tabs defaultValue="staff" className="space-y-4">
+          <Tabs defaultValue="shift-summary" className="space-y-4">
             <TabsList>
+              <TabsTrigger value="shift-summary">
+                <FileText className="h-4 w-4 mr-2" />
+                Shift Summary
+              </TabsTrigger>
               <TabsTrigger value="staff">
                 <Users className="h-4 w-4 mr-2" />
                 Staff Hours
@@ -144,6 +155,109 @@ const ScheduleReports = () => {
                 Role Distribution
               </TabsTrigger>
             </TabsList>
+
+            <TabsContent value="shift-summary">
+              <Card>
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <CardTitle>Shift Summary Rollup</CardTitle>
+                      <CardDescription>Daily reports and financial summary by date</CardDescription>
+                    </div>
+                    <div className="flex gap-4 text-sm">
+                      <div className="flex items-center gap-2">
+                        <FileText className="h-4 w-4 text-muted-foreground" />
+                        <span>Reports: <strong>{data?.summary.totalReportsSubmitted || 0}</strong></span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <DollarSign className="h-4 w-4 text-green-600" />
+                        <span>Revenue: <strong>{formatCurrency(data?.summary.totalRevenue || 0)}</strong></span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <DollarSign className="h-4 w-4 text-red-600" />
+                        <span>Expenses: <strong>{formatCurrency(data?.summary.totalExpenses || 0)}</strong></span>
+                      </div>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  {data?.shiftSummary && data.shiftSummary.length > 0 ? (
+                    <div className="border rounded-lg">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Date</TableHead>
+                            <TableHead className="text-right">Shifts</TableHead>
+                            <TableHead className="text-right">Reports</TableHead>
+                            <TableHead className="text-right">Tab Completion</TableHead>
+                            <TableHead className="text-right">Revenue</TableHead>
+                            <TableHead className="text-right">Expenses</TableHead>
+                            <TableHead className="text-right">Net</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {data.shiftSummary.map((day) => {
+                            const net = day.total_revenue - day.total_expenses;
+                            return (
+                              <TableRow 
+                                key={day.date} 
+                                className="cursor-pointer hover:bg-muted/50"
+                                onClick={() => navigate(`/daily-reports?date=${day.date}`)}
+                              >
+                                <TableCell className="font-medium">
+                                  {format(new Date(day.date), 'EEEE, MMM d')}
+                                </TableCell>
+                                <TableCell className="text-right">{day.shift_count}</TableCell>
+                                <TableCell className="text-right">
+                                  {day.reports_submitted > 0 ? (
+                                    <Badge variant="default" className="bg-green-600">
+                                      {day.reports_submitted}
+                                    </Badge>
+                                  ) : (
+                                    <Badge variant="secondary">0</Badge>
+                                  )}
+                                </TableCell>
+                                <TableCell className="text-right">
+                                  {day.total_tabs > 0 ? (
+                                    <div className="flex items-center justify-end gap-2">
+                                      <div className="w-16 h-2 bg-muted rounded-full overflow-hidden">
+                                        <div 
+                                          className="h-full bg-primary transition-all"
+                                          style={{ width: `${day.completion_percentage}%` }}
+                                        />
+                                      </div>
+                                      <span className="text-xs text-muted-foreground w-12">
+                                        {day.tabs_completed}/{day.total_tabs}
+                                      </span>
+                                    </div>
+                                  ) : (
+                                    <span className="text-muted-foreground">-</span>
+                                  )}
+                                </TableCell>
+                                <TableCell className="text-right text-green-600">
+                                  {day.total_revenue > 0 ? formatCurrency(day.total_revenue) : '-'}
+                                </TableCell>
+                                <TableCell className="text-right text-red-600">
+                                  {day.total_expenses > 0 ? formatCurrency(day.total_expenses) : '-'}
+                                </TableCell>
+                                <TableCell className={`text-right font-medium ${net >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                                  {day.total_revenue > 0 || day.total_expenses > 0 ? formatCurrency(net) : '-'}
+                                </TableCell>
+                              </TableRow>
+                            );
+                          })}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  ) : (
+                    <div className="text-center py-12 text-muted-foreground">
+                      <FileText className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                      <p>No shift summary data for this period</p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
 
             <TabsContent value="staff">
               <Card>
