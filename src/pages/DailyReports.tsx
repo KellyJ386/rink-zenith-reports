@@ -12,11 +12,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
-import { ClipboardList, DollarSign, Plus, Save, Send, Trash2, Loader2 } from "lucide-react";
+import { ClipboardList, DollarSign, Plus, Save, Send, Trash2, Loader2, CheckCircle2, AlertCircle, Circle } from "lucide-react";
 import { format } from "date-fns";
 import { DynamicFormFields } from "@/components/maintenance/DynamicFormFields";
 import { useDailyReportUserTabs } from "@/hooks/useDailyReportUserTabs";
 import { DynamicTabContent } from "@/components/daily-reports/DynamicTabContent";
+import { useTabSubmissionTracking } from "@/hooks/useTabSubmissionTracking";
+import { useFormTemplates } from "@/hooks/useFormTemplates";
+import { TabCompletionIndicator, OverallProgressIndicator } from "@/components/daily-reports/TabCompletionIndicator";
 
 interface Financial {
   id?: string;
@@ -55,6 +58,17 @@ export default function DailyReports() {
 
   // Use the dynamic tabs hook
   const { tabs, isLoading: tabsLoading, isAdmin } = useDailyReportUserTabs(facilityId, user?.id);
+  
+  // Get form templates for tracking
+  const { data: formTemplates = [] } = useFormTemplates();
+  
+  // Tab completion tracking
+  const { 
+    tabStatuses, 
+    overallProgress, 
+    requiredTabsComplete, 
+    incompleteRequiredTabs 
+  } = useTabSubmissionTracking(tabs, tabFormData, formTemplates);
 
   useEffect(() => {
     checkAuth();
@@ -120,6 +134,17 @@ export default function DailyReports() {
 
   const saveReport = async (status: string) => {
     if (!user || !facilityId) return;
+    
+    // Validate required tabs on submit (not drafts)
+    if (status === 'submitted' && !requiredTabsComplete) {
+      const tabNames = incompleteRequiredTabs.map(t => t.tabName).join(', ');
+      toast({
+        title: "Required Tabs Incomplete",
+        description: `Please complete the following required tabs: ${tabNames}`,
+        variant: "destructive"
+      });
+      return;
+    }
     
     setSaving(true);
     try {
@@ -280,18 +305,25 @@ export default function DailyReports() {
         <Tabs defaultValue={defaultTab} className="space-y-6">
           <ScrollArea className="w-full">
             <TabsList className="inline-flex h-auto p-1 gap-1">
-              {tabs.map((tab) => (
-                <TabsTrigger
-                  key={tab.id}
-                  value={tab.id}
-                  className="px-4 py-2 whitespace-nowrap"
-                >
-                  {tab.tab_name}
-                  {tab.is_required && (
-                    <span className="ml-1.5 w-1.5 h-1.5 rounded-full bg-destructive" />
-                  )}
-                </TabsTrigger>
-              ))}
+              {tabs.map((tab) => {
+                const status = tabStatuses.find(s => s.tabId === tab.id);
+                return (
+                  <TabsTrigger
+                    key={tab.id}
+                    value={tab.id}
+                    className="px-4 py-2 whitespace-nowrap gap-2"
+                  >
+                    {status?.isComplete ? (
+                      <CheckCircle2 className="h-4 w-4 text-green-500" />
+                    ) : status?.isRequired ? (
+                      <AlertCircle className="h-4 w-4 text-amber-500" />
+                    ) : (
+                      <Circle className="h-4 w-4 text-muted-foreground" />
+                    )}
+                    {tab.tab_name}
+                  </TabsTrigger>
+                );
+              })}
               <TabsTrigger value="financials" className="px-4 py-2 whitespace-nowrap">
                 <DollarSign className="h-4 w-4 mr-2" />
                 Financials
@@ -299,6 +331,20 @@ export default function DailyReports() {
             </TabsList>
             <ScrollBar orientation="horizontal" />
           </ScrollArea>
+          
+          {/* Progress Overview */}
+          {tabs.length > 0 && (
+            <Card className="bg-muted/30">
+              <CardContent className="py-4">
+                <OverallProgressIndicator
+                  completed={overallProgress.completed}
+                  total={overallProgress.total}
+                  percent={overallProgress.percent}
+                  requiredComplete={requiredTabsComplete}
+                />
+              </CardContent>
+            </Card>
+          )}
 
           {/* Dynamic Tab Contents */}
           {tabs.map((tab) => (

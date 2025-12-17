@@ -30,7 +30,7 @@ export const useDailyReportUserTabs = (facilityId?: string, userId?: string) => 
     enabled: !!userId,
   });
 
-  // Fetch user's app role to check if admin
+  // Fetch user's app role to check if admin or manager
   const appRoleQuery = useQuery({
     queryKey: ['user-app-role', userId],
     queryFn: async () => {
@@ -39,11 +39,13 @@ export const useDailyReportUserTabs = (facilityId?: string, userId?: string) => 
       const { data, error } = await supabase
         .from('user_roles')
         .select('role')
-        .eq('user_id', userId)
-        .single();
+        .eq('user_id', userId);
       
       if (error && error.code !== 'PGRST116') throw error;
-      return data?.role ?? null;
+      // Return highest role (admin > manager > staff)
+      if (data?.some(r => r.role === 'admin')) return 'admin';
+      if (data?.some(r => r.role === 'manager')) return 'manager';
+      return data?.[0]?.role ?? null;
     },
     enabled: !!userId,
   });
@@ -79,10 +81,11 @@ export const useDailyReportUserTabs = (facilityId?: string, userId?: string) => 
     if (!tabsQuery.data) return [];
     
     const isAdmin = appRoleQuery.data === 'admin';
+    const isManager = appRoleQuery.data === 'manager';
     const userRoleIds = userRolesQuery.data ?? [];
     
-    // Admins see all active tabs
-    if (isAdmin) return tabsQuery.data;
+    // Admins and managers see all active tabs
+    if (isAdmin || isManager) return tabsQuery.data;
     
     // Filter tabs based on role assignments
     return tabsQuery.data.filter(tab => {
@@ -99,6 +102,8 @@ export const useDailyReportUserTabs = (facilityId?: string, userId?: string) => 
     allTabs: tabsQuery.data ?? [],
     userRoles: userRolesQuery.data ?? [],
     isAdmin: appRoleQuery.data === 'admin',
+    isManager: appRoleQuery.data === 'manager',
+    canViewAllTabs: appRoleQuery.data === 'admin' || appRoleQuery.data === 'manager',
     isLoading: tabsQuery.isLoading || userRolesQuery.isLoading || appRoleQuery.isLoading,
     error: tabsQuery.error || userRolesQuery.error || appRoleQuery.error,
   };
