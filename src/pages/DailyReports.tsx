@@ -303,57 +303,52 @@ export default function DailyReports() {
         </Card>
       ) : (
         <Tabs defaultValue={defaultTab} className="space-y-4">
-          {/* Tab colors for visual distinction */}
-          {(() => {
-            const tabColors = [
-              'bg-blue-100 border-blue-300 data-[state=active]:bg-blue-500 data-[state=active]:text-white data-[state=active]:border-blue-500',
-              'bg-emerald-100 border-emerald-300 data-[state=active]:bg-emerald-500 data-[state=active]:text-white data-[state=active]:border-emerald-500',
-              'bg-amber-100 border-amber-300 data-[state=active]:bg-amber-500 data-[state=active]:text-white data-[state=active]:border-amber-500',
-              'bg-purple-100 border-purple-300 data-[state=active]:bg-purple-500 data-[state=active]:text-white data-[state=active]:border-purple-500',
-              'bg-rose-100 border-rose-300 data-[state=active]:bg-rose-500 data-[state=active]:text-white data-[state=active]:border-rose-500',
-              'bg-cyan-100 border-cyan-300 data-[state=active]:bg-cyan-500 data-[state=active]:text-white data-[state=active]:border-cyan-500',
-              'bg-orange-100 border-orange-300 data-[state=active]:bg-orange-500 data-[state=active]:text-white data-[state=active]:border-orange-500',
-              'bg-indigo-100 border-indigo-300 data-[state=active]:bg-indigo-500 data-[state=active]:text-white data-[state=active]:border-indigo-500',
-              'bg-teal-100 border-teal-300 data-[state=active]:bg-teal-500 data-[state=active]:text-white data-[state=active]:border-teal-500',
-              'bg-pink-100 border-pink-300 data-[state=active]:bg-pink-500 data-[state=active]:text-white data-[state=active]:border-pink-500',
-              'bg-lime-100 border-lime-300 data-[state=active]:bg-lime-600 data-[state=active]:text-white data-[state=active]:border-lime-600',
-              'bg-violet-100 border-violet-300 data-[state=active]:bg-violet-500 data-[state=active]:text-white data-[state=active]:border-violet-500',
-              'bg-sky-100 border-sky-300 data-[state=active]:bg-sky-500 data-[state=active]:text-white data-[state=active]:border-sky-500',
-              'bg-fuchsia-100 border-fuchsia-300 data-[state=active]:bg-fuchsia-500 data-[state=active]:text-white data-[state=active]:border-fuchsia-500',
-              'bg-red-100 border-red-300 data-[state=active]:bg-red-500 data-[state=active]:text-white data-[state=active]:border-red-500',
-            ];
-            return (
-              <div className="flex flex-wrap gap-1 pb-0">
-                {tabs.map((tab, index) => {
-                  const status = tabStatuses.find(s => s.tabId === tab.id);
-                  const colorClass = tabColors[index % tabColors.length];
-                  return (
-                    <TabsTrigger
-                      key={tab.id}
-                      value={tab.id}
-                      className={`px-4 py-2 text-sm font-medium gap-2 rounded-t-lg border-2 border-b-0 transition-all ${colorClass}`}
-                    >
-                      {status?.isComplete ? (
-                        <CheckCircle2 className="h-4 w-4" />
-                      ) : status?.isRequired ? (
-                        <AlertCircle className="h-4 w-4" />
-                      ) : (
-                        <Circle className="h-4 w-4 opacity-50" />
-                      )}
-                      {tab.tab_name}
-                    </TabsTrigger>
-                  );
-                })}
-                <TabsTrigger 
-                  value="financials" 
-                  className="px-4 py-2 text-sm font-medium rounded-t-lg border-2 border-b-0 transition-all bg-green-100 border-green-300 data-[state=active]:bg-green-600 data-[state=active]:text-white data-[state=active]:border-green-600"
+          <TabsList className="flex flex-wrap h-auto gap-1 bg-transparent p-0">
+            {tabs.map((tab, index) => {
+              const status = tabStatuses.find(s => s.tabId === tab.id);
+              const tabColors = [
+                'bg-blue-100 border-blue-300 data-[state=active]:bg-blue-500 data-[state=active]:text-white',
+                'bg-emerald-100 border-emerald-300 data-[state=active]:bg-emerald-500 data-[state=active]:text-white',
+                'bg-amber-100 border-amber-300 data-[state=active]:bg-amber-500 data-[state=active]:text-white',
+                'bg-purple-100 border-purple-300 data-[state=active]:bg-purple-500 data-[state=active]:text-white',
+                'bg-rose-100 border-rose-300 data-[state=active]:bg-rose-500 data-[state=active]:text-white',
+                'bg-cyan-100 border-cyan-300 data-[state=active]:bg-cyan-500 data-[state=active]:text-white',
+                'bg-orange-100 border-orange-300 data-[state=active]:bg-orange-500 data-[state=active]:text-white',
+                'bg-indigo-100 border-indigo-300 data-[state=active]:bg-indigo-500 data-[state=active]:text-white',
+                'bg-teal-100 border-teal-300 data-[state=active]:bg-teal-500 data-[state=active]:text-white',
+                'bg-pink-100 border-pink-300 data-[state=active]:bg-pink-500 data-[state=active]:text-white',
+                'bg-lime-100 border-lime-300 data-[state=active]:bg-lime-600 data-[state=active]:text-white',
+                'bg-violet-100 border-violet-300 data-[state=active]:bg-violet-500 data-[state=active]:text-white',
+                'bg-sky-100 border-sky-300 data-[state=active]:bg-sky-500 data-[state=active]:text-white',
+                'bg-fuchsia-100 border-fuchsia-300 data-[state=active]:bg-fuchsia-500 data-[state=active]:text-white',
+                'bg-red-100 border-red-300 data-[state=active]:bg-red-500 data-[state=active]:text-white',
+              ];
+              const colorClass = tabColors[index % tabColors.length];
+              return (
+                <TabsTrigger
+                  key={tab.id}
+                  value={tab.id}
+                  className={`px-4 py-2 text-sm font-medium gap-2 rounded-t-lg border-2 border-b-0 transition-all ${colorClass}`}
                 >
-                  <DollarSign className="h-4 w-4 mr-1" />
-                  Financials
+                  {status?.isComplete ? (
+                    <CheckCircle2 className="h-4 w-4" />
+                  ) : status?.isRequired ? (
+                    <AlertCircle className="h-4 w-4" />
+                  ) : (
+                    <Circle className="h-4 w-4 opacity-50" />
+                  )}
+                  {tab.tab_name}
                 </TabsTrigger>
-              </div>
-            );
-          })()}
+              );
+            })}
+            <TabsTrigger 
+              value="financials" 
+              className="px-4 py-2 text-sm font-medium rounded-t-lg border-2 border-b-0 transition-all bg-green-100 border-green-300 data-[state=active]:bg-green-600 data-[state=active]:text-white"
+            >
+              <DollarSign className="h-4 w-4 mr-1" />
+              Financials
+            </TabsTrigger>
+          </TabsList>
           
           {/* Progress Overview */}
           {tabs.length > 0 && (
