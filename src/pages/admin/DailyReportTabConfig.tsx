@@ -50,8 +50,8 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 
-// Hardcoded facility ID for now - should come from context
-const FACILITY_ID = "00000000-0000-0000-0000-000000000001";
+// TODO: Get from user context - using actual facility ID
+const FACILITY_ID = "35bd447c-d2c4-4250-9e8b-bf2874395dc3";
 
 interface SortableTabItemProps {
   tab: DailyReportTab & { roles?: Array<{ role_id: string; role?: { name: string; color: string } }> };
