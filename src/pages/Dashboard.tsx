@@ -94,7 +94,7 @@ const Dashboard = () => {
       description: "Task management and financial tracking",
       icon: FileText,
       bgColor: "bg-pink-500 dark:bg-pink-600",
-      path: "/daily-reports-dashboard",
+      path: "/daily-reports",
     },
     {
       title: "Air Quality",

@@ -13,7 +13,7 @@ import IceMaintenance from "./pages/IceMaintenance";
 import RefrigerationLog from "./pages/RefrigerationLog";
 import RefrigerationDashboard from "./pages/RefrigerationDashboard";
 import DailyReports from "./pages/DailyReports";
-import DailyReportsDashboard from "./pages/DailyReportsDashboard";
+
 import DailyReportDetail from "./pages/DailyReportDetail";
 import AirQualityLog from "./pages/AirQualityLog";
 import IncidentReport from "./pages/IncidentReport";
@@ -63,7 +63,6 @@ const App = () => (
             <Route path="/refrigeration-log" element={<RefrigerationLog />} />
             <Route path="/refrigeration-dashboard" element={<RefrigerationDashboard />} />
             <Route path="/daily-reports" element={<DailyReports />} />
-            <Route path="/daily-reports-dashboard" element={<DailyReportsDashboard />} />
             <Route path="/daily-reports/:id" element={<DailyReportDetail />} />
             <Route path="/air-quality" element={<AirQualityLog />} />
             <Route path="/incident-report" element={<IncidentReport />} />

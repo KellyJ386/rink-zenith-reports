@@ -93,7 +93,7 @@ export default function DailyReportDetail() {
       if (reportError) throw reportError;
       if (!reportData) {
         toast({ title: "Report not found", variant: "destructive" });
-        navigate("/daily-reports-dashboard");
+        navigate("/daily-reports");
         return;
       }
 
@@ -260,9 +260,9 @@ export default function DailyReportDetail() {
         subtitle={`Daily Report for ${format(new Date(report.report_date), "MMMM dd, yyyy")}`}
         icon={<FileText className="h-8 w-8 text-primary" />}
         actions={
-          <Button variant="outline" onClick={() => navigate("/daily-reports-dashboard")}>
+          <Button variant="outline" onClick={() => navigate("/daily-reports")}>
             <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Dashboard
+            Back to Daily Reports
           </Button>
         }
       />
