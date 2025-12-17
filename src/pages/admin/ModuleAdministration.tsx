@@ -11,12 +11,21 @@ import {
   MessageSquare,
   Shield,
   ExternalLink,
+  Settings2,
 } from "lucide-react";
 
 const ModuleAdministration = () => {
   const navigate = useNavigate();
 
-  const modules = [
+  const modules: Array<{
+    title: string;
+    icon: typeof Snowflake;
+    color: string;
+    path: string | null;
+    implemented: boolean;
+    hasFormBuilder: boolean;
+    hasTabConfig?: boolean;
+  }> = [
     {
       title: "Ice Depth Log",
       icon: Snowflake,
@@ -72,6 +81,7 @@ const ModuleAdministration = () => {
       path: "/daily-reports",
       implemented: true,
       hasFormBuilder: true,
+      hasTabConfig: true,
     },
     {
       title: "Communications Log",
@@ -145,6 +155,17 @@ const ModuleAdministration = () => {
                     onClick={() => navigate("/admin/form-config")}
                   >
                     Configure Form
+                  </Button>
+                )}
+                {module.hasTabConfig && module.implemented && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="w-full text-xs"
+                    onClick={() => navigate("/admin/daily-report-tabs")}
+                  >
+                    <Settings2 className="h-3 w-3 mr-1" />
+                    Configure Tabs
                   </Button>
                 )}
                 <div className="text-xs text-center text-muted-foreground">

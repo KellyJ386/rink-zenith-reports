@@ -27,6 +27,7 @@ import CustomTemplateManager from "./pages/admin/CustomTemplateManager";
 import AuditLog from "./pages/admin/AuditLog";
 import FormTemplateLibrary from "./pages/admin/FormTemplateLibrary";
 import TemplateCalibration from "./pages/admin/TemplateCalibration";
+import DailyReportTabConfig from "./pages/admin/DailyReportTabConfig";
 import Schedule from "./pages/schedule/Schedule";
 import ScheduleCalendar from "./pages/schedule/ScheduleCalendar";
 import ScheduleStaff from "./pages/schedule/ScheduleStaff";
@@ -85,6 +86,7 @@ const App = () => (
               <Route path="templates" element={<CustomTemplateManager />} />
               <Route path="calibration" element={<TemplateCalibration />} />
               <Route path="audit" element={<AuditLog />} />
+              <Route path="daily-report-tabs" element={<DailyReportTabConfig />} />
             </Route>
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
