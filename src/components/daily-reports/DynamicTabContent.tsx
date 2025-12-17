@@ -2,7 +2,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DailyReportTabWithRoles } from "@/types/dailyReport";
+import { useFormTemplates, FormTemplateField } from "@/hooks/useFormTemplates";
+import { Loader2 } from "lucide-react";
 import * as LucideIcons from "lucide-react";
 
 interface DynamicTabContentProps {
@@ -148,10 +152,141 @@ const getDefaultChecklist = (tabKey: string): string[] => {
   return checklists[tabKey] || ['No checklist items defined'];
 };
 
+// Render a single form field based on its type
+const FormFieldRenderer = ({ 
+  field, 
+  value, 
+  onChange 
+}: { 
+  field: FormTemplateField; 
+  value: any; 
+  onChange: (value: any) => void;
+}) => {
+  switch (field.field_type) {
+    case 'text':
+      return (
+        <div className="space-y-2">
+          <Label htmlFor={field.field_name}>
+            {field.field_label}
+            {field.is_required && <span className="text-destructive ml-1">*</span>}
+          </Label>
+          <Input
+            id={field.field_name}
+            value={value || ''}
+            onChange={(e) => onChange(e.target.value)}
+            placeholder={field.placeholder_text || ''}
+          />
+          {field.help_text && (
+            <p className="text-xs text-muted-foreground">{field.help_text}</p>
+          )}
+        </div>
+      );
+    
+    case 'number':
+      return (
+        <div className="space-y-2">
+          <Label htmlFor={field.field_name}>
+            {field.field_label}
+            {field.is_required && <span className="text-destructive ml-1">*</span>}
+          </Label>
+          <Input
+            id={field.field_name}
+            type="number"
+            value={value || ''}
+            onChange={(e) => onChange(e.target.value ? Number(e.target.value) : '')}
+            placeholder={field.placeholder_text || ''}
+          />
+          {field.help_text && (
+            <p className="text-xs text-muted-foreground">{field.help_text}</p>
+          )}
+        </div>
+      );
+    
+    case 'textarea':
+      return (
+        <div className="space-y-2">
+          <Label htmlFor={field.field_name}>
+            {field.field_label}
+            {field.is_required && <span className="text-destructive ml-1">*</span>}
+          </Label>
+          <Textarea
+            id={field.field_name}
+            value={value || ''}
+            onChange={(e) => onChange(e.target.value)}
+            placeholder={field.placeholder_text || ''}
+            rows={3}
+          />
+          {field.help_text && (
+            <p className="text-xs text-muted-foreground">{field.help_text}</p>
+          )}
+        </div>
+      );
+    
+    case 'select':
+      return (
+        <div className="space-y-2">
+          <Label htmlFor={field.field_name}>
+            {field.field_label}
+            {field.is_required && <span className="text-destructive ml-1">*</span>}
+          </Label>
+          <Select value={value || ''} onValueChange={onChange}>
+            <SelectTrigger>
+              <SelectValue placeholder={field.placeholder_text || 'Select an option'} />
+            </SelectTrigger>
+            <SelectContent>
+              {(field.field_options || []).map((option: any, idx: number) => (
+                <SelectItem key={idx} value={typeof option === 'string' ? option : option.value}>
+                  {typeof option === 'string' ? option : option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {field.help_text && (
+            <p className="text-xs text-muted-foreground">{field.help_text}</p>
+          )}
+        </div>
+      );
+    
+    case 'checkbox':
+      return (
+        <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 transition-colors">
+          <Checkbox
+            id={field.field_name}
+            checked={value || false}
+            onCheckedChange={onChange}
+          />
+          <Label htmlFor={field.field_name} className="cursor-pointer flex-1">
+            {field.field_label}
+            {field.is_required && <span className="text-destructive ml-1">*</span>}
+          </Label>
+        </div>
+      );
+    
+    default:
+      return (
+        <div className="space-y-2">
+          <Label htmlFor={field.field_name}>{field.field_label}</Label>
+          <Input
+            id={field.field_name}
+            value={value || ''}
+            onChange={(e) => onChange(e.target.value)}
+            placeholder={field.placeholder_text || ''}
+          />
+        </div>
+      );
+  }
+};
+
 export function DynamicTabContent({ tab, formData, onFormDataChange }: DynamicTabContentProps) {
+  const { data: formTemplates = [], isLoading: templatesLoading } = useFormTemplates();
+  
   const IconComponent = getIcon(tab.icon);
-  const checklist = getDefaultChecklist(tab.tab_key);
-  const tabFormData = formData[tab.id] || { checklist: {}, notes: '' };
+  const tabFormData = formData[tab.id] || { checklist: {}, notes: '', fields: {} };
+
+  // Find the assigned form template
+  const assignedTemplate = tab.form_template_id 
+    ? formTemplates.find(t => t.id === tab.form_template_id)
+    : null;
 
   const updateChecklist = (item: string, checked: boolean) => {
     onFormDataChange(tab.id, {
@@ -170,6 +305,87 @@ export function DynamicTabContent({ tab, formData, onFormDataChange }: DynamicTa
     });
   };
 
+  const updateField = (fieldName: string, value: any) => {
+    onFormDataChange(tab.id, {
+      ...tabFormData,
+      fields: {
+        ...tabFormData.fields,
+        [fieldName]: value,
+      },
+    });
+  };
+
+  // Render form template fields
+  if (tab.form_template_id && assignedTemplate) {
+    const fields = assignedTemplate.configuration || [];
+    const completedCount = fields.filter(f => {
+      const val = tabFormData.fields?.[f.field_name];
+      if (f.field_type === 'checkbox') return val === true;
+      return val !== undefined && val !== '' && val !== null;
+    }).length;
+
+    return (
+      <div className="space-y-4">
+        <Card>
+          <CardHeader>
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-primary/10">
+                <IconComponent className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <CardTitle className="text-lg">{tab.tab_name}</CardTitle>
+                <CardDescription>
+                  {completedCount}/{fields.length} fields completed
+                  {tab.is_required && (
+                    <span className="ml-2 text-destructive text-xs font-medium">Required</span>
+                  )}
+                </CardDescription>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {templatesLoading ? (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+              </div>
+            ) : fields.length === 0 ? (
+              <p className="text-muted-foreground text-center py-4">
+                No fields configured for this template
+              </p>
+            ) : (
+              <div className="space-y-4">
+                {fields.map((field) => (
+                  <FormFieldRenderer
+                    key={field.id || field.field_name}
+                    field={field}
+                    value={tabFormData.fields?.[field.field_name]}
+                    onChange={(value) => updateField(field.field_name, value)}
+                  />
+                ))}
+              </div>
+            )}
+
+            <div className="pt-4 border-t">
+              <Label htmlFor={`${tab.id}-notes`} className="text-sm font-medium">
+                Additional Notes
+              </Label>
+              <Textarea
+                id={`${tab.id}-notes`}
+                placeholder={`Add notes for ${tab.tab_name}...`}
+                value={tabFormData.notes || ''}
+                onChange={(e) => updateNotes(e.target.value)}
+                className="mt-2"
+                rows={3}
+              />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // Default checklist rendering
+  const checklist = getDefaultChecklist(tab.tab_key);
   const completedCount = Object.values(tabFormData.checklist || {}).filter(Boolean).length;
   const totalCount = checklist.length;
 

@@ -28,9 +28,11 @@ import {
   Trash2,
   Users,
   Save,
+  FileText,
 } from "lucide-react";
 import { useDailyReportTabs } from "@/hooks/useDailyReportTabs";
 import { useScheduleRoles } from "@/hooks/useScheduleRoles";
+import { useFormTemplates } from "@/hooks/useFormTemplates";
 import { DEFAULT_TAB_CATEGORIES, TAB_ICONS, DailyReportTab } from "@/types/dailyReport";
 import {
   DndContext,
@@ -54,14 +56,18 @@ import { CSS } from "@dnd-kit/utilities";
 const FACILITY_ID = "35bd447c-d2c4-4250-9e8b-bf2874395dc3";
 
 interface SortableTabItemProps {
-  tab: DailyReportTab & { roles?: Array<{ role_id: string; role?: { name: string; color: string } }> };
+  tab: DailyReportTab & { 
+    roles?: Array<{ role_id: string; role?: { name: string; color: string } }>;
+    form_template_id?: string | null;
+  };
   onEdit: () => void;
   onDelete: () => void;
   onManageRoles: () => void;
   onToggleActive: (active: boolean) => void;
+  templateName?: string;
 }
 
-const SortableTabItem = ({ tab, onEdit, onDelete, onManageRoles, onToggleActive }: SortableTabItemProps) => {
+const SortableTabItem = ({ tab, onEdit, onDelete, onManageRoles, onToggleActive, templateName }: SortableTabItemProps) => {
   const {
     attributes,
     listeners,
@@ -93,6 +99,12 @@ const SortableTabItem = ({ tab, onEdit, onDelete, onManageRoles, onToggleActive 
           )}
           {!tab.is_active && (
             <Badge variant="outline" className="text-xs text-muted-foreground">Disabled</Badge>
+          )}
+          {templateName && (
+            <Badge variant="outline" className="text-xs flex items-center gap-1">
+              <FileText className="h-3 w-3" />
+              {templateName}
+            </Badge>
           )}
         </div>
         <div className="flex items-center gap-2 mt-1">
@@ -137,6 +149,7 @@ const DailyReportTabConfig = () => {
   const navigate = useNavigate();
   const { tabs, isLoading, createTab, updateTab, deleteTab, reorderTabs, assignRole, removeRole, isSubmitting } = useDailyReportTabs(FACILITY_ID);
   const { data: roles = [] } = useScheduleRoles();
+  const { data: formTemplates = [] } = useFormTemplates();
 
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [rolesDialogOpen, setRolesDialogOpen] = useState(false);
@@ -146,7 +159,14 @@ const DailyReportTabConfig = () => {
     tab_key: "",
     icon: "clipboard",
     is_required: false,
+    form_template_id: null as string | null,
   });
+
+  // Helper to get template name by id
+  const getTemplateName = (templateId: string | null | undefined) => {
+    if (!templateId) return undefined;
+    return formTemplates.find(t => t.id === templateId)?.template_name;
+  };
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -170,7 +190,7 @@ const DailyReportTabConfig = () => {
 
   const openCreateDialog = () => {
     setSelectedTab(null);
-    setFormData({ tab_name: "", tab_key: "", icon: "clipboard", is_required: false });
+    setFormData({ tab_name: "", tab_key: "", icon: "clipboard", is_required: false, form_template_id: null });
     setEditDialogOpen(true);
   };
 
@@ -181,6 +201,7 @@ const DailyReportTabConfig = () => {
       tab_key: tab.tab_key,
       icon: tab.icon,
       is_required: tab.is_required,
+      form_template_id: tab.form_template_id || null,
     });
     setEditDialogOpen(true);
   };
@@ -195,6 +216,7 @@ const DailyReportTabConfig = () => {
         tab_key: formData.tab_key.trim(),
         icon: formData.icon,
         is_required: formData.is_required,
+        form_template_id: formData.form_template_id,
       });
     } else {
       createTab.mutate({
@@ -205,7 +227,7 @@ const DailyReportTabConfig = () => {
         is_required: formData.is_required,
         is_active: true,
         display_order: tabs.length,
-        form_template_id: null,
+        form_template_id: formData.form_template_id,
       });
     }
     setEditDialogOpen(false);
@@ -306,6 +328,7 @@ const DailyReportTabConfig = () => {
                       onDelete={() => handleDeleteTab(tab)}
                       onManageRoles={() => openRolesDialog(tab)}
                       onToggleActive={(active) => updateTab.mutate({ id: tab.id, is_active: active })}
+                      templateName={getTemplateName(tab.form_template_id)}
                     />
                   ))}
                 </div>
@@ -359,6 +382,28 @@ const DailyReportTabConfig = () => {
                   ))}
                 </SelectContent>
               </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="form_template">Form Template (optional)</Label>
+              <Select 
+                value={formData.form_template_id || "none"} 
+                onValueChange={(v) => setFormData({ ...formData, form_template_id: v === "none" ? null : v })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Use default checklist" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Use default checklist</SelectItem>
+                  {formTemplates.map((template) => (
+                    <SelectItem key={template.id} value={template.id}>
+                      {template.template_name} ({template.form_type})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">
+                Assign a custom form template or use the default checklist based on tab type
+              </p>
             </div>
             <div className="flex items-center gap-2">
               <Switch
