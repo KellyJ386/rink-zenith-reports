@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import ModuleHeader from "@/components/ModuleHeader";
@@ -32,6 +32,7 @@ interface Financial {
 
 export default function DailyReports() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -225,7 +226,8 @@ export default function DailyReports() {
   }
 
   const totals = calculateTotals();
-  const defaultTab = tabs.length > 0 ? tabs[0].id : 'financials';
+  const tabFromUrl = searchParams.get('tab');
+  const defaultTab = tabFromUrl || (tabs.length > 0 ? tabs[0].id : 'financials');
 
   return (
     <div className="container mx-auto p-6">
