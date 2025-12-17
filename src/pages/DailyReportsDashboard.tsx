@@ -6,7 +6,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { FileText, Plus, Download, TrendingUp, CheckCircle2, Clock } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
+import { FileText, Plus, Download, TrendingUp, CheckCircle2, Clock, AlertCircle } from "lucide-react";
 import { format } from "date-fns";
 
 interface DailyReport {
@@ -20,15 +21,19 @@ interface DailyReport {
   petty_cash_balance: number;
   submitted_by: string;
   profiles: { name: string };
+  tabsCompleted?: number;
+  tabsTotal?: number;
 }
 
 export default function DailyReportsDashboard() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [reports, setReports] = useState<DailyReport[]>([]);
+  const [facilityId, setFacilityId] = useState<string | null>(null);
   const [stats, setStats] = useState({
     totalReports: 0,
-    completedTasks: 0,
+    completedTabs: 0,
+    totalTabs: 0,
     totalRevenue: 0,
     totalExpenses: 0
   });
@@ -52,6 +57,7 @@ export default function DailyReportsDashboard() {
         .single();
 
       if (!profile?.facility_id) return;
+      setFacilityId(profile.facility_id);
 
       const { data: reportsData, error } = await supabase
         .from("daily_reports")
@@ -69,21 +75,47 @@ export default function DailyReportsDashboard() {
         .select("user_id, name")
         .in("user_id", userIds);
 
-      // Map profiles to reports
+      // Get tab submission counts per report
+      const reportIds = reportsData?.map(r => r.id) || [];
+      const { data: submissions } = await supabase
+        .from("daily_report_tab_submissions")
+        .select("report_id, tab_id")
+        .in("report_id", reportIds);
+
+      // Get total tabs count for facility
+      const { data: totalTabsData } = await supabase
+        .from("daily_report_tabs")
+        .select("id")
+        .eq("facility_id", profile.facility_id)
+        .eq("is_active", true);
+      
+      const totalTabCount = totalTabsData?.length || 0;
+
+      // Map profiles and submission counts to reports
       const profileMap = new Map(profiles?.map(p => [p.user_id, p.name]));
+      const submissionsByReport = new Map<string, number>();
+      submissions?.forEach(s => {
+        submissionsByReport.set(s.report_id, (submissionsByReport.get(s.report_id) || 0) + 1);
+      });
+
       const enrichedReports = reportsData?.map(r => ({
         ...r,
-        profiles: { name: profileMap.get(r.submitted_by) || "Unknown" }
+        profiles: { name: profileMap.get(r.submitted_by) || "Unknown" },
+        tabsCompleted: submissionsByReport.get(r.id) || 0,
+        tabsTotal: totalTabCount,
       })) || [];
 
       setReports(enrichedReports);
       
       const totalRevenue = enrichedReports.reduce((sum, r) => sum + (r.total_revenue || 0), 0);
       const totalExpenses = enrichedReports.reduce((sum, r) => sum + (r.total_expenses || 0), 0);
+      const completedTabs = enrichedReports.reduce((sum, r) => sum + (r.tabsCompleted || 0), 0);
+      const totalTabs = enrichedReports.reduce((sum, r) => sum + (r.tabsTotal || 0), 0);
       
       setStats({
         totalReports: enrichedReports.length,
-        completedTasks: 0, // Would need to query tasks separately
+        completedTabs,
+        totalTabs,
         totalRevenue,
         totalExpenses
       });
@@ -156,14 +188,15 @@ export default function DailyReportsDashboard() {
 
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Completed Tasks</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Tab Completion</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex items-center gap-2">
               <CheckCircle2 className="h-5 w-5 text-green-600" />
-              <div className="text-2xl font-bold">{stats.completedTasks}</div>
+              <div className="text-2xl font-bold">{stats.completedTabs}/{stats.totalTabs}</div>
             </div>
-            <p className="text-xs text-muted-foreground mt-1">Across all reports</p>
+            <Progress value={stats.totalTabs > 0 ? (stats.completedTabs / stats.totalTabs) * 100 : 0} className="h-1.5 mt-2" />
+            <p className="text-xs text-muted-foreground mt-1">Tabs completed</p>
           </CardContent>
         </Card>
 
@@ -213,6 +246,7 @@ export default function DailyReportsDashboard() {
                 <TableHead>Shift</TableHead>
                 <TableHead>Duty Type</TableHead>
                 <TableHead>Status</TableHead>
+                <TableHead>Tabs</TableHead>
                 <TableHead className="text-right">Revenue</TableHead>
                 <TableHead className="text-right">Expenses</TableHead>
                 <TableHead>Submitted By</TableHead>
@@ -221,7 +255,7 @@ export default function DailyReportsDashboard() {
             <TableBody>
               {reports.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center text-muted-foreground">
+                  <TableCell colSpan={8} className="text-center text-muted-foreground">
                     No reports found. Create your first daily report!
                   </TableCell>
                 </TableRow>
@@ -234,6 +268,24 @@ export default function DailyReportsDashboard() {
                     <TableCell className="capitalize">{report.shift_type}</TableCell>
                     <TableCell>{report.duty_type || "-"}</TableCell>
                     <TableCell>{getStatusBadge(report.status)}</TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        {report.tabsTotal && report.tabsTotal > 0 ? (
+                          <>
+                            {report.tabsCompleted === report.tabsTotal ? (
+                              <CheckCircle2 className="h-4 w-4 text-green-500" />
+                            ) : (
+                              <AlertCircle className="h-4 w-4 text-amber-500" />
+                            )}
+                            <span className="text-sm">
+                              {report.tabsCompleted}/{report.tabsTotal}
+                            </span>
+                          </>
+                        ) : (
+                          <span className="text-muted-foreground text-sm">-</span>
+                        )}
+                      </div>
+                    </TableCell>
                     <TableCell className="text-right text-green-600 font-medium">
                       ${report.total_revenue?.toFixed(2) || "0.00"}
                     </TableCell>
