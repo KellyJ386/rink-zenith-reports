@@ -442,6 +442,146 @@ export type Database = {
           },
         ]
       }
+      daily_report_tab_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role_id: string
+          tab_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role_id: string
+          tab_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role_id?: string
+          tab_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "daily_report_tab_roles_role_id_fkey"
+            columns: ["role_id"]
+            isOneToOne: false
+            referencedRelation: "schedule_roles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "daily_report_tab_roles_tab_id_fkey"
+            columns: ["tab_id"]
+            isOneToOne: false
+            referencedRelation: "daily_report_tabs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      daily_report_tab_submissions: {
+        Row: {
+          created_at: string
+          form_data: Json
+          id: string
+          notes: string | null
+          report_id: string
+          status: string
+          submitted_at: string
+          submitted_by: string
+          tab_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          form_data?: Json
+          id?: string
+          notes?: string | null
+          report_id: string
+          status?: string
+          submitted_at?: string
+          submitted_by: string
+          tab_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          form_data?: Json
+          id?: string
+          notes?: string | null
+          report_id?: string
+          status?: string
+          submitted_at?: string
+          submitted_by?: string
+          tab_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "daily_report_tab_submissions_report_id_fkey"
+            columns: ["report_id"]
+            isOneToOne: false
+            referencedRelation: "daily_reports"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "daily_report_tab_submissions_tab_id_fkey"
+            columns: ["tab_id"]
+            isOneToOne: false
+            referencedRelation: "daily_report_tabs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      daily_report_tabs: {
+        Row: {
+          created_at: string
+          display_order: number
+          facility_id: string
+          form_template_id: string | null
+          icon: string | null
+          id: string
+          is_active: boolean
+          is_required: boolean
+          tab_key: string
+          tab_name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          display_order?: number
+          facility_id: string
+          form_template_id?: string | null
+          icon?: string | null
+          id?: string
+          is_active?: boolean
+          is_required?: boolean
+          tab_key: string
+          tab_name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          display_order?: number
+          facility_id?: string
+          form_template_id?: string | null
+          icon?: string | null
+          id?: string
+          is_active?: boolean
+          is_required?: boolean
+          tab_key?: string
+          tab_name?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "daily_report_tabs_form_template_id_fkey"
+            columns: ["form_template_id"]
+            isOneToOne: false
+            referencedRelation: "report_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       daily_report_tasks: {
         Row: {
           category_id: string | null
