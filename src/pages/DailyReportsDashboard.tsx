@@ -9,9 +9,10 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Progress } from "@/components/ui/progress";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { FileText, Plus, Download, TrendingUp, CheckCircle2, Clock, AlertCircle, Calendar, Filter, Eye, BarChart3 } from "lucide-react";
+import { FileText, Download, TrendingUp, CheckCircle2, Clock, AlertCircle, Calendar, Filter, Eye, BarChart3, ClipboardList, DollarSign } from "lucide-react";
 import { format, subDays, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from "date-fns";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
+import { useDailyReportUserTabs } from "@/hooks/useDailyReportUserTabs";
 
 interface DailyReport {
   id: string;
@@ -35,6 +36,10 @@ export default function DailyReportsDashboard() {
   const [loading, setLoading] = useState(true);
   const [reports, setReports] = useState<DailyReport[]>([]);
   const [facilityId, setFacilityId] = useState<string | null>(null);
+  const [userId, setUserId] = useState<string | null>(null);
+  
+  // Get tabs for the facility
+  const { tabs, isLoading: tabsLoading } = useDailyReportUserTabs(facilityId || undefined, userId || undefined);
   
   // Filters
   const [datePreset, setDatePreset] = useState<DatePreset>('month');
@@ -103,6 +108,7 @@ export default function DailyReportsDashboard() {
 
       if (!profile?.facility_id) return;
       setFacilityId(profile.facility_id);
+      setUserId(user.id);
 
       let query = supabase
         .from("daily_reports")
@@ -249,14 +255,68 @@ export default function DailyReportsDashboard() {
         title="Daily Reports Dashboard"
         subtitle="View and manage all daily operational reports"
         icon={<FileText className="h-8 w-8 text-primary" />}
-        actions={
-          <Button onClick={() => navigate("/daily-reports")}>
-            <Plus className="h-4 w-4 mr-2" />
-            New Report
-          </Button>
-        }
       />
 
+      {/* Tab Cards - Dashboard Style */}
+      {!tabsLoading && tabs.length > 0 && (
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 mb-6">
+          {tabs.map((tab, index) => {
+            const tabColors = [
+              'bg-violet-500 dark:bg-violet-600',
+              'bg-orange-500 dark:bg-orange-600',
+              'bg-cyan-500 dark:bg-cyan-600',
+              'bg-pink-500 dark:bg-pink-600',
+              'bg-amber-500 dark:bg-amber-600',
+              'bg-indigo-500 dark:bg-indigo-600',
+              'bg-rose-500 dark:bg-rose-600',
+              'bg-teal-500 dark:bg-teal-600',
+              'bg-purple-500 dark:bg-purple-600',
+            ];
+            const colorClass = tabColors[index % tabColors.length];
+            return (
+              <Card
+                key={tab.id}
+                className={`group ${colorClass} text-white hover:shadow-xl transition-all duration-300 cursor-pointer hover:-translate-y-1 border-0`}
+                onClick={() => navigate(`/daily-reports?tab=${tab.id}`)}
+              >
+                <CardHeader className="pb-2 pt-4">
+                  <CardTitle className="text-base text-white">{tab.tab_name}</CardTitle>
+                </CardHeader>
+                <CardContent className="pb-4">
+                  <Button 
+                    variant="secondary" 
+                    size="sm"
+                    className="w-full bg-white/20 hover:bg-white/30 text-white border-0"
+                  >
+                    Open Tab
+                  </Button>
+                </CardContent>
+              </Card>
+            );
+          })}
+          {/* Financials Card */}
+          <Card
+            className="group bg-teal-500 dark:bg-teal-600 text-white hover:shadow-xl transition-all duration-300 cursor-pointer hover:-translate-y-1 border-0"
+            onClick={() => navigate('/daily-reports?tab=financials')}
+          >
+            <CardHeader className="pb-2 pt-4">
+              <div className="flex items-center gap-2">
+                <DollarSign className="h-4 w-4" />
+                <CardTitle className="text-base text-white">Financials</CardTitle>
+              </div>
+            </CardHeader>
+            <CardContent className="pb-4">
+              <Button 
+                variant="secondary" 
+                size="sm"
+                className="w-full bg-white/20 hover:bg-white/30 text-white border-0"
+              >
+                Open Tab
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      )}
       {/* Filters */}
       <Card className="mb-6">
         <CardHeader className="pb-3">
