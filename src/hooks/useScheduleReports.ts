@@ -26,6 +26,17 @@ export interface RoleDistribution {
   color: string;
 }
 
+export interface ShiftSummaryData {
+  date: string;
+  shift_count: number;
+  reports_submitted: number;
+  tabs_completed: number;
+  total_tabs: number;
+  total_revenue: number;
+  total_expenses: number;
+  completion_percentage: number;
+}
+
 const calculateShiftHours = (startTime: string, endTime: string): number => {
   const [startHour, startMin] = startTime.split(':').map(Number);
   const [endHour, endMin] = endTime.split(':').map(Number);
@@ -45,6 +56,7 @@ export const useScheduleReports = (startDate: Date, endDate: Date) => {
   const reportsQuery = useQuery({
     queryKey: ['schedule-reports', format(startDate, 'yyyy-MM-dd'), format(endDate, 'yyyy-MM-dd')],
     queryFn: async () => {
+      // Fetch shifts
       const { data: shifts, error } = await supabase
         .from('schedule_shifts')
         .select(`
@@ -57,6 +69,26 @@ export const useScheduleReports = (startDate: Date, endDate: Date) => {
         .order('date');
 
       if (error) throw error;
+
+      // Fetch daily reports for the period
+      const { data: dailyReports, error: reportsError } = await supabase
+        .from('daily_reports')
+        .select(`
+          *,
+          tab_submissions:daily_report_tab_submissions(id, tab_id, status)
+        `)
+        .gte('report_date', format(startDate, 'yyyy-MM-dd'))
+        .lte('report_date', format(endDate, 'yyyy-MM-dd'));
+
+      if (reportsError) throw reportsError;
+
+      // Fetch total tabs count
+      const { data: allTabs } = await supabase
+        .from('daily_report_tabs')
+        .select('id')
+        .eq('is_active', true);
+
+      const totalTabsCount = allTabs?.length || 0;
 
       // Calculate staff hours
       const staffHoursMap = new Map<string, ShiftReportData>();
@@ -115,9 +147,44 @@ export const useScheduleReports = (startDate: Date, endDate: Date) => {
         }
       });
 
+      // Process shift summary data
+      const shiftSummaryByDate = new Map<string, ShiftSummaryData>();
+      
+      eachDayOfInterval({ start: startDate, end: endDate }).forEach(date => {
+        const dateKey = format(date, 'yyyy-MM-dd');
+        const dayShifts = shifts?.filter((s: any) => s.date === dateKey) || [];
+        const dayReports = dailyReports?.filter((r: any) => r.report_date === dateKey) || [];
+        
+        let tabsCompleted = 0;
+        let totalTabs = 0;
+        let totalRevenue = 0;
+        let totalExpenses = 0;
+
+        dayReports.forEach((report: any) => {
+          totalRevenue += Number(report.total_revenue) || 0;
+          totalExpenses += Number(report.total_expenses) || 0;
+          
+          const submissions = report.tab_submissions || [];
+          tabsCompleted += submissions.filter((s: any) => s.status === 'submitted').length;
+          totalTabs += totalTabsCount;
+        });
+
+        shiftSummaryByDate.set(dateKey, {
+          date: dateKey,
+          shift_count: dayShifts.length,
+          reports_submitted: dayReports.filter((r: any) => r.status === 'submitted').length,
+          tabs_completed: tabsCompleted,
+          total_tabs: totalTabs,
+          total_revenue: totalRevenue,
+          total_expenses: totalExpenses,
+          completion_percentage: totalTabs > 0 ? (tabsCompleted / totalTabs) * 100 : 0,
+        });
+      });
+
       // Convert to arrays
       const staffHours = Array.from(staffHoursMap.values()).sort((a, b) => b.total_hours - a.total_hours);
       const roleDistribution = Array.from(roleDistributionMap.values()).sort((a, b) => b.total_hours - a.total_hours);
+      const shiftSummary = Array.from(shiftSummaryByDate.values());
       
       const dailyCoverage: CoverageData[] = eachDayOfInterval({ start: startDate, end: endDate }).map(date => {
         const dateKey = format(date, 'yyyy-MM-dd');
@@ -139,16 +206,25 @@ export const useScheduleReports = (startDate: Date, endDate: Date) => {
         return sum + calculateShiftHours(shift.start_time, shift.end_time);
       }, 0) || 0;
 
+      // Shift summary totals
+      const totalReportsSubmitted = dailyReports?.filter((r: any) => r.status === 'submitted').length || 0;
+      const totalRevenue = dailyReports?.reduce((sum: number, r: any) => sum + (Number(r.total_revenue) || 0), 0) || 0;
+      const totalExpenses = dailyReports?.reduce((sum: number, r: any) => sum + (Number(r.total_expenses) || 0), 0) || 0;
+
       return {
         staffHours,
         roleDistribution,
         dailyCoverage,
+        shiftSummary,
         summary: {
           totalShifts,
           assignedShifts,
           openShifts,
           totalHours: Math.round(totalHours * 10) / 10,
           averageCoverage: totalShifts > 0 ? Math.round((assignedShifts / totalShifts) * 100) : 0,
+          totalReportsSubmitted,
+          totalRevenue,
+          totalExpenses,
         },
       };
     },
