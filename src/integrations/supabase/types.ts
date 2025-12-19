@@ -351,6 +351,63 @@ export type Database = {
           },
         ]
       }
+      custom_ice_templates: {
+        Row: {
+          created_at: string
+          created_by: string
+          facility_id: string
+          id: string
+          is_active: boolean
+          point_count: number
+          points: Json
+          rink_id: string
+          template_name: string
+          template_number: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          facility_id: string
+          id?: string
+          is_active?: boolean
+          point_count?: number
+          points?: Json
+          rink_id: string
+          template_name: string
+          template_number: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          facility_id?: string
+          id?: string
+          is_active?: boolean
+          point_count?: number
+          points?: Json
+          rink_id?: string
+          template_name?: string
+          template_number?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "custom_ice_templates_facility_id_fkey"
+            columns: ["facility_id"]
+            isOneToOne: false
+            referencedRelation: "facilities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "custom_ice_templates_rink_id_fkey"
+            columns: ["rink_id"]
+            isOneToOne: false
+            referencedRelation: "rinks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       custom_templates: {
         Row: {
           created_at: string
@@ -987,6 +1044,7 @@ export type Database = {
           ai_analysis: string | null
           avg_depth: number | null
           created_at: string
+          custom_template_id: string | null
           facility_id: string
           id: string
           max_depth: number | null
@@ -1004,6 +1062,7 @@ export type Database = {
           ai_analysis?: string | null
           avg_depth?: number | null
           created_at?: string
+          custom_template_id?: string | null
           facility_id: string
           id?: string
           max_depth?: number | null
@@ -1021,6 +1080,7 @@ export type Database = {
           ai_analysis?: string | null
           avg_depth?: number | null
           created_at?: string
+          custom_template_id?: string | null
           facility_id?: string
           id?: string
           max_depth?: number | null
@@ -1035,6 +1095,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "ice_depth_measurements_custom_template_id_fkey"
+            columns: ["custom_template_id"]
+            isOneToOne: false
+            referencedRelation: "custom_ice_templates"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "ice_depth_measurements_facility_id_fkey"
             columns: ["facility_id"]
