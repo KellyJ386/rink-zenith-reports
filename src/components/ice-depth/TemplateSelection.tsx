@@ -1,6 +1,13 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { InteractiveRinkDiagram } from "./InteractiveRinkDiagram";
 
+interface TemplatePoint {
+  id: number;
+  x: number;
+  y: number;
+  label?: string;
+}
+
 interface TemplateSelectionProps {
   templateType: string;
   measurements: Record<string, number>;
@@ -9,6 +16,7 @@ interface TemplateSelectionProps {
   onMeasurementChange?: (pointId: number, value: number) => void;
   unit: "in" | "mm";
   facilityId?: string;
+  customPoints?: TemplatePoint[];
 }
 
 export const TemplateSelection = ({ 
@@ -18,12 +26,17 @@ export const TemplateSelection = ({
   onPointClick,
   onMeasurementChange,
   unit,
-  facilityId
+  facilityId,
+  customPoints
 }: TemplateSelectionProps) => {
+  const displayName = customPoints 
+    ? `Custom Template (${customPoints.length} points)` 
+    : templateType;
+
   return (
     <Card className="shadow-[var(--shadow-ice)]">
       <CardHeader>
-        <CardTitle>Rink Diagram - {templateType}</CardTitle>
+        <CardTitle>Rink Diagram - {displayName}</CardTitle>
       </CardHeader>
       <CardContent className="p-4 md:p-6">
         <div className="w-full">
@@ -35,6 +48,7 @@ export const TemplateSelection = ({
             onMeasurementChange={onMeasurementChange}
             unit={unit}
             facilityId={facilityId}
+            customPoints={customPoints}
           />
         </div>
       </CardContent>

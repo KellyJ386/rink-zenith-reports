@@ -3,56 +3,46 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectGroup, SelectLabel, SelectSeparator } from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useToast } from "@/hooks/use-toast";
 import { TemplateSelection } from "./TemplateSelection";
 import { StatisticsPanel } from "./StatisticsPanel";
 import { BluetoothCaliperControl } from "./BluetoothCaliperControl";
-import { Loader2, ChevronDown, Bluetooth } from "lucide-react";
-import { getPointCount } from "./measurementPoints";
-import { Badge } from "@/components/ui/badge";
+import { Loader2, AlertCircle } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { useNavigate } from "react-router-dom";
 
 interface IceDepthMeasurementFormProps {
   userId: string;
 }
 
-interface EnabledTemplates {
-  "24-point": boolean;
-  "35-point": boolean;
-  "47-point": boolean;
-  "custom_1": boolean;
-  "custom_2": boolean;
-  "custom_3": boolean;
+interface TemplatePoint {
+  id: number;
+  x: number;
+  y: number;
+  label?: string;
 }
 
-interface CustomTemplate {
+interface CustomIceTemplate {
   id: string;
-  name: string;
-  slot_number: number;
+  facility_id: string;
+  rink_id: string;
+  template_name: string;
+  template_number: number;
   point_count: number;
-  template_data: {
-    points: { id: number; x: number; y: number; name?: string }[];
-  };
+  points: TemplatePoint[];
+  is_active: boolean;
 }
-
-const defaultEnabledTemplates: EnabledTemplates = {
-  "24-point": true,
-  "35-point": true,
-  "47-point": true,
-  "custom_1": false,
-  "custom_2": false,
-  "custom_3": false,
-};
 
 export const IceDepthMeasurementForm = ({ userId }: IceDepthMeasurementFormProps) => {
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [rinks, setRinks] = useState<any[]>([]);
   const [facilityId, setFacilityId] = useState<string>("");
-  const [facilityName, setFacilityName] = useState<string>("");
   const [selectedRink, setSelectedRink] = useState<string>("");
-  const [templateType, setTemplateType] = useState<string>("25-point");
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string>("");
+  const [customTemplates, setCustomTemplates] = useState<CustomIceTemplate[]>([]);
   const [measurements, setMeasurements] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(false);
   const [unit, setUnit] = useState<"in" | "mm">(() => {
@@ -60,8 +50,6 @@ export const IceDepthMeasurementForm = ({ userId }: IceDepthMeasurementFormProps
   });
   const [manualCurrentPoint, setManualCurrentPoint] = useState<number | null>(null);
   const [hasAdminAccess, setHasAdminAccess] = useState(false);
-  const [enabledTemplates, setEnabledTemplates] = useState<EnabledTemplates>(defaultEnabledTemplates);
-  const [customTemplates, setCustomTemplates] = useState<CustomTemplate[]>([]);
 
   // Fetch user's facility on mount
   useEffect(() => {
@@ -74,8 +62,6 @@ export const IceDepthMeasurementForm = ({ userId }: IceDepthMeasurementFormProps
 
       if (profile?.facility_id) {
         setFacilityId(profile.facility_id);
-        const facilityData = profile.facilities as unknown as { id: string; name: string } | null;
-        setFacilityName(facilityData?.name || "");
         fetchRinks(profile.facility_id);
       }
     };
@@ -100,40 +86,53 @@ export const IceDepthMeasurementForm = ({ userId }: IceDepthMeasurementFormProps
     checkRole();
   }, [userId]);
 
-  // Fetch enabled templates when facility changes
+  // Fetch custom templates when rink changes
   useEffect(() => {
-    const fetchTemplateSettings = async () => {
-      if (!facilityId) return;
+    const fetchTemplates = async () => {
+      if (!facilityId || !selectedRink) return;
 
-      const { data: facilityData } = await supabase
-        .from("facilities")
-        .select("enabled_templates")
-        .eq("id", facilityId)
-        .single();
-
-      if (facilityData?.enabled_templates) {
-        setEnabledTemplates(facilityData.enabled_templates as unknown as EnabledTemplates);
-      }
-
-      const { data: customData } = await supabase
-        .from("custom_templates")
+      const { data, error } = await supabase
+        .from("custom_ice_templates")
         .select("*")
         .eq("facility_id", facilityId)
-        .order("slot_number");
+        .eq("rink_id", selectedRink)
+        .eq("is_active", true)
+        .order("template_number");
 
-      setCustomTemplates((customData || []).map(t => ({
+      if (error) {
+        console.error("Error fetching templates:", error);
+        return;
+      }
+
+      const templates = (data || []).map(t => ({
         ...t,
-        template_data: t.template_data as CustomTemplate["template_data"]
-      })));
+        points: (t.points as unknown as TemplatePoint[]) || []
+      }));
+
+      setCustomTemplates(templates);
+
+      // Auto-select first template if available
+      if (templates.length > 0 && !selectedTemplateId) {
+        setSelectedTemplateId(templates[0].id);
+      }
     };
 
-    fetchTemplateSettings();
-  }, [facilityId]);
+    fetchTemplates();
+  }, [facilityId, selectedRink]);
+
+  // Reset template selection when rink changes
+  useEffect(() => {
+    setSelectedTemplateId("");
+    setMeasurements({});
+    setManualCurrentPoint(null);
+  }, [selectedRink]);
+
+  const selectedTemplate = customTemplates.find(t => t.id === selectedTemplateId);
+  const pointCount = selectedTemplate?.point_count || 0;
 
   const getCurrentPointId = () => {
     if (manualCurrentPoint !== null) return manualCurrentPoint;
     const filledCount = Object.values(measurements).filter(v => v > 0).length;
-    const pointCount = getPointCount(templateType, measurements);
     return filledCount < pointCount ? filledCount + 1 : pointCount;
   };
 
@@ -148,6 +147,7 @@ export const IceDepthMeasurementForm = ({ userId }: IceDepthMeasurementFormProps
       .from("rinks")
       .select("*")
       .eq("facility_id", facId)
+      .eq("is_active", true)
       .order("name");
 
     if (error) {
@@ -171,10 +171,8 @@ export const IceDepthMeasurementForm = ({ userId }: IceDepthMeasurementFormProps
     setMeasurements(updatedMeasurements);
 
     // Auto-advance to next unfilled point
-    const pointCount = getPointCount(templateType, updatedMeasurements);
     let nextPoint = currentPointId + 1;
     
-    // Find next unfilled point, wrapping around
     while (nextPoint <= pointCount) {
       if (!updatedMeasurements[`Point ${nextPoint}`] || updatedMeasurements[`Point ${nextPoint}`] === 0) {
         setManualCurrentPoint(nextPoint);
@@ -222,10 +220,10 @@ export const IceDepthMeasurementForm = ({ userId }: IceDepthMeasurementFormProps
   };
 
   const handleSave = async () => {
-    if (!facilityId || !selectedRink) {
+    if (!facilityId || !selectedRink || !selectedTemplateId) {
       toast({
         title: "Missing Information",
-        description: "Please select a rink",
+        description: "Please select a rink and template",
         variant: "destructive",
       });
       return;
@@ -265,7 +263,8 @@ export const IceDepthMeasurementForm = ({ userId }: IceDepthMeasurementFormProps
         .insert({
           facility_id: facilityId,
           rink_id: selectedRink,
-          template_type: templateType,
+          template_type: selectedTemplate?.template_name || "custom",
+          custom_template_id: selectedTemplateId,
           operator_id: userId,
           measurements: measurementsInInches,
           min_depth: statsInInches.min,
@@ -313,32 +312,65 @@ export const IceDepthMeasurementForm = ({ userId }: IceDepthMeasurementFormProps
 
   const stats = calculateStatistics();
 
-  // Get available preset templates
-  const availablePresets = [
-    { key: "25-point", label: "24-Point Template", enabled: enabledTemplates["24-point"] },
-    { key: "35-point", label: "35-Point Template", enabled: enabledTemplates["35-point"] },
-    { key: "47-point", label: "47-Point Template", enabled: enabledTemplates["47-point"] },
-  ].filter(t => t.enabled || hasAdminAccess);
+  // Show message if no templates configured
+  if (facilityId && selectedRink && customTemplates.length === 0) {
+    return (
+      <div className="space-y-6">
+        <Card className="shadow-[var(--shadow-ice)]">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle>Measurement Setup</CardTitle>
+              <Tabs value={unit} onValueChange={(v) => setUnit(v as "in" | "mm")}>
+                <TabsList className="grid w-[200px] grid-cols-2">
+                  <TabsTrigger value="in">Inches</TabsTrigger>
+                  <TabsTrigger value="mm">Millimeters</TabsTrigger>
+                </TabsList>
+              </Tabs>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="space-y-1.5">
+              <Label className="text-sm">Rink</Label>
+              <Select value={selectedRink} onValueChange={setSelectedRink} disabled={!facilityId}>
+                <SelectTrigger className="h-9">
+                  <SelectValue placeholder="Select rink" />
+                </SelectTrigger>
+                <SelectContent>
+                  {rinks.map((rink) => (
+                    <SelectItem key={rink.id} value={rink.id}>
+                      {rink.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </CardContent>
+        </Card>
 
-  // Get available custom templates
-  const availableCustom = [1, 2, 3].map(slot => {
-    const template = customTemplates.find(t => t.slot_number === slot);
-    const slotKey = `custom_${slot}` as keyof EnabledTemplates;
-    const enabled = enabledTemplates[slotKey];
-    const isConfigured = !!template;
-
-    return {
-      slot,
-      key: `custom_${slot}`,
-      template,
-      enabled,
-      isConfigured,
-      // Show to staff only if enabled AND configured
-      // Show to admin always (but grey out if not configured)
-      visible: hasAdminAccess || (enabled && isConfigured),
-      disabled: !isConfigured,
-    };
-  }).filter(t => t.visible);
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>No Templates Configured</AlertTitle>
+          <AlertDescription className="space-y-2">
+            <p>
+              No measurement templates have been configured for this rink. 
+              {hasAdminAccess 
+                ? " Please create at least one template to begin recording ice depth measurements."
+                : " Contact your facility manager to set up custom templates."}
+            </p>
+            {hasAdminAccess && (
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => navigate("/admin/ice-depth-settings")}
+              >
+                Configure Templates
+              </Button>
+            )}
+          </AlertDescription>
+        </Alert>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -375,45 +407,27 @@ export const IceDepthMeasurementForm = ({ userId }: IceDepthMeasurementFormProps
 
             <div className="space-y-1.5">
               <Label className="text-sm">Template</Label>
-              <Select value={templateType} onValueChange={setTemplateType}>
+              <Select 
+                value={selectedTemplateId} 
+                onValueChange={setSelectedTemplateId}
+                disabled={!selectedRink || customTemplates.length === 0}
+              >
                 <SelectTrigger className="h-9">
                   <SelectValue placeholder="Select template" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectGroup>
-                    <SelectLabel>Preset Templates</SelectLabel>
-                    {availablePresets.map((preset) => (
-                      <SelectItem key={preset.key} value={preset.key}>
-                        {preset.label.replace(" Template", "")}
-                      </SelectItem>
-                    ))}
-                  </SelectGroup>
-                  {availableCustom.length > 0 && (
-                    <>
-                      <SelectSeparator />
-                      <SelectGroup>
-                        <SelectLabel>Custom Templates</SelectLabel>
-                        {availableCustom.map((custom) => (
-                          <SelectItem 
-                            key={custom.key} 
-                            value={custom.key}
-                            disabled={custom.disabled}
-                          >
-                            {custom.template?.name || `Custom ${custom.slot}`}
-                            {custom.template && ` (${custom.template.point_count} pts)`}
-                            {custom.disabled && " - Not Set"}
-                          </SelectItem>
-                        ))}
-                      </SelectGroup>
-                    </>
-                  )}
+                  {customTemplates.map((template) => (
+                    <SelectItem key={template.id} value={template.id}>
+                      Template {template.template_number}: {template.template_name} ({template.point_count} pts)
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
           </div>
 
           {/* Collapsible Bluetooth Section */}
-          {facilityId && selectedRink && (
+          {facilityId && selectedRink && selectedTemplateId && (
             <BluetoothCaliperControl 
               onReading={handleBluetoothReading}
               currentPoint={currentPointId}
@@ -423,16 +437,15 @@ export const IceDepthMeasurementForm = ({ userId }: IceDepthMeasurementFormProps
         </CardContent>
       </Card>
 
-      {facilityId && selectedRink && (
+      {facilityId && selectedRink && selectedTemplateId && selectedTemplate && (
         <>
-
           <TemplateSelection
-            templateType={templateType} 
+            templateType={`custom_${selectedTemplate.template_number}`}
             measurements={measurements}
             currentPointId={currentPointId}
             facilityId={facilityId}
+            customPoints={selectedTemplate.points}
             onPointClick={(pointId) => {
-              // Allow clicking any point to jump to it
               setManualCurrentPoint(pointId);
               const input = document.getElementById(`point-${pointId}`);
               input?.focus();
@@ -447,7 +460,6 @@ export const IceDepthMeasurementForm = ({ userId }: IceDepthMeasurementFormProps
               setMeasurements(updatedMeasurements);
 
               // Auto-advance to next unfilled point
-              const pointCount = getPointCount(templateType, updatedMeasurements);
               let nextPoint = pointId + 1;
               
               while (nextPoint <= pointCount) {
