@@ -29,6 +29,7 @@ import AuditLog from "./pages/admin/AuditLog";
 import FormTemplateLibrary from "./pages/admin/FormTemplateLibrary";
 import TemplateCalibration from "./pages/admin/TemplateCalibration";
 import DailyReportTabConfig from "./pages/admin/DailyReportTabConfig";
+import IceDepthSettings from "./pages/admin/IceDepthSettings";
 import Schedule from "./pages/schedule/Schedule";
 import ScheduleCalendar from "./pages/schedule/ScheduleCalendar";
 import ScheduleStaff from "./pages/schedule/ScheduleStaff";
@@ -86,6 +87,7 @@ const App = () => (
               <Route path="incidents" element={<IncidentHistory />} />
               <Route path="templates" element={<CustomTemplateManager />} />
               <Route path="calibration" element={<TemplateCalibration />} />
+              <Route path="ice-depth-settings" element={<IceDepthSettings />} />
               <Route path="audit" element={<AuditLog />} />
               <Route path="daily-report-tabs" element={<DailyReportTabConfig />} />
             </Route>

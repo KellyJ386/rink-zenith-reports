@@ -16,6 +16,13 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useTemplateOverrides } from "@/hooks/useTemplateOverrides";
 
+interface TemplatePoint {
+  id: number;
+  x: number;
+  y: number;
+  label?: string;
+}
+
 interface InteractiveRinkDiagramProps {
   templateType: string;
   measurements: Record<string, number>;
@@ -26,6 +33,7 @@ interface InteractiveRinkDiagramProps {
   adminMode?: boolean;
   facilityId?: string;
   onTemplatesChange?: () => void;
+  customPoints?: TemplatePoint[];
 }
 
 export const InteractiveRinkDiagram = ({
@@ -38,6 +46,7 @@ export const InteractiveRinkDiagram = ({
   adminMode = false,
   facilityId,
   onTemplatesChange,
+  customPoints,
 }: InteractiveRinkDiagramProps) => {
   const [devMode, setDevMode] = useState(adminMode);
   const [devTemplate, setDevTemplate] = useState(templateType);
@@ -55,10 +64,19 @@ export const InteractiveRinkDiagram = ({
   const { getPointsForTemplate, hasOverride } = useTemplateOverrides(facilityId);
   
   const activeTemplate = devMode ? devTemplate : templateType;
-  // Get points from facility override or fall back to defaults
-  const points = devMode 
-    ? (measurementPoints[activeTemplate] || [])
-    : getPointsForTemplate(activeTemplate);
+  
+  // Use custom points if provided, otherwise get from facility override or defaults
+  const points: MeasurementPoint[] = customPoints 
+    ? customPoints.map(p => ({
+        id: p.id,
+        x: p.x,
+        y: p.y,
+        name: p.label || `Point ${p.id}`,
+        row: Math.ceil(p.id / 5),
+      }))
+    : (devMode 
+        ? (measurementPoints[activeTemplate] || [])
+        : getPointsForTemplate(activeTemplate));
 
   // Fetch saved templates when entering dev mode
   useEffect(() => {

@@ -12,7 +12,6 @@ import {
   Snowflake,
   Home,
   AlertCircle,
-  Crosshair,
 } from "lucide-react";
 
 const Admin = () => {
@@ -89,14 +88,9 @@ const Admin = () => {
       icon: AlertCircle,
     },
     {
-      label: "Ice Depth Templates",
-      path: "/admin/templates",
+      label: "Ice Depth Settings",
+      path: "/admin/ice-depth-settings",
       icon: Snowflake,
-    },
-    {
-      label: "Calibrate Templates",
-      path: "/admin/calibration",
-      icon: Crosshair,
     },
   ];
 
