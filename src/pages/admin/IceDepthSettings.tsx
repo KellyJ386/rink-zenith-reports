@@ -423,16 +423,67 @@ const IceDepthSettings = () => {
             <div className="space-y-2">
               <Label>Measurement Points ({points.length})</Label>
               <div 
-                className="relative border rounded-lg overflow-hidden bg-ice-frost cursor-crosshair"
-                style={{ aspectRatio: "200/85" }}
+                className="relative border rounded-lg overflow-hidden bg-slate-100 cursor-crosshair"
                 onClick={handleDiagramClick}
               >
-                {/* Rink SVG Background */}
-                <img
-                  src="/src/assets/rink-35-point.svg"
-                  alt="Rink"
-                  className="w-full h-full object-contain pointer-events-none opacity-50"
-                />
+                {/* Inline SVG Rink Diagram */}
+                <svg
+                  viewBox="0 0 200 85"
+                  className="w-full h-auto"
+                  style={{ minHeight: "300px" }}
+                  preserveAspectRatio="xMidYMid meet"
+                >
+                  {/* Ice surface */}
+                  <rect x="0" y="0" width="200" height="85" fill="hsl(200, 30%, 95%)" />
+                  
+                  {/* Rink outline with rounded corners */}
+                  <rect
+                    x="2"
+                    y="2"
+                    width="196"
+                    height="81"
+                    rx="20"
+                    ry="20"
+                    fill="none"
+                    stroke="hsl(210, 50%, 40%)"
+                    strokeWidth="1"
+                  />
+
+                  {/* Center red line */}
+                  <line x1="100" y1="2" x2="100" y2="83" stroke="#C41E3A" strokeWidth="1.5" />
+
+                  {/* Blue lines */}
+                  <line x1="65" y1="2" x2="65" y2="83" stroke="#0066B3" strokeWidth="1" />
+                  <line x1="135" y1="2" x2="135" y2="83" stroke="#0066B3" strokeWidth="1" />
+
+                  {/* Center circle */}
+                  <circle cx="100" cy="42.5" r="12" fill="none" stroke="#0066B3" strokeWidth="0.8" />
+                  <circle cx="100" cy="42.5" r="1.5" fill="#0066B3" />
+
+                  {/* Goal creases */}
+                  <path d="M 10 36 Q 18 36 18 42.5 Q 18 49 10 49" fill="none" stroke="#C41E3A" strokeWidth="0.6" />
+                  <path d="M 190 36 Q 182 36 182 42.5 Q 182 49 190 49" fill="none" stroke="#C41E3A" strokeWidth="0.6" />
+
+                  {/* Goal lines */}
+                  <line x1="10" y1="2" x2="10" y2="83" stroke="#C41E3A" strokeWidth="0.5" />
+                  <line x1="190" y1="2" x2="190" y2="83" stroke="#C41E3A" strokeWidth="0.5" />
+
+                  {/* Face-off circles */}
+                  <circle cx="35" cy="22" r="8" fill="none" stroke="#C41E3A" strokeWidth="0.6" />
+                  <circle cx="35" cy="22" r="0.8" fill="#C41E3A" />
+                  <circle cx="35" cy="63" r="8" fill="none" stroke="#C41E3A" strokeWidth="0.6" />
+                  <circle cx="35" cy="63" r="0.8" fill="#C41E3A" />
+                  <circle cx="165" cy="22" r="8" fill="none" stroke="#C41E3A" strokeWidth="0.6" />
+                  <circle cx="165" cy="22" r="0.8" fill="#C41E3A" />
+                  <circle cx="165" cy="63" r="8" fill="none" stroke="#C41E3A" strokeWidth="0.6" />
+                  <circle cx="165" cy="63" r="0.8" fill="#C41E3A" />
+
+                  {/* Neutral zone face-off dots */}
+                  <circle cx="80" cy="22" r="0.8" fill="#C41E3A" />
+                  <circle cx="80" cy="63" r="0.8" fill="#C41E3A" />
+                  <circle cx="120" cy="22" r="0.8" fill="#C41E3A" />
+                  <circle cx="120" cy="63" r="0.8" fill="#C41E3A" />
+                </svg>
                 
                 {/* Points Overlay */}
                 {points.map((point) => (
