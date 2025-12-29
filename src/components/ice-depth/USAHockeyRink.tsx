@@ -1,259 +1,282 @@
-import React, { useState, useRef, useEffect } from 'react';
-
-interface Point {
-  id: number;
-  x: number;
-  y: number;
-}
+import React from 'react';
 
 interface USAHockeyRinkProps {
   className?: string;
-  style?: React.CSSProperties;
   showPoints?: boolean;
-  points?: Point[];
-  measurements?: Record<string | number, number>;
-  currentPointId?: number | null;
+  points?: Array<{ id: number; x: number; y: number }>;
+  measurements?: Record<string, number>;
+  currentPointId?: number;
   onPointClick?: (pointId: number) => void;
-  onMeasurementChange?: (pointId: number, value: number) => void;
-  unit?: 'in' | 'mm';
+  unit?: "in" | "mm";
 }
 
 const USAHockeyRink: React.FC<USAHockeyRinkProps> = ({
-  className = '',
-  style,
+  className = "",
   showPoints = false,
   points = [],
   measurements = {},
-  currentPointId = null,
+  currentPointId,
   onPointClick,
-  onMeasurementChange,
-  unit = 'in'
+  unit = "mm",
 }) => {
-  const [editingPointId, setEditingPointId] = useState<number | null>(null);
-  const [editValue, setEditValue] = useState('');
-  const inputRef = useRef<HTMLInputElement>(null);
-
-  // Focus input when editing starts
-  useEffect(() => {
-    if (editingPointId !== null && inputRef.current) {
-      inputRef.current.focus();
-      inputRef.current.select();
-    }
-  }, [editingPointId]);
-
-  // Standard NHL rink dimensions (200ft x 85ft)
-  const rinkWidth = 200;
-  const rinkHeight = 85;
-  const scale = 1;
-  
-  // Calculate positions based on percentage
+  // Scale: 1 foot = 4 units for precision
+  const scale = 4;
+  const rinkLength = 200 * scale;
+  const rinkWidth = 85 * scale;
   const cornerRadius = 28 * scale;
-  const goalLineFromEnd = 11 * scale;
-  const blueLineFromCenter = 25 * scale;
-  const centerX = rinkWidth / 2;
-  const centerY = rinkHeight / 2;
-  
-  // Circle radii
-  const centerCircleRadius = 15 * scale;
+
+  // Key measurements
+  const goalLineFromBoards = 11 * scale;
+  const blueLineFromGoal = 64 * scale;
+  const centerX = rinkLength / 2;
+  const centerY = rinkWidth / 2;
+
+  // Face-off positions
+  const faceoffFromCenter = 22 * scale;
+  const neutralFaceoffFromBlue = 5 * scale;
+  const endFaceoffFromGoal = 20 * scale;
+
+  // Circle dimensions
   const faceoffCircleRadius = 15 * scale;
-  
-  // Faceoff spot positions
-  const faceoffDotsFromCenter = 22 * scale;
-  const neutralZoneDotsFromCenter = 5 * scale;
-  const faceoffDotsFromSide = 22 * scale;
 
-  // Helper to get display value
-  const getDisplayValue = (depth: number) => {
-    if (unit === 'mm') {
-      return `${(depth * 25.4).toFixed(0)}`;
+  // Line widths
+  const thinLine = 2;
+  const thickLine = scale;
+
+  // Colors
+  const redLine = '#c8102e';
+  const blueLine = '#003087';
+  const creaseBlue = '#a8d4f0';
+
+  // Goal line intersection with corner radius
+  const goalLineOffset = cornerRadius - goalLineFromBoards;
+  const goalLineIntersectOffset = Math.sqrt(cornerRadius * cornerRadius - goalLineOffset * goalLineOffset);
+  const goalLineYTop = cornerRadius - goalLineIntersectOffset;
+  const goalLineYBottom = rinkWidth - cornerRadius + goalLineIntersectOffset;
+
+  // Calculated positions
+  const leftGoalLine = goalLineFromBoards;
+  const rightGoalLine = rinkLength - goalLineFromBoards;
+  const leftBlueLine = goalLineFromBoards + blueLineFromGoal;
+  const rightBlueLine = rinkLength - goalLineFromBoards - blueLineFromGoal;
+
+  // Face-off spot positions
+  const neutralFaceoffX_left = leftBlueLine + neutralFaceoffFromBlue;
+  const neutralFaceoffX_right = rightBlueLine - neutralFaceoffFromBlue;
+  const endFaceoffX_left = leftGoalLine + endFaceoffFromGoal;
+  const endFaceoffX_right = rightGoalLine - endFaceoffFromGoal;
+  const faceoffY_top = centerY - faceoffFromCenter;
+  const faceoffY_bottom = centerY + faceoffFromCenter;
+
+  // Rink outline path
+  const rinkPath = `
+    M ${cornerRadius} 0
+    L ${rinkLength - cornerRadius} 0
+    Q ${rinkLength} 0 ${rinkLength} ${cornerRadius}
+    L ${rinkLength} ${rinkWidth - cornerRadius}
+    Q ${rinkLength} ${rinkWidth} ${rinkLength - cornerRadius} ${rinkWidth}
+    L ${cornerRadius} ${rinkWidth}
+    Q 0 ${rinkWidth} 0 ${rinkWidth - cornerRadius}
+    L 0 ${cornerRadius}
+    Q 0 0 ${cornerRadius} 0
+    Z
+  `;
+
+  const getDisplayValue = (mmValue: number): string => {
+    if (unit === "in") {
+      return (mmValue / 25.4).toFixed(3);
     }
-    return depth.toFixed(2);
+    return mmValue.toFixed(2);
   };
 
-  // Color based on depth
-  const getDepthColor = (depth: number) => {
-    if (depth < 0.75) return '#ef4444'; // red - too thin
-    if (depth > 1.25) return '#f97316'; // orange - too thick
-    return '#22c55e'; // green - good
+  const getDepthColor = (depth: number): string => {
+    const inches = depth / 25.4;
+    if (inches < 0.75) return "#ef4444"; // red
+    if (inches <= 1.25) return "#22c55e"; // green
+    if (inches <= 1.5) return "#3b82f6"; // blue
+    return "#eab308"; // yellow
   };
 
-  const handlePointClick = (pointId: number, e: React.MouseEvent) => {
-    e.stopPropagation();
+  const GoalCrease = ({ x, direction }: { x: number; direction: 'left' | 'right' }) => {
+    const creaseRadius = 6 * scale;
+    const creaseHalfWidth = 4 * scale;
+    const dir = direction === 'left' ? 1 : -1;
+    const sideLineLength = Math.sqrt(creaseRadius * creaseRadius - creaseHalfWidth * creaseHalfWidth);
     
-    // Start editing this point
-    setEditingPointId(pointId);
-    const currentValue = measurements[pointId];
-    setEditValue(currentValue !== undefined ? getDisplayValue(currentValue) : '');
-    
-    // Also notify parent
-    if (onPointClick) {
-      onPointClick(pointId);
-    }
+    return (
+      <g>
+        <path
+          d={`
+            M ${x} ${centerY - creaseHalfWidth}
+            L ${x + dir * sideLineLength} ${centerY - creaseHalfWidth}
+            A ${creaseRadius} ${creaseRadius} 0 0 ${direction === 'left' ? 1 : 0} ${x + dir * sideLineLength} ${centerY + creaseHalfWidth}
+            L ${x} ${centerY + creaseHalfWidth}
+            Z
+          `}
+          fill={creaseBlue}
+          opacity={0.7}
+        />
+        <line x1={x} y1={centerY - creaseHalfWidth} x2={x + dir * sideLineLength} y2={centerY - creaseHalfWidth} stroke={redLine} strokeWidth={thinLine} />
+        <line x1={x} y1={centerY + creaseHalfWidth} x2={x + dir * sideLineLength} y2={centerY + creaseHalfWidth} stroke={redLine} strokeWidth={thinLine} />
+        <path
+          d={`M ${x + dir * sideLineLength} ${centerY - creaseHalfWidth} A ${creaseRadius} ${creaseRadius} 0 0 ${direction === 'left' ? 1 : 0} ${x + dir * sideLineLength} ${centerY + creaseHalfWidth}`}
+          fill="none"
+          stroke={redLine}
+          strokeWidth={thinLine}
+        />
+      </g>
+    );
   };
 
-  const handleInputSubmit = () => {
-    if (editingPointId === null) return;
+  const GoalNet = ({ x }: { x: number }) => {
+    const goalWidth = 6 * scale / 2;
     
-    const numValue = parseFloat(editValue);
-    if (!isNaN(numValue) && numValue > 0) {
-      // Convert from display unit to inches for storage
-      const valueInInches = unit === 'mm' ? numValue / 25.4 : numValue;
-      
-      if (onMeasurementChange) {
-        onMeasurementChange(editingPointId, valueInInches);
-      }
-    }
-    
-    setEditingPointId(null);
-    setEditValue('');
+    return (
+      <g>
+        <circle cx={x} cy={centerY - goalWidth} r={2} fill={redLine} />
+        <circle cx={x} cy={centerY + goalWidth} r={2} fill={redLine} />
+      </g>
+    );
   };
 
-  const handleInputKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      handleInputSubmit();
-    } else if (e.key === 'Escape') {
-      setEditingPointId(null);
-      setEditValue('');
-    }
+  const EndZoneFaceoffCircle = ({ cx, cy }: { cx: number; cy: number }) => {
+    const hashLength = 2 * scale;
+    const hashDistance = 2 * scale;
+    const lShapeLength = 4 * scale;
+    const lShapeWidth = 3 * scale;
+
+    return (
+      <g>
+        <circle cx={cx} cy={cy} r={faceoffCircleRadius} fill="none" stroke={redLine} strokeWidth={thinLine} />
+        <circle cx={cx} cy={cy} r={scale} fill={redLine} />
+        
+        {[-1, 1].map(side => (
+          <g key={`hash-${side}`}>
+            <line x1={cx - hashDistance} y1={cy + side * (faceoffCircleRadius + 1)} x2={cx - hashDistance} y2={cy + side * (faceoffCircleRadius + hashLength + 1)} stroke={redLine} strokeWidth={thinLine} />
+            <line x1={cx + hashDistance} y1={cy + side * (faceoffCircleRadius + 1)} x2={cx + hashDistance} y2={cy + side * (faceoffCircleRadius + hashLength + 1)} stroke={redLine} strokeWidth={thinLine} />
+          </g>
+        ))}
+        
+        {[-1, 1].map((yDir, i) => (
+          <g key={`L-left-${i}`}>
+            <line x1={cx - 4} y1={cy + yDir * 8} x2={cx - 4 - lShapeWidth} y2={cy + yDir * 8} stroke={redLine} strokeWidth={thinLine} />
+            <line x1={cx - 4} y1={cy + yDir * 8} x2={cx - 4} y2={cy + yDir * (8 + lShapeLength)} stroke={redLine} strokeWidth={thinLine} />
+          </g>
+        ))}
+        {[-1, 1].map((yDir, i) => (
+          <g key={`L-right-${i}`}>
+            <line x1={cx + 4} y1={cy + yDir * 8} x2={cx + 4 + lShapeWidth} y2={cy + yDir * 8} stroke={redLine} strokeWidth={thinLine} />
+            <line x1={cx + 4} y1={cy + yDir * 8} x2={cx + 4} y2={cy + yDir * (8 + lShapeLength)} stroke={redLine} strokeWidth={thinLine} />
+          </g>
+        ))}
+      </g>
+    );
   };
 
-  const handleInputBlur = () => {
-    handleInputSubmit();
-  };
+  const NeutralFaceoffSpot = ({ cx, cy }: { cx: number; cy: number }) => (
+    <g>
+      <circle cx={cx} cy={cy} r={scale} fill={redLine} />
+      <circle cx={cx} cy={cy} r={scale * 1.5} fill="none" stroke={redLine} strokeWidth={thinLine} />
+    </g>
+  );
 
   return (
-    <div className={`relative ${className}`} style={style}>
-      <svg
-        viewBox={`0 0 ${rinkWidth} ${rinkHeight}`}
-        className="w-full h-full"
+    <div className={`w-full ${className}`}>
+      <svg 
+        viewBox={`-10 -10 ${rinkWidth + 20} ${rinkLength + 20}`} 
+        className="w-full h-auto"
         preserveAspectRatio="xMidYMid meet"
       >
-        {/* Ice surface background */}
-        <rect x="0" y="0" width={rinkWidth} height={rinkHeight} fill="hsl(200, 30%, 95%)" />
-        
-        {/* Rink outline with rounded corners */}
-        <rect
-          x="1"
-          y="1"
-          width={rinkWidth - 2}
-          height={rinkHeight - 2}
-          rx={cornerRadius}
-          ry={cornerRadius}
-          fill="none"
-          stroke="hsl(210, 50%, 40%)"
-          strokeWidth="1"
-        />
+        <defs>
+          <linearGradient id="iceGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#f0f7fc" />
+            <stop offset="50%" stopColor="#e8f4fc" />
+            <stop offset="100%" stopColor="#dceef8" />
+          </linearGradient>
+        </defs>
 
-        {/* Goal lines */}
-        <line x1={goalLineFromEnd} y1="1" x2={goalLineFromEnd} y2={rinkHeight - 1} stroke="#C41E3A" strokeWidth="0.5" />
-        <line x1={rinkWidth - goalLineFromEnd} y1="1" x2={rinkWidth - goalLineFromEnd} y2={rinkHeight - 1} stroke="#C41E3A" strokeWidth="0.5" />
+        <g transform={`rotate(90, ${rinkWidth / 2}, ${rinkWidth / 2})`}>
+          {/* Ice surface */}
+          <path d={rinkPath} fill="url(#iceGradient)" />
+          <path d={rinkPath} fill="none" stroke="#000000" strokeWidth="6" />
 
-        {/* Blue lines */}
-        <line x1={centerX - blueLineFromCenter} y1="1" x2={centerX - blueLineFromCenter} y2={rinkHeight - 1} stroke="#0066B3" strokeWidth="1" />
-        <line x1={centerX + blueLineFromCenter} y1="1" x2={centerX + blueLineFromCenter} y2={rinkHeight - 1} stroke="#0066B3" strokeWidth="1" />
+          {/* Goal lines */}
+          <line x1={leftGoalLine} y1={goalLineYTop} x2={leftGoalLine} y2={goalLineYBottom} stroke={redLine} strokeWidth={thinLine} />
+          <line x1={rightGoalLine} y1={goalLineYTop} x2={rightGoalLine} y2={goalLineYBottom} stroke={redLine} strokeWidth={thinLine} />
 
-        {/* Center red line */}
-        <line x1={centerX} y1="1" x2={centerX} y2={rinkHeight - 1} stroke="#C41E3A" strokeWidth="1.5" />
+          {/* Blue lines */}
+          <rect x={leftBlueLine - thickLine / 2} y={0} width={thickLine} height={rinkWidth} fill={blueLine} />
+          <rect x={rightBlueLine - thickLine / 2} y={0} width={thickLine} height={rinkWidth} fill={blueLine} />
 
-        {/* Center circle */}
-        <circle cx={centerX} cy={centerY} r={centerCircleRadius} fill="none" stroke="#0066B3" strokeWidth="0.8" />
-        <circle cx={centerX} cy={centerY} r="1.5" fill="#0066B3" />
+          {/* Center red line */}
+          <rect x={centerX - thickLine / 2} y={0} width={thickLine} height={rinkWidth} fill={redLine} />
 
-        {/* Goal creases */}
-        <path 
-          d={`M ${goalLineFromEnd} ${centerY - 6} Q ${goalLineFromEnd + 6} ${centerY - 6} ${goalLineFromEnd + 6} ${centerY} Q ${goalLineFromEnd + 6} ${centerY + 6} ${goalLineFromEnd} ${centerY + 6}`}
-          fill="none" stroke="#C41E3A" strokeWidth="0.6" 
-        />
-        <path 
-          d={`M ${rinkWidth - goalLineFromEnd} ${centerY - 6} Q ${rinkWidth - goalLineFromEnd - 6} ${centerY - 6} ${rinkWidth - goalLineFromEnd - 6} ${centerY} Q ${rinkWidth - goalLineFromEnd - 6} ${centerY + 6} ${rinkWidth - goalLineFromEnd} ${centerY + 6}`}
-          fill="none" stroke="#C41E3A" strokeWidth="0.6" 
-        />
+          {/* Center circle */}
+          <circle cx={centerX} cy={centerY} r={faceoffCircleRadius} fill="none" stroke={blueLine} strokeWidth={thinLine} />
+          <circle cx={centerX} cy={centerY} r={scale / 2} fill={blueLine} />
 
-        {/* Faceoff circles - End zones */}
-        {/* Left end zone */}
-        <circle cx={goalLineFromEnd + faceoffDotsFromCenter} cy={centerY - faceoffDotsFromSide} r={faceoffCircleRadius} fill="none" stroke="#C41E3A" strokeWidth="0.6" />
-        <circle cx={goalLineFromEnd + faceoffDotsFromCenter} cy={centerY - faceoffDotsFromSide} r="1" fill="#C41E3A" />
-        <circle cx={goalLineFromEnd + faceoffDotsFromCenter} cy={centerY + faceoffDotsFromSide} r={faceoffCircleRadius} fill="none" stroke="#C41E3A" strokeWidth="0.6" />
-        <circle cx={goalLineFromEnd + faceoffDotsFromCenter} cy={centerY + faceoffDotsFromSide} r="1" fill="#C41E3A" />
+          {/* Goal creases */}
+          <GoalCrease x={leftGoalLine} direction="left" />
+          <GoalCrease x={rightGoalLine} direction="right" />
 
-        {/* Right end zone */}
-        <circle cx={rinkWidth - goalLineFromEnd - faceoffDotsFromCenter} cy={centerY - faceoffDotsFromSide} r={faceoffCircleRadius} fill="none" stroke="#C41E3A" strokeWidth="0.6" />
-        <circle cx={rinkWidth - goalLineFromEnd - faceoffDotsFromCenter} cy={centerY - faceoffDotsFromSide} r="1" fill="#C41E3A" />
-        <circle cx={rinkWidth - goalLineFromEnd - faceoffDotsFromCenter} cy={centerY + faceoffDotsFromSide} r={faceoffCircleRadius} fill="none" stroke="#C41E3A" strokeWidth="0.6" />
-        <circle cx={rinkWidth - goalLineFromEnd - faceoffDotsFromCenter} cy={centerY + faceoffDotsFromSide} r="1" fill="#C41E3A" />
+          {/* Goal nets */}
+          <GoalNet x={leftGoalLine} />
+          <GoalNet x={rightGoalLine} />
 
-        {/* Neutral zone faceoff dots */}
-        <circle cx={centerX - 20} cy={centerY - faceoffDotsFromSide} r="1" fill="#C41E3A" />
-        <circle cx={centerX - 20} cy={centerY + faceoffDotsFromSide} r="1" fill="#C41E3A" />
-        <circle cx={centerX + 20} cy={centerY - faceoffDotsFromSide} r="1" fill="#C41E3A" />
-        <circle cx={centerX + 20} cy={centerY + faceoffDotsFromSide} r="1" fill="#C41E3A" />
+          {/* End zone faceoff circles */}
+          <EndZoneFaceoffCircle cx={endFaceoffX_left} cy={faceoffY_top} />
+          <EndZoneFaceoffCircle cx={endFaceoffX_left} cy={faceoffY_bottom} />
+          <EndZoneFaceoffCircle cx={endFaceoffX_right} cy={faceoffY_top} />
+          <EndZoneFaceoffCircle cx={endFaceoffX_right} cy={faceoffY_bottom} />
 
-        {/* Measurement points */}
-        {showPoints && points.map((point) => {
-          const svgX = (point.x / 100) * rinkWidth;
-          const svgY = (point.y / 100) * rinkHeight;
-          const depth = measurements[point.id];
-          const hasValue = depth !== undefined;
-          const isCurrentPoint = currentPointId === point.id;
-          const isEditing = editingPointId === point.id;
-          
-          const fillColor = hasValue ? getDepthColor(depth) : (isCurrentPoint ? '#3b82f6' : '#6b7280');
-          
-          return (
-            <g key={point.id}>
-              <circle
-                cx={svgX}
-                cy={svgY}
-                r="5"
-                fill={fillColor}
-                stroke={isCurrentPoint || isEditing ? '#fff' : 'none'}
-                strokeWidth={isCurrentPoint || isEditing ? '1' : '0'}
-                className="cursor-pointer transition-all hover:opacity-80"
-                onClick={(e) => handlePointClick(point.id, e)}
-              />
-              {!isEditing && (
+          {/* Neutral zone faceoff spots */}
+          <NeutralFaceoffSpot cx={neutralFaceoffX_left} cy={faceoffY_top} />
+          <NeutralFaceoffSpot cx={neutralFaceoffX_left} cy={faceoffY_bottom} />
+          <NeutralFaceoffSpot cx={neutralFaceoffX_right} cy={faceoffY_top} />
+          <NeutralFaceoffSpot cx={neutralFaceoffX_right} cy={faceoffY_bottom} />
+
+          {/* Measurement points overlay */}
+          {showPoints && points.map((point) => {
+            const measurementKey = `Point ${point.id}`;
+            const depth = measurements[measurementKey];
+            const isCurrent = point.id === currentPointId;
+            const hasValue = depth !== undefined && depth > 0;
+            
+            // Convert percentage-based coordinates to SVG coordinates
+            const svgX = (point.x / 100) * rinkLength;
+            const svgY = (point.y / 100) * rinkWidth;
+            
+            return (
+              <g 
+                key={point.id}
+                onClick={() => onPointClick?.(point.id)}
+                style={{ cursor: 'pointer' }}
+              >
+                <circle
+                  cx={svgX}
+                  cy={svgY}
+                  r={12}
+                  fill={hasValue ? getDepthColor(depth) : isCurrent ? "hsl(var(--primary))" : "#374151"}
+                  stroke="#fff"
+                  strokeWidth={2}
+                  opacity={isCurrent ? 1 : 0.9}
+                />
                 <text
                   x={svgX}
                   y={svgY}
                   textAnchor="middle"
                   dominantBaseline="central"
                   fill="#fff"
-                  fontSize="4"
+                  fontSize="8"
                   fontWeight="bold"
-                  className="pointer-events-none select-none"
                 >
                   {hasValue ? getDisplayValue(depth) : point.id}
                 </text>
-              )}
-            </g>
-          );
-        })}
+              </g>
+            );
+          })}
+        </g>
       </svg>
-
-      {/* Floating input for editing */}
-      {editingPointId !== null && points.find(p => p.id === editingPointId) && (
-        <div
-          className="absolute z-10"
-          style={{
-            left: `${points.find(p => p.id === editingPointId)!.x}%`,
-            top: `${points.find(p => p.id === editingPointId)!.y}%`,
-            transform: 'translate(-50%, -50%)'
-          }}
-        >
-          <input
-            ref={inputRef}
-            type="number"
-            step="0.01"
-            value={editValue}
-            onChange={(e) => setEditValue(e.target.value)}
-            onKeyDown={handleInputKeyDown}
-            onBlur={handleInputBlur}
-            className="w-16 h-8 text-center text-sm font-medium border-2 border-primary rounded-md bg-background shadow-lg focus:outline-none focus:ring-2 focus:ring-primary"
-            placeholder={unit === 'mm' ? 'mm' : 'in'}
-          />
-        </div>
-      )}
     </div>
   );
 };

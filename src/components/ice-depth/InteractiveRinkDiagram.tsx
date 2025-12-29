@@ -538,7 +538,6 @@ export const InteractiveRinkDiagram = ({
           measurements={measurements}
           currentPointId={currentPointId}
           onPointClick={onPointClick}
-          onMeasurementChange={onMeasurementChange}
           unit={unit}
         />
         
