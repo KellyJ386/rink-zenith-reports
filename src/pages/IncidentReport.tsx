@@ -33,7 +33,6 @@ export default function IncidentReport() {
   // Auto-populated staff info
   const [staffName, setStaffName] = useState("");
   const [staffPosition, setStaffPosition] = useState("");
-  const [staffPhone, setStaffPhone] = useState("");
   const [staffEmail, setStaffEmail] = useState("");
 
   // Incident details
@@ -183,7 +182,7 @@ export default function IncidentReport() {
         ambulance_called: ambulanceCalled,
         staff_name: staffName,
         staff_position: staffPosition,
-        staff_phone: staffPhone,
+        staff_phone: null,
         staff_email: staffEmail,
         staff_id: user.id,
         additional_notes: additionalNotes,
@@ -616,25 +615,14 @@ export default function IncidentReport() {
                 </div>
               </div>
 
-              <div className="grid gap-4 md:grid-cols-2">
-                <div className="space-y-2">
-                  <Label>Staff Phone *</Label>
-                  <Input
-                    type="tel"
-                    value={staffPhone}
-                    onChange={(e) => setStaffPhone(e.target.value)}
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Staff Email *</Label>
-                  <Input
-                    type="email"
-                    value={staffEmail}
-                    readOnly
-                    className="bg-muted"
-                  />
-                </div>
+              <div className="space-y-2">
+                <Label>Staff Email *</Label>
+                <Input
+                  type="email"
+                  value={staffEmail}
+                  readOnly
+                  className="bg-muted"
+                />
               </div>
 
               <p className="text-sm text-muted-foreground">
