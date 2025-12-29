@@ -297,6 +297,26 @@ export default function RefrigerationLog() {
               <Input type="number" step="0.1" value={formData.oil_temperature} onChange={(e) => handleInputChange("oil_temperature", e.target.value)} placeholder="0" />
               <p className="text-xs text-muted-foreground mt-1">Normal: 140 - 180 {tempUnit}</p>
             </div>
+            <div>
+              <Label>Brine Temp Supply ({tempUnit})</Label>
+              <Input type="number" step="0.1" value={formData.brine_temp_supply} onChange={(e) => handleInputChange("brine_temp_supply", e.target.value)} placeholder="0" />
+              <p className="text-xs text-muted-foreground mt-1">Normal: 16 - 20 {tempUnit}</p>
+            </div>
+            <div>
+              <Label>Brine Temp Return ({tempUnit})</Label>
+              <Input type="number" step="0.1" value={formData.brine_temp_return} onChange={(e) => handleInputChange("brine_temp_return", e.target.value)} placeholder="0" />
+              <p className="text-xs text-muted-foreground mt-1">Normal: 22 - 26 {tempUnit}</p>
+            </div>
+            <div>
+              <Label>Brine Flow Rate (GPM)</Label>
+              <Input type="number" step="0.1" value={formData.brine_flow_rate} onChange={(e) => handleInputChange("brine_flow_rate", e.target.value)} placeholder="0" />
+              <p className="text-xs text-muted-foreground mt-1">Normal: 800 - 1200 GPM</p>
+            </div>
+            <div>
+              <Label>Ice Surface Temp ({tempUnit})</Label>
+              <Input type="number" step="0.1" value={formData.ice_surface_temp} onChange={(e) => handleInputChange("ice_surface_temp", e.target.value)} placeholder="0" />
+              <p className="text-xs text-muted-foreground mt-1">Normal: 22 - 26 {tempUnit}</p>
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -353,26 +373,6 @@ export default function RefrigerationLog() {
               <Label>Evaporator Pressure (psig)</Label>
               <Input type="number" step="0.1" value={formData.evaporator_pressure} onChange={(e) => handleInputChange("evaporator_pressure", e.target.value)} placeholder="0" />
               <p className="text-xs text-muted-foreground mt-1">Normal: 15 - 35 psig</p>
-            </div>
-            <div>
-              <Label>Brine Temp Supply ({tempUnit})</Label>
-              <Input type="number" step="0.1" value={formData.brine_temp_supply} onChange={(e) => handleInputChange("brine_temp_supply", e.target.value)} placeholder="0" />
-              <p className="text-xs text-muted-foreground mt-1">Normal: 16 - 20 {tempUnit}</p>
-            </div>
-            <div>
-              <Label>Brine Temp Return ({tempUnit})</Label>
-              <Input type="number" step="0.1" value={formData.brine_temp_return} onChange={(e) => handleInputChange("brine_temp_return", e.target.value)} placeholder="0" />
-              <p className="text-xs text-muted-foreground mt-1">Normal: 22 - 26 {tempUnit}</p>
-            </div>
-            <div>
-              <Label>Brine Flow Rate (GPM)</Label>
-              <Input type="number" step="0.1" value={formData.brine_flow_rate} onChange={(e) => handleInputChange("brine_flow_rate", e.target.value)} placeholder="0" />
-              <p className="text-xs text-muted-foreground mt-1">Normal: 800 - 1200 GPM</p>
-            </div>
-            <div>
-              <Label>Ice Surface Temp ({tempUnit})</Label>
-              <Input type="number" step="0.1" value={formData.ice_surface_temp} onChange={(e) => handleInputChange("ice_surface_temp", e.target.value)} placeholder="0" />
-              <p className="text-xs text-muted-foreground mt-1">Normal: 22 - 26 {tempUnit}</p>
             </div>
           </div>
         </CardContent>
