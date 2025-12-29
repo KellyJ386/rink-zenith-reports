@@ -359,7 +359,7 @@ const USAHockeyRink: React.FC<USAHockeyRinkProps> = ({
           return (
             <foreignObject
               x={rotatedX - 35}
-              y={rotatedY + 18}
+              y={rotatedY - 16}
               width={70}
               height={32}
             >
