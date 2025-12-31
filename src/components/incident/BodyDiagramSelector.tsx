@@ -41,8 +41,9 @@ const bodyParts: Record<"front" | "back", DiagramPart[]> = {
     { id: "head_front", label: "Head", kind: "ellipse", cx: 100, cy: 28, rx: 18, ry: 20 },
     { id: "neck_front", label: "Neck", kind: "rect", x: 90, y: 50, width: 20, height: 12, rx: 6 },
 
-    { id: "left_shoulder_front", label: "Left Shoulder", kind: "rect", x: 60, y: 64, width: 14, height: 12, rx: 4 },
-    { id: "right_shoulder_front", label: "Right Shoulder", kind: "rect", x: 126, y: 64, width: 14, height: 12, rx: 4 },
+    // Shoulders moved in to touch neck (inside edge at x=90 and x=110)
+    { id: "left_shoulder_front", label: "Left Shoulder", kind: "rect", x: 76, y: 58, width: 14, height: 14, rx: 4 },
+    { id: "right_shoulder_front", label: "Right Shoulder", kind: "rect", x: 110, y: 58, width: 14, height: 14, rx: 4 },
 
     { id: "chest_front", label: "Chest", kind: "rect", x: 72, y: 74, width: 56, height: 54, rx: 10 },
     { id: "abdomen_front", label: "Abdomen", kind: "rect", x: 78, y: 130, width: 44, height: 36, rx: 10 },
@@ -58,21 +59,23 @@ const bodyParts: Record<"front" | "back", DiagramPart[]> = {
     { id: "right_forearm_front", label: "Right Forearm", kind: "rect", x: 128, y: 133, width: 14, height: 44, rx: 7 },
     { id: "right_hand_front", label: "Right Hand", kind: "ellipse", cx: 135, cy: 187, rx: 9, ry: 11 },
 
-    { id: "left_thigh_front", label: "Left Thigh", kind: "rect", x: 86, y: 190, width: 14, height: 44, rx: 7 },
-    { id: "right_thigh_front", label: "Right Thigh", kind: "rect", x: 100, y: 190, width: 14, height: 44, rx: 7 },
-    { id: "left_knee_front", label: "Left Knee", kind: "ellipse", cx: 93, cy: 240, rx: 7, ry: 7 },
-    { id: "right_knee_front", label: "Right Knee", kind: "ellipse", cx: 107, cy: 240, rx: 7, ry: 7 },
-    { id: "left_shin_front", label: "Left Shin", kind: "rect", x: 86, y: 248, width: 14, height: 42, rx: 7 },
-    { id: "right_shin_front", label: "Right Shin", kind: "rect", x: 100, y: 248, width: 14, height: 42, rx: 7 },
-    { id: "left_foot_front", label: "Left Foot", kind: "ellipse", cx: 93, cy: 298, rx: 12, ry: 6 },
-    { id: "right_foot_front", label: "Right Foot", kind: "ellipse", cx: 107, cy: 298, rx: 12, ry: 6 }
+    // Legs moved outward (left shifted left, right shifted right)
+    { id: "left_thigh_front", label: "Left Thigh", kind: "rect", x: 80, y: 190, width: 14, height: 44, rx: 7 },
+    { id: "right_thigh_front", label: "Right Thigh", kind: "rect", x: 106, y: 190, width: 14, height: 44, rx: 7 },
+    { id: "left_knee_front", label: "Left Knee", kind: "ellipse", cx: 87, cy: 240, rx: 7, ry: 7 },
+    { id: "right_knee_front", label: "Right Knee", kind: "ellipse", cx: 113, cy: 240, rx: 7, ry: 7 },
+    { id: "left_shin_front", label: "Left Shin", kind: "rect", x: 80, y: 248, width: 14, height: 42, rx: 7 },
+    { id: "right_shin_front", label: "Right Shin", kind: "rect", x: 106, y: 248, width: 14, height: 42, rx: 7 },
+    { id: "left_foot_front", label: "Left Foot", kind: "ellipse", cx: 87, cy: 298, rx: 12, ry: 6 },
+    { id: "right_foot_front", label: "Right Foot", kind: "ellipse", cx: 113, cy: 298, rx: 12, ry: 6 }
   ],
   back: [
     { id: "head_back", label: "Head (Back)", kind: "ellipse", cx: 100, cy: 28, rx: 18, ry: 20 },
     { id: "neck_back", label: "Neck (Back)", kind: "rect", x: 90, y: 50, width: 20, height: 12, rx: 6 },
 
-    { id: "left_shoulder_back", label: "Left Shoulder (Back)", kind: "rect", x: 60, y: 64, width: 14, height: 12, rx: 4 },
-    { id: "right_shoulder_back", label: "Right Shoulder (Back)", kind: "rect", x: 126, y: 64, width: 14, height: 12, rx: 4 },
+    // Shoulders moved in to touch neck
+    { id: "left_shoulder_back", label: "Left Shoulder (Back)", kind: "rect", x: 76, y: 58, width: 14, height: 14, rx: 4 },
+    { id: "right_shoulder_back", label: "Right Shoulder (Back)", kind: "rect", x: 110, y: 58, width: 14, height: 14, rx: 4 },
 
     { id: "upper_back", label: "Upper Back", kind: "rect", x: 72, y: 74, width: 56, height: 54, rx: 10 },
     { id: "middle_back", label: "Middle Back", kind: "rect", x: 78, y: 130, width: 44, height: 36, rx: 10 },
@@ -88,14 +91,15 @@ const bodyParts: Record<"front" | "back", DiagramPart[]> = {
     { id: "right_forearm_back", label: "Right Forearm (Back)", kind: "rect", x: 128, y: 133, width: 14, height: 44, rx: 7 },
     { id: "right_hand_back", label: "Right Hand (Back)", kind: "ellipse", cx: 135, cy: 187, rx: 9, ry: 11 },
 
-    { id: "left_thigh_back", label: "Left Thigh (Back)", kind: "rect", x: 86, y: 190, width: 14, height: 44, rx: 7 },
-    { id: "right_thigh_back", label: "Right Thigh (Back)", kind: "rect", x: 100, y: 190, width: 14, height: 44, rx: 7 },
-    { id: "left_knee_back", label: "Left Knee (Back)", kind: "ellipse", cx: 93, cy: 240, rx: 7, ry: 7 },
-    { id: "right_knee_back", label: "Right Knee (Back)", kind: "ellipse", cx: 107, cy: 240, rx: 7, ry: 7 },
-    { id: "left_shin_back", label: "Left Shin (Back)", kind: "rect", x: 86, y: 248, width: 14, height: 42, rx: 7 },
-    { id: "right_shin_back", label: "Right Shin (Back)", kind: "rect", x: 100, y: 248, width: 14, height: 42, rx: 7 },
-    { id: "left_foot_back", label: "Left Foot (Back)", kind: "ellipse", cx: 93, cy: 298, rx: 12, ry: 6 },
-    { id: "right_foot_back", label: "Right Foot (Back)", kind: "ellipse", cx: 107, cy: 298, rx: 12, ry: 6 }
+    // Legs moved outward
+    { id: "left_thigh_back", label: "Left Thigh (Back)", kind: "rect", x: 80, y: 190, width: 14, height: 44, rx: 7 },
+    { id: "right_thigh_back", label: "Right Thigh (Back)", kind: "rect", x: 106, y: 190, width: 14, height: 44, rx: 7 },
+    { id: "left_knee_back", label: "Left Knee (Back)", kind: "ellipse", cx: 87, cy: 240, rx: 7, ry: 7 },
+    { id: "right_knee_back", label: "Right Knee (Back)", kind: "ellipse", cx: 113, cy: 240, rx: 7, ry: 7 },
+    { id: "left_shin_back", label: "Left Shin (Back)", kind: "rect", x: 80, y: 248, width: 14, height: 42, rx: 7 },
+    { id: "right_shin_back", label: "Right Shin (Back)", kind: "rect", x: 106, y: 248, width: 14, height: 42, rx: 7 },
+    { id: "left_foot_back", label: "Left Foot (Back)", kind: "ellipse", cx: 87, cy: 298, rx: 12, ry: 6 },
+    { id: "right_foot_back", label: "Right Foot (Back)", kind: "ellipse", cx: 113, cy: 298, rx: 12, ry: 6 }
   ]
 };
 
