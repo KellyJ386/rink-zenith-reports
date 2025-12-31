@@ -20,6 +20,7 @@ import { DynamicTabContent } from "@/components/daily-reports/DynamicTabContent"
 import { useTabSubmissionTracking } from "@/hooks/useTabSubmissionTracking";
 import { useFormTemplates } from "@/hooks/useFormTemplates";
 import { TabCompletionIndicator, OverallProgressIndicator } from "@/components/daily-reports/TabCompletionIndicator";
+import { ShiftHandoffSummary } from "@/components/daily-reports/ShiftHandoffSummary";
 
 interface Financial {
   id?: string;
@@ -56,6 +57,11 @@ export default function DailyReports() {
   });
 
   const [customFields, setCustomFields] = useState<Record<string, any>>({});
+  const [shiftHandoff, setShiftHandoff] = useState<{
+    checklist: Record<string, boolean>;
+    facilityRating: number | null;
+    notes: string;
+  }>({ checklist: {}, facilityRating: null, notes: '' });
 
   // Use the dynamic tabs hook
   const { tabs, isLoading: tabsLoading, isAdmin } = useDailyReportUserTabs(facilityId, user?.id);
@@ -508,6 +514,14 @@ export default function DailyReports() {
           </TabsContent>
         </Tabs>
       )}
+
+      {/* Shift Handoff Summary */}
+      <div className="mt-6">
+        <ShiftHandoffSummary
+          data={shiftHandoff}
+          onChange={setShiftHandoff}
+        />
+      </div>
 
       {/* Additional Notes */}
       <Card className="mt-6">
