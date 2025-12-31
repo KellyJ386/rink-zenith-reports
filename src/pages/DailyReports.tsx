@@ -8,7 +8,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { SHIFT_TYPE_GROUPS, getShiftTypeLabel } from "@/data/shiftTypeOptions";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 
@@ -41,7 +42,7 @@ export default function DailyReports() {
   const [facilityId, setFacilityId] = useState<string>("");
   
   const [reportDate, setReportDate] = useState(format(new Date(), "yyyy-MM-dd"));
-  const [shiftType, setShiftType] = useState("morning");
+  const [shiftType, setShiftType] = useState("front_desk-morning");
   const [dutyType, setDutyType] = useState("");
   const [notes, setNotes] = useState("");
   
@@ -265,13 +266,21 @@ export default function DailyReports() {
           <CardContent>
             <Select value={shiftType} onValueChange={setShiftType}>
               <SelectTrigger>
-                <SelectValue />
+                <SelectValue placeholder="Select shift type" />
               </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="morning">Morning</SelectItem>
-                <SelectItem value="afternoon">Afternoon</SelectItem>
-                <SelectItem value="evening">Evening</SelectItem>
-                <SelectItem value="overnight">Overnight</SelectItem>
+              <SelectContent className="max-h-80">
+                {SHIFT_TYPE_GROUPS.map((group) => (
+                  <SelectGroup key={group.areaKey}>
+                    <SelectLabel className="font-semibold text-xs uppercase tracking-wide text-muted-foreground bg-muted/50 py-2">
+                      {group.areaLabel}
+                    </SelectLabel>
+                    {group.options.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label.replace(`${group.areaLabel} - `, '')}
+                      </SelectItem>
+                    ))}
+                  </SelectGroup>
+                ))}
               </SelectContent>
             </Select>
           </CardContent>
