@@ -7,57 +7,75 @@ interface BodyDiagramSelectorProps {
   onPartsChange: (parts: string[]) => void;
 }
 
-// Improved proportions: larger head, wider shoulders, tapered waist, natural arm position, longer legs
+// Anatomically correct human figure with organic curved shapes
 const bodyParts = {
   front: [
-    { id: "head_front", label: "Head", path: "M82,18 A18,18 0 1,1 118,18 A18,18 0 1,1 82,18 Z" },
-    { id: "neck_front", label: "Neck", path: "M93,35 L107,35 L107,48 L93,48 Z" },
-    { id: "left_shoulder_front", label: "Left Shoulder", path: "M62,48 L88,48 L88,62 L62,58 Z" },
-    { id: "right_shoulder_front", label: "Right Shoulder", path: "M112,48 L138,48 L138,58 L112,62 Z" },
-    { id: "chest_front", label: "Chest", path: "M88,48 L112,48 L112,72 L88,72 Z" },
-    { id: "abdomen_front", label: "Abdomen", path: "M90,72 L110,72 L110,90 L90,90 Z" },
-    { id: "pelvis_front", label: "Pelvis", path: "M86,90 L114,90 L114,108 L86,108 Z" },
-    { id: "left_upper_arm_front", label: "Left Upper Arm", path: "M56,60 L66,58 L68,95 L58,95 Z" },
-    { id: "right_upper_arm_front", label: "Right Upper Arm", path: "M134,58 L144,60 L142,95 L132,95 Z" },
-    { id: "left_elbow_front", label: "Left Elbow", path: "M55,95 A8,8 0 1,1 71,95 A8,8 0 1,1 55,95 Z" },
-    { id: "right_elbow_front", label: "Right Elbow", path: "M129,95 A8,8 0 1,1 145,95 A8,8 0 1,1 129,95 Z" },
-    { id: "left_forearm_front", label: "Left Forearm", path: "M57,103 L67,103 L65,138 L55,138 Z" },
-    { id: "right_forearm_front", label: "Right Forearm", path: "M133,103 L143,103 L145,138 L135,138 Z" },
-    { id: "left_hand_front", label: "Left Hand", path: "M52,138 A10,10 0 1,1 68,138 A10,10 0 1,1 52,138 Z" },
-    { id: "right_hand_front", label: "Right Hand", path: "M132,138 A10,10 0 1,1 148,138 A10,10 0 1,1 132,138 Z" },
-    { id: "left_thigh_front", label: "Left Thigh", path: "M86,108 L98,108 L98,152 L86,152 Z" },
-    { id: "right_thigh_front", label: "Right Thigh", path: "M102,108 L114,108 L114,152 L102,152 Z" },
-    { id: "left_knee_front", label: "Left Knee", path: "M84,152 A9,9 0 1,1 100,152 A9,9 0 1,1 84,152 Z" },
-    { id: "right_knee_front", label: "Right Knee", path: "M100,152 A9,9 0 1,1 116,152 A9,9 0 1,1 100,152 Z" },
-    { id: "left_shin_front", label: "Left Shin", path: "M86,161 L98,161 L98,198 L86,198 Z" },
-    { id: "right_shin_front", label: "Right Shin", path: "M102,161 L114,161 L114,198 L102,198 Z" },
-    { id: "left_foot_front", label: "Left Foot", path: "M82,198 L98,198 L98,210 L82,210 Z" },
-    { id: "right_foot_front", label: "Right Foot", path: "M102,198 L118,198 L118,210 L102,210 Z" }
+    // Head - oval shape
+    { id: "head_front", label: "Head", path: "M100,8 C116,8 128,22 128,40 C128,58 116,70 100,70 C84,70 72,58 72,40 C72,22 84,8 100,8 Z" },
+    // Neck - tapered cylinder
+    { id: "neck_front", label: "Neck", path: "M92,68 C92,68 95,70 100,70 C105,70 108,68 108,68 L106,85 C106,85 103,86 100,86 C97,86 94,85 94,85 Z" },
+    // Shoulders - curved caps
+    { id: "left_shoulder_front", label: "Left Shoulder", path: "M94,85 C82,85 65,88 58,95 C55,98 56,102 60,104 L72,100 C78,96 85,93 94,92 Z" },
+    { id: "right_shoulder_front", label: "Right Shoulder", path: "M106,85 C118,85 135,88 142,95 C145,98 144,102 140,104 L128,100 C122,96 115,93 106,92 Z" },
+    // Chest - curved trapezoid
+    { id: "chest_front", label: "Chest", path: "M94,85 L106,85 C108,90 110,95 110,105 L90,105 C90,95 92,90 94,85 Z" },
+    // Abdomen - tapered
+    { id: "abdomen_front", label: "Abdomen", path: "M90,105 L110,105 L108,130 C108,130 104,132 100,132 C96,132 92,130 92,130 Z" },
+    // Pelvis - curved hip shape
+    { id: "pelvis_front", label: "Pelvis", path: "M92,130 C90,130 82,132 80,140 C78,150 82,158 88,160 L100,158 L112,160 C118,158 122,150 120,140 C118,132 110,130 108,130 C104,132 100,132 100,132 C100,132 96,132 92,130 Z" },
+    // Left arm parts with natural curves
+    { id: "left_upper_arm_front", label: "Left Upper Arm", path: "M60,104 C56,108 50,120 48,138 C47,145 50,148 54,148 L64,146 C66,142 68,130 70,118 C71,110 72,102 72,100 Z" },
+    { id: "left_elbow_front", label: "Left Elbow", path: "M48,138 C44,140 42,148 44,156 C46,162 52,164 58,162 L64,146 C58,146 52,144 48,138 Z" },
+    { id: "left_forearm_front", label: "Left Forearm", path: "M44,156 C40,168 36,185 34,200 C33,206 36,210 42,210 L54,206 C56,200 58,188 60,175 C61,166 60,160 58,162 Z" },
+    { id: "left_hand_front", label: "Left Hand", path: "M34,200 C30,205 28,215 30,224 C32,232 40,236 48,234 C56,232 58,224 56,216 C55,210 54,206 54,206 L42,210 C42,210 38,206 34,200 Z" },
+    // Right arm parts with natural curves
+    { id: "right_upper_arm_front", label: "Right Upper Arm", path: "M140,104 C144,108 150,120 152,138 C153,145 150,148 146,148 L136,146 C134,142 132,130 130,118 C129,110 128,102 128,100 Z" },
+    { id: "right_elbow_front", label: "Right Elbow", path: "M152,138 C156,140 158,148 156,156 C154,162 148,164 142,162 L136,146 C142,146 148,144 152,138 Z" },
+    { id: "right_forearm_front", label: "Right Forearm", path: "M156,156 C160,168 164,185 166,200 C167,206 164,210 158,210 L146,206 C144,200 142,188 140,175 C139,166 140,160 142,162 Z" },
+    { id: "right_hand_front", label: "Right Hand", path: "M166,200 C170,205 172,215 170,224 C168,232 160,236 152,234 C144,232 142,224 144,216 C145,210 146,206 146,206 L158,210 C158,210 162,206 166,200 Z" },
+    // Legs with natural muscle curves
+    { id: "left_thigh_front", label: "Left Thigh", path: "M88,160 C82,165 78,180 78,200 C78,215 80,228 84,235 L96,235 C98,228 99,215 98,200 C97,180 96,165 100,158 Z" },
+    { id: "right_thigh_front", label: "Right Thigh", path: "M112,160 C118,165 122,180 122,200 C122,215 120,228 116,235 L104,235 C102,228 101,215 102,200 C103,180 104,165 100,158 Z" },
+    { id: "left_knee_front", label: "Left Knee", path: "M84,235 C80,238 78,245 78,252 C78,260 82,265 88,265 L96,264 C98,260 99,252 98,245 C97,240 96,236 96,235 Z" },
+    { id: "right_knee_front", label: "Right Knee", path: "M116,235 C120,238 122,245 122,252 C122,260 118,265 112,265 L104,264 C102,260 101,252 102,245 C103,240 104,236 104,235 Z" },
+    { id: "left_shin_front", label: "Left Shin", path: "M88,265 C84,270 82,290 82,310 C82,325 84,335 86,340 L94,340 C96,335 97,325 96,310 C95,290 96,270 96,264 Z" },
+    { id: "right_shin_front", label: "Right Shin", path: "M112,265 C116,270 118,290 118,310 C118,325 116,335 114,340 L106,340 C104,335 103,325 104,310 C105,290 104,270 104,264 Z" },
+    { id: "left_foot_front", label: "Left Foot", path: "M86,340 C82,342 78,348 76,355 C74,362 78,368 86,368 L96,366 C98,362 97,355 95,350 C94,346 94,342 94,340 Z" },
+    { id: "right_foot_front", label: "Right Foot", path: "M114,340 C118,342 122,348 124,355 C126,362 122,368 114,368 L104,366 C102,362 103,355 105,350 C106,346 106,342 106,340 Z" }
   ],
   back: [
-    { id: "head_back", label: "Head (Back)", path: "M82,18 A18,18 0 1,1 118,18 A18,18 0 1,1 82,18 Z" },
-    { id: "neck_back", label: "Neck (Back)", path: "M93,35 L107,35 L107,48 L93,48 Z" },
-    { id: "left_shoulder_back", label: "Left Shoulder (Back)", path: "M62,48 L88,48 L88,62 L62,58 Z" },
-    { id: "right_shoulder_back", label: "Right Shoulder (Back)", path: "M112,48 L138,48 L138,58 L112,62 Z" },
-    { id: "upper_back", label: "Upper Back", path: "M88,48 L112,48 L112,72 L88,72 Z" },
-    { id: "middle_back", label: "Middle Back", path: "M90,72 L110,72 L110,90 L90,90 Z" },
-    { id: "lower_back", label: "Lower Back", path: "M86,90 L114,90 L114,108 L86,108 Z" },
-    { id: "left_upper_arm_back", label: "Left Upper Arm (Back)", path: "M56,60 L66,58 L68,95 L58,95 Z" },
-    { id: "right_upper_arm_back", label: "Right Upper Arm (Back)", path: "M134,58 L144,60 L142,95 L132,95 Z" },
-    { id: "left_elbow_back", label: "Left Elbow (Back)", path: "M55,95 A8,8 0 1,1 71,95 A8,8 0 1,1 55,95 Z" },
-    { id: "right_elbow_back", label: "Right Elbow (Back)", path: "M129,95 A8,8 0 1,1 145,95 A8,8 0 1,1 129,95 Z" },
-    { id: "left_forearm_back", label: "Left Forearm (Back)", path: "M57,103 L67,103 L65,138 L55,138 Z" },
-    { id: "right_forearm_back", label: "Right Forearm (Back)", path: "M133,103 L143,103 L145,138 L135,138 Z" },
-    { id: "left_hand_back", label: "Left Hand (Back)", path: "M52,138 A10,10 0 1,1 68,138 A10,10 0 1,1 52,138 Z" },
-    { id: "right_hand_back", label: "Right Hand (Back)", path: "M132,138 A10,10 0 1,1 148,138 A10,10 0 1,1 132,138 Z" },
-    { id: "left_thigh_back", label: "Left Thigh (Back)", path: "M86,108 L98,108 L98,152 L86,152 Z" },
-    { id: "right_thigh_back", label: "Right Thigh (Back)", path: "M102,108 L114,108 L114,152 L102,152 Z" },
-    { id: "left_knee_back", label: "Left Knee (Back)", path: "M84,152 A9,9 0 1,1 100,152 A9,9 0 1,1 84,152 Z" },
-    { id: "right_knee_back", label: "Right Knee (Back)", path: "M100,152 A9,9 0 1,1 116,152 A9,9 0 1,1 100,152 Z" },
-    { id: "left_shin_back", label: "Left Shin (Back)", path: "M86,161 L98,161 L98,198 L86,198 Z" },
-    { id: "right_shin_back", label: "Right Shin (Back)", path: "M102,161 L114,161 L114,198 L102,198 Z" },
-    { id: "left_foot_back", label: "Left Foot (Back)", path: "M82,198 L98,198 L98,210 L82,210 Z" },
-    { id: "right_foot_back", label: "Right Foot (Back)", path: "M102,198 L118,198 L118,210 L102,210 Z" }
+    // Head - oval shape
+    { id: "head_back", label: "Head (Back)", path: "M100,8 C116,8 128,22 128,40 C128,58 116,70 100,70 C84,70 72,58 72,40 C72,22 84,8 100,8 Z" },
+    // Neck
+    { id: "neck_back", label: "Neck (Back)", path: "M92,68 C92,68 95,70 100,70 C105,70 108,68 108,68 L106,85 C106,85 103,86 100,86 C97,86 94,85 94,85 Z" },
+    // Shoulders
+    { id: "left_shoulder_back", label: "Left Shoulder (Back)", path: "M94,85 C82,85 65,88 58,95 C55,98 56,102 60,104 L72,100 C78,96 85,93 94,92 Z" },
+    { id: "right_shoulder_back", label: "Right Shoulder (Back)", path: "M106,85 C118,85 135,88 142,95 C145,98 144,102 140,104 L128,100 C122,96 115,93 106,92 Z" },
+    // Upper back
+    { id: "upper_back", label: "Upper Back", path: "M94,85 L106,85 C108,90 110,95 110,105 L90,105 C90,95 92,90 94,85 Z" },
+    // Middle back
+    { id: "middle_back", label: "Middle Back", path: "M90,105 L110,105 L108,130 C108,130 104,132 100,132 C96,132 92,130 92,130 Z" },
+    // Lower back
+    { id: "lower_back", label: "Lower Back", path: "M92,130 C90,130 82,132 80,140 C78,150 82,158 88,160 L100,158 L112,160 C118,158 122,150 120,140 C118,132 110,130 108,130 C104,132 100,132 100,132 C100,132 96,132 92,130 Z" },
+    // Left arm parts
+    { id: "left_upper_arm_back", label: "Left Upper Arm (Back)", path: "M60,104 C56,108 50,120 48,138 C47,145 50,148 54,148 L64,146 C66,142 68,130 70,118 C71,110 72,102 72,100 Z" },
+    { id: "left_elbow_back", label: "Left Elbow (Back)", path: "M48,138 C44,140 42,148 44,156 C46,162 52,164 58,162 L64,146 C58,146 52,144 48,138 Z" },
+    { id: "left_forearm_back", label: "Left Forearm (Back)", path: "M44,156 C40,168 36,185 34,200 C33,206 36,210 42,210 L54,206 C56,200 58,188 60,175 C61,166 60,160 58,162 Z" },
+    { id: "left_hand_back", label: "Left Hand (Back)", path: "M34,200 C30,205 28,215 30,224 C32,232 40,236 48,234 C56,232 58,224 56,216 C55,210 54,206 54,206 L42,210 C42,210 38,206 34,200 Z" },
+    // Right arm parts
+    { id: "right_upper_arm_back", label: "Right Upper Arm (Back)", path: "M140,104 C144,108 150,120 152,138 C153,145 150,148 146,148 L136,146 C134,142 132,130 130,118 C129,110 128,102 128,100 Z" },
+    { id: "right_elbow_back", label: "Right Elbow (Back)", path: "M152,138 C156,140 158,148 156,156 C154,162 148,164 142,162 L136,146 C142,146 148,144 152,138 Z" },
+    { id: "right_forearm_back", label: "Right Forearm (Back)", path: "M156,156 C160,168 164,185 166,200 C167,206 164,210 158,210 L146,206 C144,200 142,188 140,175 C139,166 140,160 142,162 Z" },
+    { id: "right_hand_back", label: "Right Hand (Back)", path: "M166,200 C170,205 172,215 170,224 C168,232 160,236 152,234 C144,232 142,224 144,216 C145,210 146,206 146,206 L158,210 C158,210 162,206 166,200 Z" },
+    // Legs
+    { id: "left_thigh_back", label: "Left Thigh (Back)", path: "M88,160 C82,165 78,180 78,200 C78,215 80,228 84,235 L96,235 C98,228 99,215 98,200 C97,180 96,165 100,158 Z" },
+    { id: "right_thigh_back", label: "Right Thigh (Back)", path: "M112,160 C118,165 122,180 122,200 C122,215 120,228 116,235 L104,235 C102,228 101,215 102,200 C103,180 104,165 100,158 Z" },
+    { id: "left_knee_back", label: "Left Knee (Back)", path: "M84,235 C80,238 78,245 78,252 C78,260 82,265 88,265 L96,264 C98,260 99,252 98,245 C97,240 96,236 96,235 Z" },
+    { id: "right_knee_back", label: "Right Knee (Back)", path: "M116,235 C120,238 122,245 122,252 C122,260 118,265 112,265 L104,264 C102,260 101,252 102,245 C103,240 104,236 104,235 Z" },
+    { id: "left_shin_back", label: "Left Shin (Back)", path: "M88,265 C84,270 82,290 82,310 C82,325 84,335 86,340 L94,340 C96,335 97,325 96,310 C95,290 96,270 96,264 Z" },
+    { id: "right_shin_back", label: "Right Shin (Back)", path: "M112,265 C116,270 118,290 118,310 C118,325 116,335 114,340 L106,340 C104,335 103,325 104,310 C105,290 104,270 104,264 Z" },
+    { id: "left_foot_back", label: "Left Foot (Back)", path: "M86,340 C82,342 78,348 76,355 C74,362 78,368 86,368 L96,366 C98,362 97,355 95,350 C94,346 94,342 94,340 Z" },
+    { id: "right_foot_back", label: "Right Foot (Back)", path: "M114,340 C118,342 122,348 124,355 C126,362 122,368 114,368 L104,366 C102,362 103,355 105,350 C106,346 106,342 106,340 Z" }
   ]
 };
 
@@ -87,8 +105,8 @@ export const BodyDiagramSelector = ({ selectedParts, onPartsChange }: BodyDiagra
     <div className="flex-1">
       <h3 className="text-base font-medium text-center mb-3 text-foreground">{title}</h3>
       <svg 
-        viewBox="0 0 200 220" 
-        className="w-full h-auto max-w-[200px] mx-auto"
+        viewBox="0 0 200 380" 
+        className="w-full h-auto max-w-[180px] mx-auto"
       >
         {bodyParts[view].map((part) => (
           <path
