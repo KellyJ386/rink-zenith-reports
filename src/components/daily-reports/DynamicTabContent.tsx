@@ -8,6 +8,9 @@ import { DailyReportTabWithRoles } from "@/types/dailyReport";
 import { useFormTemplates, FormTemplateField } from "@/hooks/useFormTemplates";
 import { Loader2 } from "lucide-react";
 import * as LucideIcons from "lucide-react";
+import { getChecklistForTab } from "@/data/dailyReportChecklists";
+import { SectionedChecklist } from "./SectionedChecklist";
+import { Progress } from "@/components/ui/progress";
 
 interface DynamicTabContentProps {
   tab: DailyReportTabWithRoles;
@@ -40,116 +43,6 @@ const getIcon = (iconName: string) => {
     'settings': LucideIcons.Settings,
   };
   return iconMap[iconName] || LucideIcons.FileText;
-};
-
-// Default checklist items for each tab type
-const getDefaultChecklist = (tabKey: string): string[] => {
-  const checklists: Record<string, string[]> = {
-    front_desk: [
-      'Phone system checked and working',
-      'Cash drawer counted and verified',
-      'Reservations reviewed for the day',
-      'Customer inquiries addressed',
-      'Lost and found items logged',
-    ],
-    custodial: [
-      'Restrooms cleaned and stocked',
-      'Lobby/common areas cleaned',
-      'Trash emptied throughout facility',
-      'Floors mopped/vacuumed',
-      'Windows and glass cleaned',
-    ],
-    pro_shop: [
-      'Inventory check completed',
-      'Display areas organized',
-      'Sales transactions recorded',
-      'Equipment rentals logged',
-      'Special orders processed',
-    ],
-    concessions: [
-      'Opening inventory count',
-      'Food safety temps recorded',
-      'Equipment cleaned and sanitized',
-      'Sales recorded',
-      'Closing inventory count',
-    ],
-    learn_to_skate: [
-      'Class attendance recorded',
-      'Equipment inspected',
-      'Instructor assignments confirmed',
-      'Parent communications sent',
-      'Progress reports updated',
-    ],
-    public_sessions: [
-      'Session attendance tracked',
-      'Skate rental counts recorded',
-      'Ice conditions monitored',
-      'Safety announcements made',
-      'Capacity limits maintained',
-    ],
-    safety_emergency: [
-      'First aid kit inventory checked',
-      'AED checked and operational',
-      'Emergency exits clear',
-      'Incident reports filed',
-      'Safety equipment inspected',
-    ],
-    general_facility: [
-      'Building walkthrough completed',
-      'Lighting checked',
-      'Temperature comfortable',
-      'Signage in place',
-      'General maintenance issues noted',
-    ],
-    locker_rooms: [
-      'Cleaned and sanitized',
-      'Showers functioning',
-      'Lockers secured',
-      'Supplies stocked',
-      'Drains clear',
-    ],
-    parking_exterior: [
-      'Parking lot inspected',
-      'Exterior lighting working',
-      'Signage visible',
-      'Walkways clear',
-      'Snow/ice removal (if needed)',
-    ],
-    hvac_building: [
-      'Temperature readings recorded',
-      'HVAC system functioning',
-      'Air quality acceptable',
-      'Unusual sounds/odors reported',
-      'Dehumidifier status checked',
-    ],
-    event_setup: [
-      'Event schedule confirmed',
-      'Setup requirements reviewed',
-      'Equipment positioned',
-      'Staffing confirmed',
-      'Cleanup plan in place',
-    ],
-    rental_equipment: [
-      'Skates inspected and sanitized',
-      'Helmets cleaned',
-      'Equipment inventory counted',
-      'Damaged items reported',
-      'Sizing labels verified',
-    ],
-    skating_aids: [
-      'Skating aids inspected',
-      'Cleaned and sanitized',
-      'Count verified',
-      'Damaged units removed',
-      'Storage organized',
-    ],
-    custom: [
-      'Custom item 1',
-      'Custom item 2',
-      'Custom item 3',
-    ],
-  };
-  return checklists[tabKey] || ['No checklist items defined'];
 };
 
 // Render a single form field based on its type
@@ -288,12 +181,12 @@ export function DynamicTabContent({ tab, formData, onFormDataChange }: DynamicTa
     ? formTemplates.find(t => t.id === tab.form_template_id)
     : null;
 
-  const updateChecklist = (item: string, checked: boolean) => {
+  const updateChecklist = (itemKey: string, checked: boolean) => {
     onFormDataChange(tab.id, {
       ...tabFormData,
       checklist: {
         ...tabFormData.checklist,
-        [item]: checked,
+        [itemKey]: checked,
       },
     });
   };
@@ -384,10 +277,15 @@ export function DynamicTabContent({ tab, formData, onFormDataChange }: DynamicTa
     );
   }
 
-  // Default checklist rendering
-  const checklist = getDefaultChecklist(tab.tab_key);
-  const completedCount = Object.values(tabFormData.checklist || {}).filter(Boolean).length;
-  const totalCount = checklist.length;
+  // Comprehensive sectioned checklist rendering
+  const sections = getChecklistForTab(tab.tab_key);
+  
+  // Calculate overall completion
+  const totalItems = sections.reduce((sum, section) => sum + section.items.length, 0);
+  const completedItems = sections.reduce((sum, section) => {
+    return sum + section.items.filter(item => tabFormData.checklist?.[`${section.id}-${item.id}`]).length;
+  }, 0);
+  const completionPercent = totalItems > 0 ? (completedItems / totalItems) * 100 : 0;
 
   return (
     <div className="space-y-4">
@@ -397,35 +295,27 @@ export function DynamicTabContent({ tab, formData, onFormDataChange }: DynamicTa
             <div className="p-2 rounded-lg bg-primary/10">
               <IconComponent className="h-5 w-5 text-primary" />
             </div>
-            <div>
+            <div className="flex-1">
               <CardTitle className="text-lg">{tab.tab_name}</CardTitle>
-              <CardDescription>
-                {completedCount}/{totalCount} items completed
+              <CardDescription className="flex items-center gap-3">
+                <span>{completedItems}/{totalItems} items completed</span>
                 {tab.is_required && (
-                  <span className="ml-2 text-destructive text-xs font-medium">Required</span>
+                  <span className="text-destructive text-xs font-medium">Required</span>
                 )}
               </CardDescription>
             </div>
           </div>
+          {/* Overall progress bar */}
+          <div className="pt-2">
+            <Progress value={completionPercent} className="h-2" />
+          </div>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="space-y-3">
-            {checklist.map((item, index) => (
-              <div key={index} className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 transition-colors">
-                <Checkbox
-                  id={`${tab.id}-${index}`}
-                  checked={tabFormData.checklist?.[item] || false}
-                  onCheckedChange={(checked) => updateChecklist(item, checked as boolean)}
-                />
-                <Label
-                  htmlFor={`${tab.id}-${index}`}
-                  className={`flex-1 cursor-pointer ${tabFormData.checklist?.[item] ? 'line-through text-muted-foreground' : ''}`}
-                >
-                  {item}
-                </Label>
-              </div>
-            ))}
-          </div>
+          <SectionedChecklist
+            sections={sections}
+            checklist={tabFormData.checklist || {}}
+            onChecklistChange={updateChecklist}
+          />
 
           <div className="pt-4 border-t">
             <Label htmlFor={`${tab.id}-notes`} className="text-sm font-medium">
