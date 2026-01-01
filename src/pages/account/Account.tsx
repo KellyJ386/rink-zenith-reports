@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAccountContext } from "@/hooks/useAccountContext";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { Snowflake, Users, Settings, LayoutDashboard, ArrowLeft, Building2 } from "lucide-react";
+import { Snowflake, Users, Settings, LayoutDashboard, ArrowLeft, Building2, Shield } from "lucide-react";
 import { cn } from "@/lib/utils";
 import maxFacilityLogo from "@/assets/max-facility-logo.png";
 
@@ -47,6 +47,7 @@ const Account = () => {
   const navItems = [
     { label: "Dashboard", path: "/account", icon: LayoutDashboard },
     { label: "Users", path: "/account/users", icon: Users },
+    { label: "Permissions", path: "/account/permissions", icon: Shield },
     { label: "Settings", path: "/account/settings", icon: Settings },
   ];
 
