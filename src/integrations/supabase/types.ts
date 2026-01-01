@@ -773,8 +773,11 @@ export type Database = {
           id: string
           latitude: number | null
           longitude: number | null
+          max_users: number | null
           name: string
+          owner_user_id: string | null
           phone: string | null
+          plan_type: string | null
           season_end: string | null
           season_start: string | null
           timezone: string | null
@@ -789,8 +792,11 @@ export type Database = {
           id?: string
           latitude?: number | null
           longitude?: number | null
+          max_users?: number | null
           name: string
+          owner_user_id?: string | null
           phone?: string | null
+          plan_type?: string | null
           season_end?: string | null
           season_start?: string | null
           timezone?: string | null
@@ -805,8 +811,11 @@ export type Database = {
           id?: string
           latitude?: number | null
           longitude?: number | null
+          max_users?: number | null
           name?: string
+          owner_user_id?: string | null
           phone?: string | null
+          plan_type?: string | null
           season_end?: string | null
           season_start?: string | null
           timezone?: string | null
@@ -2284,9 +2293,13 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_facility_owner: {
+        Args: { _facility_id: string; _user_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
-      app_role: "admin" | "manager" | "staff"
+      app_role: "admin" | "manager" | "staff" | "account_owner"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -2414,7 +2427,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "manager", "staff"],
+      app_role: ["admin", "manager", "staff", "account_owner"],
     },
   },
 } as const
