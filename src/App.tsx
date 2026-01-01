@@ -11,6 +11,7 @@ import Dashboard from "./pages/Dashboard";
 import Account from "./pages/account/Account";
 import AccountDashboard from "./pages/account/AccountDashboard";
 import AccountUserManagement from "./pages/account/AccountUserManagement";
+import AccountPermissions from "./pages/account/AccountPermissions";
 import AccountSettings from "./pages/account/AccountSettings";
 import IceDepthLog from "./pages/IceDepthLog";
 import IceMaintenance from "./pages/IceMaintenance";
@@ -26,6 +27,7 @@ import Admin from "./pages/Admin";
 import AdminFormConfig from "./pages/AdminFormConfig";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import FacilitySettings from "./pages/admin/FacilitySettings";
+import AdminFacilityManagement from "./pages/admin/AdminFacilityManagement";
 import UserManagement from "./pages/admin/UserManagement";
 import ModuleAdministration from "./pages/admin/ModuleAdministration";
 import CustomTemplateManager from "./pages/admin/CustomTemplateManager";
@@ -83,6 +85,7 @@ const App = () => (
             <Route path="/admin" element={<Admin />}>
               <Route index element={<AdminDashboard />} />
               <Route path="facility" element={<FacilitySettings />} />
+              <Route path="facilities" element={<AdminFacilityManagement />} />
               <Route path="users" element={<UserManagement />} />
               <Route path="reports" element={<AdminFormConfig />} />
               <Route path="form-config" element={<AdminFormConfig />} />
@@ -98,6 +101,7 @@ const App = () => (
             <Route path="/account" element={<Account />}>
               <Route index element={<AccountDashboard />} />
               <Route path="users" element={<AccountUserManagement />} />
+              <Route path="permissions" element={<AccountPermissions />} />
               <Route path="settings" element={<AccountSettings />} />
             </Route>
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
