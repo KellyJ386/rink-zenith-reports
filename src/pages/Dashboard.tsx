@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { NotificationCenter } from "@/components/dashboard/NotificationCenter";
 import { DashboardAnalytics } from "@/components/dashboard/DashboardAnalytics";
+import { useAccountContext } from "@/hooks/useAccountContext";
 import maxFacilityLogo from "@/assets/max-facility-logo.png";
 import {
   Snowflake,
@@ -25,6 +26,7 @@ import {
   FileText,
   BarChart3,
   LayoutDashboard,
+  Building2,
 } from "lucide-react";
 
 const Dashboard = () => {
@@ -33,6 +35,7 @@ const Dashboard = () => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("modules");
+  const { isAccountOwner, isAdmin } = useAccountContext();
 
   useEffect(() => {
     const checkUser = async () => {
@@ -168,6 +171,12 @@ const Dashboard = () => {
             <div className="flex items-center gap-2">
               <NotificationCenter />
               <ThemeToggle />
+              {(isAccountOwner || isAdmin) && (
+                <Button variant="outline" onClick={() => navigate("/account")}>
+                  <Building2 className="h-4 w-4 mr-2" />
+                  My Account
+                </Button>
+              )}
               <Button variant="outline" onClick={() => navigate("/admin")}>
                 <Settings className="h-4 w-4 mr-2" />
                 Admin

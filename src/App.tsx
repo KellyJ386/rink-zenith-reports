@@ -8,6 +8,10 @@ import { EmailChangePrompt } from "@/components/EmailChangePrompt";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
+import Account from "./pages/account/Account";
+import AccountDashboard from "./pages/account/AccountDashboard";
+import AccountUserManagement from "./pages/account/AccountUserManagement";
+import AccountSettings from "./pages/account/AccountSettings";
 import IceDepthLog from "./pages/IceDepthLog";
 import IceMaintenance from "./pages/IceMaintenance";
 import RefrigerationLog from "./pages/RefrigerationLog";
@@ -90,6 +94,11 @@ const App = () => (
               <Route path="ice-depth-settings" element={<IceDepthSettings />} />
               <Route path="audit" element={<AuditLog />} />
               <Route path="daily-report-tabs" element={<DailyReportTabConfig />} />
+            </Route>
+            <Route path="/account" element={<Account />}>
+              <Route index element={<AccountDashboard />} />
+              <Route path="users" element={<AccountUserManagement />} />
+              <Route path="settings" element={<AccountSettings />} />
             </Route>
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
