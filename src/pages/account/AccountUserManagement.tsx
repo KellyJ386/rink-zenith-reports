@@ -3,15 +3,18 @@ import { useAccountContext } from "@/hooks/useAccountContext";
 import { supabase } from "@/integrations/supabase/client";
 import { UserLimitIndicator } from "@/components/account/UserLimitIndicator";
 import { InviteUserModal } from "@/components/account/InviteUserModal";
+import { EditUserModal } from "@/components/account/EditUserModal";
+import { ChangeRoleModal } from "@/components/account/ChangeRoleModal";
+import { UserStatusActions } from "@/components/account/UserStatusActions";
+import { AccountActivityLog } from "@/components/account/AccountActivityLog";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { UserPlus, Search, MoreHorizontal, Shield, UserX, Mail } from "lucide-react";
+import { UserPlus, Search, Users, UserCheck, Ban, UserX } from "lucide-react";
 
 interface FacilityUser {
   id: string;
@@ -29,8 +32,10 @@ const AccountUserManagement = () => {
   const [users, setUsers] = useState<FacilityUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
   const [inviteModalOpen, setInviteModalOpen] = useState(false);
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [roleModalOpen, setRoleModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<FacilityUser | null>(null);
 
   const maxUsers = facility?.max_users || 200;
@@ -48,7 +53,6 @@ const AccountUserManagement = () => {
 
       if (error) throw error;
 
-      // Fetch roles for each user
       const usersWithRoles = await Promise.all(
         (profilesData || []).map(async (profile) => {
           const { data: roleData } = await supabase
@@ -86,64 +90,24 @@ const AccountUserManagement = () => {
     refetch();
   };
 
-  const handleDeleteUser = async () => {
-    if (!selectedUser) return;
-
-    // Prevent deleting yourself
-    if (selectedUser.user_id === user?.id) {
-      toast({
-        title: "Cannot Remove",
-        description: "You cannot remove yourself from the account.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    try {
-      // Soft delete by updating account status
-      const { error } = await supabase
-        .from("profiles")
-        .update({ account_status: "terminated" })
-        .eq("id", selectedUser.id);
-
-      if (error) throw error;
-
-      toast({
-        title: "User Removed",
-        description: `${selectedUser.name} has been removed from the account.`,
-      });
-
-      loadUsers();
-      refetch();
-    } catch (error: any) {
-      console.error("Error removing user:", error);
-      toast({
-        title: "Error",
-        description: error.message || "Failed to remove user",
-        variant: "destructive",
-      });
-    } finally {
-      setDeleteDialogOpen(false);
-      setSelectedUser(null);
-    }
-  };
-
-  const filteredUsers = users.filter(
-    (u) =>
+  const filteredUsers = users.filter((u) => {
+    const matchesSearch =
       u.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      u.job_title?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+      u.job_title?.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesStatus = statusFilter === "all" || u.account_status === statusFilter;
+    return matchesSearch && matchesStatus;
+  });
 
   const getStatusBadge = (status: string | null) => {
     switch (status) {
       case "active":
-        return <Badge variant="default" className="bg-green-500">Active</Badge>;
+        return <Badge className="bg-green-500/10 text-green-600 border-green-500/20">Active</Badge>;
       case "invited":
         return <Badge variant="secondary">Invited</Badge>;
       case "suspended":
         return <Badge variant="destructive">Suspended</Badge>;
       case "terminated":
-        return <Badge variant="outline">Terminated</Badge>;
+        return <Badge variant="outline" className="text-muted-foreground">Terminated</Badge>;
       default:
         return <Badge variant="outline">{status || "Unknown"}</Badge>;
     }
@@ -152,9 +116,9 @@ const AccountUserManagement = () => {
   const getRoleBadge = (role: string) => {
     switch (role) {
       case "account_owner":
-        return <Badge variant="default">Owner</Badge>;
+        return <Badge className="bg-primary/10 text-primary border-primary/20">Owner</Badge>;
       case "admin":
-        return <Badge className="bg-purple-500">Admin</Badge>;
+        return <Badge className="bg-purple-500/10 text-purple-600 border-purple-500/20">Admin</Badge>;
       case "manager":
         return <Badge variant="secondary">Manager</Badge>;
       default:
@@ -162,14 +126,17 @@ const AccountUserManagement = () => {
     }
   };
 
+  // Calculate stats
+  const activeCount = users.filter((u) => u.account_status === "active").length;
+  const suspendedCount = users.filter((u) => u.account_status === "suspended").length;
+  const terminatedCount = users.filter((u) => u.account_status === "terminated").length;
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-3xl font-bold">Team Members</h2>
-          <p className="text-muted-foreground">
-            Manage users in your facility
-          </p>
+          <p className="text-muted-foreground">Manage users in your facility</p>
         </div>
         <Button onClick={() => setInviteModalOpen(true)}>
           <UserPlus className="h-4 w-4 mr-2" />
@@ -177,94 +144,157 @@ const AccountUserManagement = () => {
         </Button>
       </div>
 
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-primary/10">
+                <Users className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold">{users.length}</p>
+                <p className="text-sm text-muted-foreground">Total Users</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-green-500/10">
+                <UserCheck className="h-5 w-5 text-green-600" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold">{activeCount}</p>
+                <p className="text-sm text-muted-foreground">Active</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-orange-500/10">
+                <Ban className="h-5 w-5 text-orange-600" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold">{suspendedCount}</p>
+                <p className="text-sm text-muted-foreground">Suspended</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-muted">
+                <UserX className="h-5 w-5 text-muted-foreground" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold">{terminatedCount}</p>
+                <p className="text-sm text-muted-foreground">Terminated</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
       <UserLimitIndicator currentUsers={userCount} maxUsers={maxUsers} />
 
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle>All Users</CardTitle>
-              <CardDescription>
-                {filteredUsers.length} of {users.length} users shown
-              </CardDescription>
-            </div>
-            <div className="relative w-64">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search users..."
-                className="pl-10"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          {loading ? (
-            <div className="text-center py-8 text-muted-foreground">Loading users...</div>
-          ) : filteredUsers.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              {searchQuery ? "No users match your search" : "No users found"}
-            </div>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Job Title</TableHead>
-                  <TableHead>Role</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Joined</TableHead>
-                  <TableHead className="w-[50px]"></TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredUsers.map((u) => (
-                  <TableRow key={u.id}>
-                    <TableCell className="font-medium">{u.name}</TableCell>
-                    <TableCell>{u.job_title || "--"}</TableCell>
-                    <TableCell>{getRoleBadge(u.role || "staff")}</TableCell>
-                    <TableCell>{getStatusBadge(u.account_status)}</TableCell>
-                    <TableCell className="text-muted-foreground">
-                      {new Date(u.created_at).toLocaleDateString()}
-                    </TableCell>
-                    <TableCell>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon">
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem>
-                            <Shield className="h-4 w-4 mr-2" />
-                            Change Role
-                          </DropdownMenuItem>
-                          <DropdownMenuItem>
-                            <Mail className="h-4 w-4 mr-2" />
-                            Resend Invite
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            className="text-destructive"
-                            onClick={() => {
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2">
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between flex-wrap gap-4">
+                <div>
+                  <CardTitle>All Users</CardTitle>
+                  <CardDescription>
+                    {filteredUsers.length} of {users.length} users shown
+                  </CardDescription>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Select value={statusFilter} onValueChange={setStatusFilter}>
+                    <SelectTrigger className="w-[130px]">
+                      <SelectValue placeholder="Status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Status</SelectItem>
+                      <SelectItem value="active">Active</SelectItem>
+                      <SelectItem value="invited">Invited</SelectItem>
+                      <SelectItem value="suspended">Suspended</SelectItem>
+                      <SelectItem value="terminated">Terminated</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <div className="relative w-64">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder="Search users..."
+                      className="pl-10"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                    />
+                  </div>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {loading ? (
+                <div className="text-center py-8 text-muted-foreground">Loading users...</div>
+              ) : filteredUsers.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  {searchQuery || statusFilter !== "all" ? "No users match your filters" : "No users found"}
+                </div>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Name</TableHead>
+                      <TableHead>Job Title</TableHead>
+                      <TableHead>Role</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Joined</TableHead>
+                      <TableHead className="w-[50px]"></TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredUsers.map((u) => (
+                      <TableRow key={u.id}>
+                        <TableCell className="font-medium">{u.name}</TableCell>
+                        <TableCell>{u.job_title || "--"}</TableCell>
+                        <TableCell>{getRoleBadge(u.role || "staff")}</TableCell>
+                        <TableCell>{getStatusBadge(u.account_status)}</TableCell>
+                        <TableCell className="text-muted-foreground">
+                          {new Date(u.created_at).toLocaleDateString()}
+                        </TableCell>
+                        <TableCell>
+                          <UserStatusActions
+                            user={u}
+                            currentUserId={user?.id || ""}
+                            onEdit={() => {
                               setSelectedUser(u);
-                              setDeleteDialogOpen(true);
+                              setEditModalOpen(true);
                             }}
-                            disabled={u.user_id === user?.id}
-                          >
-                            <UserX className="h-4 w-4 mr-2" />
-                            Remove User
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
-        </CardContent>
-      </Card>
+                            onChangeRole={() => {
+                              setSelectedUser(u);
+                              setRoleModalOpen(true);
+                            }}
+                            onStatusChanged={loadUsers}
+                          />
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="lg:col-span-1">
+          <AccountActivityLog facilityId={facility?.id || ""} />
+        </div>
+      </div>
 
       <InviteUserModal
         open={inviteModalOpen}
@@ -276,23 +306,27 @@ const AccountUserManagement = () => {
         onUserAdded={handleUserAdded}
       />
 
-      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Remove User</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to remove {selectedUser?.name} from your account? 
-              They will no longer have access to your facility.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeleteUser} className="bg-destructive text-destructive-foreground">
-              Remove User
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <EditUserModal
+        open={editModalOpen}
+        onOpenChange={setEditModalOpen}
+        user={selectedUser}
+        onUserUpdated={() => {
+          loadUsers();
+          refetch();
+        }}
+      />
+
+      <ChangeRoleModal
+        open={roleModalOpen}
+        onOpenChange={setRoleModalOpen}
+        userId={selectedUser?.user_id || ""}
+        userName={selectedUser?.name || ""}
+        currentRole={selectedUser?.role || "staff"}
+        onSaved={() => {
+          loadUsers();
+          refetch();
+        }}
+      />
     </div>
   );
 };
