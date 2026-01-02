@@ -359,25 +359,39 @@ const USAHockeyRink: React.FC<USAHockeyRinkProps> = ({
           const point = points.find(p => p.id === editingPointId);
           if (!point) return null;
           
-          // Calculate the rotated position for the input
-          // The SVG viewBox is rotated, so we need to transform coordinates
+          // Convert point percentages to SVG coordinates (before rotation)
           const svgX = (point.x / 100) * rinkLength;
           const svgY = (point.y / 100) * rinkWidth;
           
-          // After 90-degree rotation around (rinkWidth/2, rinkWidth/2):
-          // newX = rinkWidth/2 + (svgY - rinkWidth/2)
-          // newY = rinkWidth/2 - (svgX - rinkWidth/2)
-          const rotatedX = rinkWidth / 2 + (svgY - rinkWidth / 2);
-          const rotatedY = rinkWidth / 2 - (svgX - rinkWidth / 2) + rinkLength / 2 - rinkWidth / 2;
+          // Correct transformation for 90-degree clockwise rotation around center (rinkWidth/2, rinkWidth/2)
+          // For rotate(90, cx, cy): newX = cx + (oldY - cy), newY = cy - (oldX - cx)
+          // But viewBox is 0,0,rinkWidth,rinkLength so we also offset for the vertical centering
+          const overlayX = rinkWidth - svgY;
+          const overlayY = svgX;
+          
+          // Input dimensions and positioning
+          const INPUT_W = 70;
+          const INPUT_H = 40;
+          const GAP_ABOVE = 8;
+          
+          // Position input above the point
+          let inputX = overlayX - INPUT_W / 2;
+          let inputY = overlayY - INPUT_H - GAP_ABOVE;
+          
+          // Clamp to keep within viewBox bounds
+          inputX = Math.max(2, Math.min(inputX, rinkWidth - INPUT_W - 2));
+          if (inputY < 2) {
+            // If too close to top, place below the point instead
+            inputY = overlayY + 12;
+          }
           
           return (
             <g>
-              {/* Input box positioned above the point */}
               <foreignObject
-                x={rotatedX - 35}
-                y={rotatedY - 50}
-                width={70}
-                height={36}
+                x={inputX}
+                y={inputY}
+                width={INPUT_W}
+                height={INPUT_H}
               >
                 <div className="flex flex-col items-center">
                   <input
