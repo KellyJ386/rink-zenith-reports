@@ -3,10 +3,11 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Printer, FileText, Mail, Loader2 } from "lucide-react";
+import { Printer, FileText, Mail, Loader2, Download } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
+import html2pdf from "html2pdf.js";
 
 interface IceDepthReportExportProps {
   measurement: {
@@ -30,6 +31,7 @@ export const IceDepthReportExport = ({ measurement }: IceDepthReportExportProps)
   const [emailDialogOpen, setEmailDialogOpen] = useState(false);
   const [emailAddress, setEmailAddress] = useState("");
   const [sending, setSending] = useState(false);
+  const [generatingPdf, setGeneratingPdf] = useState(false);
   const printRef = useRef<HTMLDivElement>(null);
 
   const generateReportHTML = () => {
@@ -162,22 +164,33 @@ export const IceDepthReportExport = ({ measurement }: IceDepthReportExportProps)
   };
 
   const handleDownloadPDF = async () => {
-    // Create a printable HTML and use browser print-to-PDF
-    const printWindow = window.open('', '_blank');
-    if (!printWindow) {
-      toast.error("Please allow popups to download the PDF");
-      return;
+    setGeneratingPdf(true);
+    try {
+      const container = document.createElement('div');
+      container.innerHTML = generateReportHTML();
+      document.body.appendChild(container);
+
+      const filename = `ice-depth-report-${measurement.facilities?.name || 'facility'}-${format(new Date(measurement.measurement_date), "yyyy-MM-dd")}.pdf`;
+
+      await html2pdf()
+        .set({
+          margin: 10,
+          filename: filename,
+          image: { type: 'jpeg', quality: 0.98 },
+          html2canvas: { scale: 2 },
+          jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        })
+        .from(container.querySelector('body') || container)
+        .save();
+
+      document.body.removeChild(container);
+      toast.success("PDF downloaded successfully");
+    } catch (error) {
+      console.error("PDF generation error:", error);
+      toast.error("Failed to generate PDF");
+    } finally {
+      setGeneratingPdf(false);
     }
-    
-    const htmlContent = generateReportHTML();
-    printWindow.document.write(htmlContent);
-    printWindow.document.close();
-    
-    toast.info("Use your browser's 'Save as PDF' option in the print dialog");
-    
-    printWindow.onload = () => {
-      printWindow.print();
-    };
   };
 
   const handleSendEmail = async () => {
@@ -216,9 +229,18 @@ export const IceDepthReportExport = ({ measurement }: IceDepthReportExportProps)
           <Printer className="h-4 w-4 mr-2" />
           Print
         </Button>
-        <Button variant="outline" size="sm" onClick={handleDownloadPDF}>
-          <FileText className="h-4 w-4 mr-2" />
-          Save as PDF
+        <Button variant="outline" size="sm" onClick={handleDownloadPDF} disabled={generatingPdf}>
+          {generatingPdf ? (
+            <>
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              Generating...
+            </>
+          ) : (
+            <>
+              <Download className="h-4 w-4 mr-2" />
+              Export PDF
+            </>
+          )}
         </Button>
         <Button variant="outline" size="sm" onClick={() => setEmailDialogOpen(true)}>
           <Mail className="h-4 w-4 mr-2" />
