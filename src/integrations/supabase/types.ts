@@ -824,6 +824,62 @@ export type Database = {
         }
         Relationships: []
       }
+      facility_subscriptions: {
+        Row: {
+          billing_cycle: string | null
+          cancelled_at: string | null
+          created_at: string | null
+          current_period_end: string | null
+          current_period_start: string | null
+          facility_id: string | null
+          id: string
+          plan_type: string
+          status: string
+          stripe_customer_id: string | null
+          stripe_subscription_id: string | null
+          trial_ends_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          billing_cycle?: string | null
+          cancelled_at?: string | null
+          created_at?: string | null
+          current_period_end?: string | null
+          current_period_start?: string | null
+          facility_id?: string | null
+          id?: string
+          plan_type?: string
+          status?: string
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          trial_ends_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          billing_cycle?: string | null
+          cancelled_at?: string | null
+          created_at?: string | null
+          current_period_end?: string | null
+          current_period_start?: string | null
+          facility_id?: string | null
+          id?: string
+          plan_type?: string
+          status?: string
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          trial_ends_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "facility_subscriptions_facility_id_fkey"
+            columns: ["facility_id"]
+            isOneToOne: true
+            referencedRelation: "facilities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       form_configurations: {
         Row: {
           conditional_logic: Json | null
@@ -1361,6 +1417,53 @@ export type Database = {
           },
         ]
       }
+      notification_preferences: {
+        Row: {
+          created_at: string | null
+          email: boolean | null
+          email_digest: string | null
+          facility_id: string | null
+          id: string
+          in_app: boolean | null
+          notification_type: string
+          push: boolean | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          email?: boolean | null
+          email_digest?: string | null
+          facility_id?: string | null
+          id?: string
+          in_app?: boolean | null
+          notification_type: string
+          push?: boolean | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          email?: boolean | null
+          email_digest?: string | null
+          facility_id?: string | null
+          id?: string
+          in_app?: boolean | null
+          notification_type?: string
+          push?: boolean | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_preferences_facility_id_fkey"
+            columns: ["facility_id"]
+            isOneToOne: false
+            referencedRelation: "facilities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notification_recipients: {
         Row: {
           created_at: string
@@ -1395,6 +1498,62 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "notification_recipients_facility_id_fkey"
+            columns: ["facility_id"]
+            isOneToOne: false
+            referencedRelation: "facilities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notifications: {
+        Row: {
+          created_at: string | null
+          data: Json | null
+          expires_at: string | null
+          facility_id: string | null
+          id: string
+          link: string | null
+          message: string
+          priority: string | null
+          read: boolean | null
+          read_at: string | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          data?: Json | null
+          expires_at?: string | null
+          facility_id?: string | null
+          id?: string
+          link?: string | null
+          message: string
+          priority?: string | null
+          read?: boolean | null
+          read_at?: string | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          data?: Json | null
+          expires_at?: string | null
+          facility_id?: string | null
+          id?: string
+          link?: string | null
+          message?: string
+          priority?: string | null
+          read?: boolean | null
+          read_at?: string | null
+          title?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_facility_id_fkey"
             columns: ["facility_id"]
             isOneToOne: false
             referencedRelation: "facilities"
@@ -2122,6 +2281,111 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      subscription_invoices: {
+        Row: {
+          amount_cents: number
+          created_at: string | null
+          currency: string | null
+          description: string | null
+          due_date: string | null
+          facility_id: string | null
+          id: string
+          invoice_date: string
+          invoice_number: string
+          paid_at: string | null
+          status: string
+          stripe_invoice_id: string | null
+          subscription_id: string | null
+        }
+        Insert: {
+          amount_cents: number
+          created_at?: string | null
+          currency?: string | null
+          description?: string | null
+          due_date?: string | null
+          facility_id?: string | null
+          id?: string
+          invoice_date: string
+          invoice_number: string
+          paid_at?: string | null
+          status: string
+          stripe_invoice_id?: string | null
+          subscription_id?: string | null
+        }
+        Update: {
+          amount_cents?: number
+          created_at?: string | null
+          currency?: string | null
+          description?: string | null
+          due_date?: string | null
+          facility_id?: string | null
+          id?: string
+          invoice_date?: string
+          invoice_number?: string
+          paid_at?: string | null
+          status?: string
+          stripe_invoice_id?: string | null
+          subscription_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscription_invoices_facility_id_fkey"
+            columns: ["facility_id"]
+            isOneToOne: false
+            referencedRelation: "facilities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "subscription_invoices_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: false
+            referencedRelation: "facility_subscriptions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      subscription_plans: {
+        Row: {
+          annual_price_cents: number | null
+          created_at: string | null
+          description: string | null
+          display_order: number | null
+          features: Json | null
+          id: string
+          is_active: boolean | null
+          max_users: number
+          monthly_price_cents: number | null
+          name: string
+          plan_key: string
+        }
+        Insert: {
+          annual_price_cents?: number | null
+          created_at?: string | null
+          description?: string | null
+          display_order?: number | null
+          features?: Json | null
+          id?: string
+          is_active?: boolean | null
+          max_users: number
+          monthly_price_cents?: number | null
+          name: string
+          plan_key: string
+        }
+        Update: {
+          annual_price_cents?: number | null
+          created_at?: string | null
+          description?: string | null
+          display_order?: number | null
+          features?: Json | null
+          id?: string
+          is_active?: boolean | null
+          max_users?: number
+          monthly_price_cents?: number | null
+          name?: string
+          plan_key?: string
+        }
+        Relationships: []
       }
       task_categories: {
         Row: {
