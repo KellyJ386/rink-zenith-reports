@@ -8,3 +8,6 @@ verify_jwt = false
 
 [functions.create-notification]
 verify_jwt = false
+
+[functions.send-ice-depth-report]
+verify_jwt = false
