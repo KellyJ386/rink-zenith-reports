@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { Eye, TrendingDown, TrendingUp } from "lucide-react";
+import { IceDepthReportExport } from "./IceDepthReportExport";
 
 export const IceDepthHistory = () => {
   const { toast } = useToast();
@@ -143,6 +144,9 @@ export const IceDepthHistory = () => {
           </DialogHeader>
           {selectedMeasurement && (
             <div className="space-y-4">
+              {/* Export actions */}
+              <IceDepthReportExport measurement={selectedMeasurement} />
+
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <p className="text-sm text-muted-foreground">Facility</p>
