@@ -13,6 +13,8 @@ import AccountDashboard from "./pages/account/AccountDashboard";
 import AccountUserManagement from "./pages/account/AccountUserManagement";
 import AccountPermissions from "./pages/account/AccountPermissions";
 import AccountSettings from "./pages/account/AccountSettings";
+import AccountBilling from "./pages/account/AccountBilling";
+import NotificationSettings from "./pages/account/NotificationSettings";
 import IceDepthLog from "./pages/IceDepthLog";
 import IceMaintenance from "./pages/IceMaintenance";
 import RefrigerationLog from "./pages/RefrigerationLog";
@@ -102,6 +104,8 @@ const App = () => (
               <Route index element={<AccountDashboard />} />
               <Route path="users" element={<AccountUserManagement />} />
               <Route path="permissions" element={<AccountPermissions />} />
+              <Route path="billing" element={<AccountBilling />} />
+              <Route path="notifications" element={<NotificationSettings />} />
               <Route path="settings" element={<AccountSettings />} />
             </Route>
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
