@@ -138,12 +138,26 @@ const USAHockeyRink: React.FC<USAHockeyRinkProps> = ({
     if (editingPointId && editValue) {
       const numValue = parseFloat(editValue);
       if (!isNaN(numValue) && numValue > 0) {
-        // Value is in display unit, convert to mm for storage
-        const mmValue = unit === "in" ? numValue * 25.4 : numValue;
-        onMeasurementChange?.(editingPointId, numValue); // Pass display unit value
-        setPendingAutoAdvance(true);
+        onMeasurementChange?.(editingPointId, numValue);
+        
+        // Find next unfilled point and auto-open its input
+        const currentMeasurements = { ...measurements, [`Point ${editingPointId}`]: numValue };
+        let nextPoint = editingPointId + 1;
+        
+        while (nextPoint <= points.length) {
+          const nextKey = `Point ${nextPoint}`;
+          if (!currentMeasurements[nextKey] || currentMeasurements[nextKey] === 0) {
+            // Auto-open next input
+            setEditingPointId(nextPoint);
+            setEditValue("");
+            onPointClick?.(nextPoint);
+            return;
+          }
+          nextPoint++;
+        }
       }
     }
+    // Only close if no next point to advance to
     setEditingPointId(null);
     setEditValue("");
   };
@@ -357,27 +371,32 @@ const USAHockeyRink: React.FC<USAHockeyRinkProps> = ({
           const rotatedY = rinkWidth / 2 - (svgX - rinkWidth / 2) + rinkLength / 2 - rinkWidth / 2;
           
           return (
-            <foreignObject
-              x={rotatedX - 35}
-              y={rotatedY - 16}
-              width={70}
-              height={32}
-            >
-              <div className="flex items-center justify-center">
-                <input
-                  ref={inputRef}
-                  type="number"
-                  step="0.01"
-                  value={editValue}
-                  onChange={(e) => setEditValue(e.target.value)}
-                  onBlur={handleInputSubmit}
-                  onKeyDown={handleInputKeyDown}
-                  className="w-16 h-7 text-center text-sm font-medium rounded border-2 border-primary bg-background text-foreground shadow-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                  placeholder={unit === "in" ? "0.00" : "0.0"}
-                  autoFocus
-                />
-              </div>
-            </foreignObject>
+            <g>
+              {/* Input box positioned above the point */}
+              <foreignObject
+                x={rotatedX - 35}
+                y={rotatedY - 50}
+                width={70}
+                height={36}
+              >
+                <div className="flex flex-col items-center">
+                  <input
+                    ref={inputRef}
+                    type="number"
+                    step="0.01"
+                    value={editValue}
+                    onChange={(e) => setEditValue(e.target.value)}
+                    onBlur={handleInputSubmit}
+                    onKeyDown={handleInputKeyDown}
+                    className="w-16 h-7 text-center text-sm font-medium rounded border-2 border-primary bg-background text-foreground shadow-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                    placeholder={unit === "in" ? "0.00" : "0.0"}
+                    autoFocus
+                  />
+                  {/* Arrow pointing down to the point */}
+                  <div className="w-0 h-0 border-l-[6px] border-r-[6px] border-t-[8px] border-l-transparent border-r-transparent border-t-primary mt-0.5" />
+                </div>
+              </foreignObject>
+            </g>
           );
         })()}
       </svg>
