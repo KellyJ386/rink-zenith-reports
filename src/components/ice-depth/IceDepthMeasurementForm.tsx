@@ -263,7 +263,7 @@ export const IceDepthMeasurementForm = ({ userId }: IceDepthMeasurementFormProps
         .insert({
           facility_id: facilityId,
           rink_id: selectedRink,
-          template_type: selectedTemplate?.template_name || "custom",
+          template_type: "custom",
           custom_template_id: selectedTemplateId,
           operator_id: userId,
           measurements: measurementsInInches,
