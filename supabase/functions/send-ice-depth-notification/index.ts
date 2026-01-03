@@ -32,15 +32,24 @@ const handler = async (req: Request): Promise<Response> => {
       .select(`
         *,
         facilities (name),
-        rinks (name),
-        profiles (name)
+        rinks (name)
       `)
       .eq("id", measurementId)
       .single();
 
     if (measurementError || !measurement) {
+      console.error("Measurement fetch error:", measurementError);
       throw new Error("Failed to fetch measurement details");
     }
+
+    // Get operator name separately
+    const { data: operatorProfile } = await supabase
+      .from("profiles")
+      .select("name")
+      .eq("user_id", measurement.operator_id)
+      .maybeSingle();
+
+    const operatorName = operatorProfile?.name || "Unknown Operator";
 
     // Get notification recipients for this facility
     const { data: recipients, error: recipientsError } = await supabase
@@ -74,7 +83,7 @@ const handler = async (req: Request): Promise<Response> => {
       <h2>New Ice Depth Measurement</h2>
       <p><strong>Facility:</strong> ${measurement.facilities.name}</p>
       <p><strong>Rink:</strong> ${measurement.rinks.name}</p>
-      <p><strong>Operator:</strong> ${measurement.profiles.name}</p>
+      <p><strong>Operator:</strong> ${operatorName}</p>
       <p><strong>Date:</strong> ${new Date(measurement.measurement_date).toLocaleString()}</p>
       <p><strong>Status:</strong> ${measurement.status.toUpperCase()}</p>
       
