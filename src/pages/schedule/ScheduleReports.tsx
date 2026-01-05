@@ -17,6 +17,7 @@ import { Calendar, TrendingUp, Users, Clock, BarChart3, FileText, DollarSign, Ch
 import { startOfWeek, endOfWeek, format, subWeeks } from "date-fns";
 import { useScheduleReports } from "@/hooks/useScheduleReports";
 import { ReportExport } from "@/components/schedule/ReportExport";
+import { ScheduleReportPDFExport } from "@/components/schedule/ScheduleReportPDFExport";
 import { useNavigate } from "react-router-dom";
 
 const ScheduleReports = () => {
@@ -48,11 +49,18 @@ const ScheduleReports = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
           <h2 className="text-3xl font-bold">Schedule Reports</h2>
           <p className="text-muted-foreground">Analytics and insights for your schedule</p>
         </div>
+        {data && (
+          <ScheduleReportPDFExport 
+            data={data} 
+            startDate={startDate} 
+            endDate={endDate} 
+          />
+        )}
       </div>
 
       <Card>
