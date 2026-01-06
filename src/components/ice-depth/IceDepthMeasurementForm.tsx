@@ -278,21 +278,9 @@ export const IceDepthMeasurementForm = ({ userId }: IceDepthMeasurementFormProps
 
       if (error) throw error;
 
-      // Send notifications in background
-      supabase.functions.invoke("send-ice-depth-notification", {
-        body: {
-          measurementId: savedMeasurement.id,
-          facilityId: facilityId,
-        },
-      }).then(({ error: notifError }) => {
-        if (notifError) {
-          console.error("Notification error:", notifError);
-        }
-      });
-
       toast({
         title: "Success",
-        description: "Measurement saved and notifications sent",
+        description: "Measurement saved successfully",
       });
 
       // Reset form

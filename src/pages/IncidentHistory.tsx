@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 import PageHeader from "@/components/PageHeader";
 import IncidentPDFExport from "@/components/incident/IncidentPDFExport";
 import { Button } from "@/components/ui/button";
@@ -10,7 +11,8 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { AlertCircle, Plus, Download, Filter, Search, FileText, Printer } from "lucide-react";
+import { AlertCircle, Plus, Download, Filter, Search, FileText, Printer, Mail } from "lucide-react";
+import html2pdf from "html2pdf.js";
 import { format } from "date-fns";
 
 interface Incident {
@@ -29,6 +31,7 @@ interface Incident {
 
 export default function IncidentHistory() {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [incidents, setIncidents] = useState<Incident[]>([]);
   const [filteredIncidents, setFilteredIncidents] = useState<Incident[]>([]);
@@ -156,6 +159,58 @@ export default function IncidentHistory() {
 
   const printPDF = () => {
     window.print();
+  };
+
+  const downloadPDF = () => {
+    const element = document.getElementById("incident-pdf-content");
+    if (!element || !selectedIncident) return;
+
+    const opt = {
+      margin: 0.5,
+      filename: `incident-${selectedIncident.incident_number}.pdf`,
+      image: { type: "jpeg" as const, quality: 0.98 },
+      html2canvas: { scale: 2 },
+      jsPDF: { unit: "in" as const, format: "letter" as const, orientation: "portrait" as const },
+    };
+
+    html2pdf().set(opt).from(element).save();
+  };
+
+  const emailPDF = async () => {
+    if (!selectedIncident) return;
+    
+    // For now, just use the existing notification function
+    try {
+      const { error } = await supabase.functions.invoke("send-incident-notification", {
+        body: {
+          incidentNumber: selectedIncident.incident_number,
+          incidentDate: selectedIncident.incident_date,
+          incidentTime: selectedIncident.incident_time,
+          location: selectedIncident.location,
+          incidentType: selectedIncident.incident_type,
+          severityLevel: selectedIncident.severity_level,
+          injuredPersonName: selectedIncident.injured_person_name,
+          incidentDescription: selectedIncident.incident_description,
+          staffName: selectedIncident.staff_name,
+          facilityName: selectedIncident.facility_name,
+          recipientEmails: [selectedIncident.staff_email].filter(Boolean)
+        }
+      });
+
+      if (error) throw error;
+      
+      toast({
+        title: "Email Sent",
+        description: "Incident report notification has been sent",
+      });
+    } catch (error: any) {
+      console.error("Email error:", error);
+      toast({
+        title: "Error",
+        description: "Failed to send email notification",
+        variant: "destructive",
+      });
+    }
   };
 
   const getSeverityColor = (severity: string) => {
@@ -366,10 +421,20 @@ export default function IncidentHistory() {
           <DialogHeader>
             <DialogTitle className="flex items-center justify-between">
               <span>Incident Report - PDF View</span>
-              <Button onClick={printPDF} variant="outline" size="sm">
-                <Printer className="h-4 w-4 mr-2" />
-                Print/Save PDF
-              </Button>
+              <div className="flex gap-2">
+                <Button onClick={printPDF} variant="outline" size="sm">
+                  <Printer className="h-4 w-4 mr-2" />
+                  Print
+                </Button>
+                <Button onClick={downloadPDF} variant="outline" size="sm">
+                  <Download className="h-4 w-4 mr-2" />
+                  Download PDF
+                </Button>
+                <Button onClick={emailPDF} variant="outline" size="sm">
+                  <Mail className="h-4 w-4 mr-2" />
+                  Email
+                </Button>
+              </div>
             </DialogTitle>
           </DialogHeader>
           {selectedIncident && <IncidentPDFExport incident={selectedIncident} />}
