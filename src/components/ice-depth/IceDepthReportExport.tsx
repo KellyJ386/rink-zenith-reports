@@ -30,9 +30,9 @@ interface IceDepthReportExportProps {
 
 // Color logic for depth values (in inches)
 const getDepthColor = (depthInches: number): string => {
-  if (depthInches < 0.75) return "#ef4444"; // Red - too thin
-  if (depthInches <= 1.25) return "#22c55e"; // Green - optimal
-  if (depthInches <= 1.5) return "#3b82f6"; // Blue - slightly thick
+  if (depthInches < 1.0) return "#ef4444"; // Red - too thin
+  if (depthInches <= 1.75) return "#22c55e"; // Green - optimal
+  if (depthInches <= 2.0) return "#3b82f6"; // Blue - slightly thick
   return "#eab308"; // Yellow - too thick
 };
 
@@ -222,19 +222,19 @@ export const IceDepthReportExport = ({ measurement }: IceDepthReportExportProps)
             <div class="legend">
               <div class="legend-item">
                 <div class="legend-dot" style="background: #ef4444;"></div>
-                <span>&lt; 0.75" (Critical)</span>
+                <span>&lt; 1.0" (Critical)</span>
               </div>
               <div class="legend-item">
                 <div class="legend-dot" style="background: #22c55e;"></div>
-                <span>0.75-1.25" (Good)</span>
+                <span>1.0-1.75" (Good)</span>
               </div>
               <div class="legend-item">
                 <div class="legend-dot" style="background: #3b82f6;"></div>
-                <span>1.25-1.5" (Monitor)</span>
+                <span>1.75-2.0" (Monitor)</span>
               </div>
               <div class="legend-item">
                 <div class="legend-dot" style="background: #eab308;"></div>
-                <span>&gt; 1.5" (Warning)</span>
+                <span>&gt; 2.0" (Warning)</span>
               </div>
             </div>
           </div>
