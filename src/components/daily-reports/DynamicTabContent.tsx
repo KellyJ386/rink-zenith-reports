@@ -8,7 +8,7 @@ import { DailyReportTabWithRoles } from "@/types/dailyReport";
 import { useFormTemplates, FormTemplateField } from "@/hooks/useFormTemplates";
 import { Loader2 } from "lucide-react";
 import * as LucideIcons from "lucide-react";
-import { getChecklistForTab } from "@/data/dailyReportChecklists";
+import { getFilteredChecklistForTab } from "@/data/dailyReportChecklists";
 import { SectionedChecklist } from "./SectionedChecklist";
 import { Progress } from "@/components/ui/progress";
 
@@ -16,6 +16,7 @@ interface DynamicTabContentProps {
   tab: DailyReportTabWithRoles;
   formData: Record<string, any>;
   onFormDataChange: (tabId: string, data: Record<string, any>) => void;
+  shiftType: string;
 }
 
 // Map icon names to Lucide components
@@ -170,7 +171,7 @@ const FormFieldRenderer = ({
   }
 };
 
-export function DynamicTabContent({ tab, formData, onFormDataChange }: DynamicTabContentProps) {
+export function DynamicTabContent({ tab, formData, onFormDataChange, shiftType }: DynamicTabContentProps) {
   const { data: formTemplates = [], isLoading: templatesLoading } = useFormTemplates();
   
   const IconComponent = getIcon(tab.icon);
@@ -277,10 +278,10 @@ export function DynamicTabContent({ tab, formData, onFormDataChange }: DynamicTa
     );
   }
 
-  // Comprehensive sectioned checklist rendering
-  const sections = getChecklistForTab(tab.tab_key);
+  // Comprehensive sectioned checklist rendering - filtered by shift type
+  const sections = getFilteredChecklistForTab(tab.tab_key, shiftType);
   
-  // Calculate overall completion
+  // Calculate overall completion based on filtered sections
   const totalItems = sections.reduce((sum, section) => sum + section.items.length, 0);
   const completedItems = sections.reduce((sum, section) => {
     return sum + section.items.filter(item => tabFormData.checklist?.[`${section.id}-${item.id}`]).length;
