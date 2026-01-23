@@ -352,6 +352,7 @@ export default function DailyReports() {
                 tab={tab}
                 formData={tabFormData}
                 onFormDataChange={handleTabFormDataChange}
+                shiftType={shiftType}
               />
             </TabsContent>
           ))}

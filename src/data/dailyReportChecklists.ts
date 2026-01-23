@@ -949,6 +949,25 @@ export const FACILITY_RATING_OPTIONS = [
   { value: 1, label: 'Critical', description: 'Major issues requiring immediate management attention' },
 ];
 
+// Mapping of shift types to section IDs that should be visible
+export const SHIFT_SECTION_MAP: Record<string, string[]> = {
+  open: ['opening', 'pre', 'setup', 'daily'],
+  during: ['during', 'hourly', 'operations', 'readiness'],
+  close: ['closing', 'post', 'cleanup'],
+  handoff: ['handoff', 'critical', 'documentation', 'notes', 'inventory', 'safety', 'special', 'admin', 'weekly'],
+};
+
 export function getChecklistForTab(tabKey: string): ChecklistSection[] {
   return AREA_CHECKLISTS[tabKey] || AREA_CHECKLISTS.custom;
+}
+
+export function getFilteredChecklistForTab(tabKey: string, shiftType: string): ChecklistSection[] {
+  const allSections = getChecklistForTab(tabKey);
+  const visibleSectionIds = SHIFT_SECTION_MAP[shiftType] || [];
+  
+  if (visibleSectionIds.length === 0) {
+    return allSections;
+  }
+  
+  return allSections.filter(section => visibleSectionIds.includes(section.id));
 }
