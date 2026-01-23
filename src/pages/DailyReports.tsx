@@ -8,8 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { SHIFT_TYPE_GROUPS, getShiftTypeLabel } from "@/data/shiftTypeOptions";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 
@@ -41,9 +40,8 @@ export default function DailyReports() {
   const [user, setUser] = useState<any>(null);
   const [facilityId, setFacilityId] = useState<string>("");
   
-  const [reportDate, setReportDate] = useState(format(new Date(), "yyyy-MM-dd"));
-  const [shiftType, setShiftType] = useState("front_desk-morning");
-  const [dutyType, setDutyType] = useState("");
+  const [reportDate] = useState(format(new Date(), "yyyy-MM-dd"));
+  const [shiftType, setShiftType] = useState<string>("");
   const [notes, setNotes] = useState("");
   
   const [financials, setFinancials] = useState<Financial[]>([]);
@@ -165,7 +163,7 @@ export default function DailyReports() {
           facility_id: facilityId,
           report_date: reportDate,
           shift_type: shiftType,
-          duty_type: dutyType,
+          duty_type: "",
           submitted_by: user.id,
           status,
           total_revenue: totals.revenue,
@@ -212,7 +210,6 @@ export default function DailyReports() {
       setTabFormData({});
       setFinancials([]);
       setNotes("");
-      setDutyType("");
     } catch (error: any) {
       toast({
         title: "Error",
@@ -244,64 +241,40 @@ export default function DailyReports() {
         icon={<ClipboardList className="h-8 w-8 text-primary" />}
       />
 
-      {/* Report Header */}
-      <div className="grid gap-6 md:grid-cols-3 mb-6">
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium">Report Date</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Input
-              type="date"
-              value={reportDate}
-              onChange={(e) => setReportDate(e.target.value)}
-            />
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium">Shift Type</CardTitle>
-          </CardHeader>
-          <CardContent>
+      {/* Shift Type Selector */}
+      <Card className="mb-6">
+        <CardContent className="pt-6">
+          <div className="flex items-center gap-4">
+            <Label className="text-sm font-medium whitespace-nowrap">Shift Type</Label>
             <Select value={shiftType} onValueChange={setShiftType}>
-              <SelectTrigger>
+              <SelectTrigger className="w-48">
                 <SelectValue placeholder="Select shift type" />
               </SelectTrigger>
-              <SelectContent className="max-h-80">
-                {SHIFT_TYPE_GROUPS.map((group) => (
-                  <SelectGroup key={group.areaKey}>
-                    <SelectLabel className="font-semibold text-xs uppercase tracking-wide text-muted-foreground bg-muted/50 py-2">
-                      {group.areaLabel}
-                    </SelectLabel>
-                    {group.options.map((option) => (
-                      <SelectItem key={option.value} value={option.value}>
-                        {option.label.replace(`${group.areaLabel} - `, '')}
-                      </SelectItem>
-                    ))}
-                  </SelectGroup>
-                ))}
+              <SelectContent>
+                <SelectItem value="open">Open</SelectItem>
+                <SelectItem value="during">During</SelectItem>
+                <SelectItem value="close">Close</SelectItem>
               </SelectContent>
             </Select>
+            {!shiftType && (
+              <span className="text-sm text-muted-foreground">Select a shift type to view checklists</span>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Dynamic Tabs - Only show when shift type is selected */}
+      {!shiftType ? (
+        <Card className="mb-6">
+          <CardContent className="py-12 text-center">
+            <ClipboardList className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+            <h3 className="text-lg font-medium mb-2">Select Shift Type</h3>
+            <p className="text-muted-foreground">
+              Choose a shift type above to view and complete checklists.
+            </p>
           </CardContent>
         </Card>
-
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium">Duty Type</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Input
-              placeholder="e.g., Manager, Ice Tech, Front Desk"
-              value={dutyType}
-              onChange={(e) => setDutyType(e.target.value)}
-            />
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Dynamic Tabs */}
-      {tabsLoading ? (
+      ) : tabsLoading ? (
         <div className="flex items-center justify-center py-12">
           <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
           <span className="ml-2 text-muted-foreground">Loading tabs...</span>
