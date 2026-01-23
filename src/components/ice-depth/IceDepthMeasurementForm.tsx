@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { TemplateSelection } from "./TemplateSelection";
 import { StatisticsPanel } from "./StatisticsPanel";
 import { BluetoothCaliperControl } from "./BluetoothCaliperControl";
+import { IceDepthReportExport } from "./IceDepthReportExport";
 import { Loader2, AlertCircle } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useNavigate } from "react-router-dom";
@@ -50,6 +51,7 @@ export const IceDepthMeasurementForm = ({ userId }: IceDepthMeasurementFormProps
   });
   const [manualCurrentPoint, setManualCurrentPoint] = useState<number | null>(null);
   const [hasAdminAccess, setHasAdminAccess] = useState(false);
+  const [lastSavedMeasurement, setLastSavedMeasurement] = useState<any>(null);
 
   // Fetch user's facility on mount
   useEffect(() => {
@@ -273,10 +275,17 @@ export const IceDepthMeasurementForm = ({ userId }: IceDepthMeasurementFormProps
           std_deviation: statsInInches.stdDev,
           status,
         })
-        .select()
+        .select(`
+          *,
+          rinks (name),
+          facilities (name)
+        `)
         .single();
 
       if (error) throw error;
+
+      // Store the saved measurement for export/print
+      setLastSavedMeasurement(savedMeasurement);
 
       toast({
         title: "Success",
@@ -473,6 +482,26 @@ export const IceDepthMeasurementForm = ({ userId }: IceDepthMeasurementFormProps
 
           <StatisticsPanel stats={stats} />
 
+          {/* Show export options after saving */}
+          {lastSavedMeasurement && (
+            <Card className="shadow-[var(--shadow-ice)] border-primary/20 bg-primary/5">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base">Measurement Saved</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <IceDepthReportExport measurement={lastSavedMeasurement} />
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full mt-3"
+                  onClick={() => setLastSavedMeasurement(null)}
+                >
+                  Start New Measurement
+                </Button>
+              </CardContent>
+            </Card>
+          )}
+
           <Card className="shadow-[var(--shadow-ice)]">
             <CardContent className="pt-6">
               <Button
@@ -483,10 +512,10 @@ export const IceDepthMeasurementForm = ({ userId }: IceDepthMeasurementFormProps
                 {loading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Saving & Sending Notifications...
+                    Saving...
                   </>
                 ) : (
-                  "Save & Notify Recipients"
+                  "Save Measurement"
                 )}
               </Button>
             </CardContent>
