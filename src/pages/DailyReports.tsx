@@ -253,10 +253,7 @@ export default function DailyReports() {
 
   const totals = calculateTotals();
 
-  // Determine visible tabs (show first 4-5, rest in overflow)
-  const visibleTabCount = 5;
-  const visibleTabs = tabs.slice(0, visibleTabCount);
-  const overflowTabs = tabs.slice(visibleTabCount);
+  // Show all tabs
 
   // Tab color classes
   const getTabColorClasses = (index: number, isActive: boolean) => {
@@ -310,7 +307,7 @@ export default function DailyReports() {
               
               {/* Desktop: Horizontal Tabs */}
               <div className="hidden md:flex flex-wrap gap-2">
-                {visibleTabs.map((tab, index) => {
+                {tabs.map((tab, index) => {
                   const status = tabStatuses.find(s => s.tabId === tab.id);
                   const isActive = selectedTab === tab.id;
                   
@@ -335,71 +332,19 @@ export default function DailyReports() {
                   );
                 })}
                 
-                {/* Overflow Menu for additional tabs */}
-                {overflowTabs.length > 0 && (
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <button className="px-4 py-2.5 rounded-lg border border-border bg-muted text-sm font-medium transition-all flex items-center gap-2 hover:bg-muted/80">
-                        <MoreHorizontal className="h-4 w-4" />
-                        More ({overflowTabs.length})
-                      </button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-56 bg-popover">
-                      {overflowTabs.map((tab, idx) => {
-                        const status = tabStatuses.find(s => s.tabId === tab.id);
-                        const isActive = selectedTab === tab.id;
-                        
-                        return (
-                          <DropdownMenuItem
-                            key={tab.id}
-                            onClick={() => handleTabSelect(tab.id)}
-                            className={cn(
-                              "flex items-center gap-2 cursor-pointer",
-                              isActive && "bg-accent"
-                            )}
-                          >
-                            {status?.isComplete ? (
-                              <CheckCircle2 className="h-4 w-4 text-green-600" />
-                            ) : status?.isRequired ? (
-                              <AlertCircle className="h-4 w-4 text-amber-500" />
-                            ) : (
-                              <Circle className="h-4 w-4 opacity-50" />
-                            )}
-                            {tab.tab_name}
-                          </DropdownMenuItem>
-                        );
-                      })}
-                      
-                      {/* Financials in overflow */}
-                      <DropdownMenuItem
-                        onClick={() => handleTabSelect("financials")}
-                        className={cn(
-                          "flex items-center gap-2 cursor-pointer",
-                          selectedTab === "financials" && "bg-accent"
-                        )}
-                      >
-                        <DollarSign className="h-4 w-4" />
-                        Financials
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                )}
-                
-                {/* Financials Tab - always visible on desktop if no overflow */}
-                {overflowTabs.length === 0 && (
-                  <button
-                    onClick={() => handleTabSelect("financials")}
-                    className={cn(
-                      "px-4 py-2.5 rounded-lg border text-sm font-medium transition-all flex items-center gap-2",
-                      selectedTab === "financials" 
-                        ? "bg-teal-500 text-white" 
-                        : "bg-teal-100 dark:bg-teal-900/30 border-teal-300 dark:border-teal-700 hover:opacity-80"
-                    )}
-                  >
-                    <DollarSign className="h-4 w-4" />
-                    Financials
-                  </button>
-                )}
+                {/* Financials Tab */}
+                <button
+                  onClick={() => handleTabSelect("financials")}
+                  className={cn(
+                    "px-4 py-2.5 rounded-lg border text-sm font-medium transition-all flex items-center gap-2",
+                    selectedTab === "financials" 
+                      ? "bg-teal-500 text-white" 
+                      : "bg-teal-100 dark:bg-teal-900/30 border-teal-300 dark:border-teal-700 hover:opacity-80"
+                  )}
+                >
+                  <DollarSign className="h-4 w-4" />
+                  Financials
+                </button>
               </div>
 
               {/* Mobile: Dropdown Select */}
