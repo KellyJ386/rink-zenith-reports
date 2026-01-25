@@ -9,18 +9,18 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 
-import { ClipboardList, DollarSign, Plus, Save, Send, Trash2, Loader2, CheckCircle2, AlertCircle, Circle } from "lucide-react";
+import { ClipboardList, DollarSign, Plus, Save, Send, Trash2, Loader2, CheckCircle2, AlertCircle, Circle, ChevronDown, MoreHorizontal } from "lucide-react";
 import { format } from "date-fns";
 import { DynamicFormFields } from "@/components/maintenance/DynamicFormFields";
 import { useDailyReportUserTabs } from "@/hooks/useDailyReportUserTabs";
 import { DynamicTabContent } from "@/components/daily-reports/DynamicTabContent";
 import { useTabSubmissionTracking } from "@/hooks/useTabSubmissionTracking";
 import { useFormTemplates } from "@/hooks/useFormTemplates";
-import { TabCompletionIndicator, OverallProgressIndicator } from "@/components/daily-reports/TabCompletionIndicator";
-
+import { OverallProgressIndicator } from "@/components/daily-reports/TabCompletionIndicator";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 interface Financial {
   id?: string;
@@ -30,6 +30,14 @@ interface Financial {
   payment_method: string;
   description: string;
 }
+
+// Shift type options
+const SHIFT_OPTIONS = [
+  { value: "open", label: "Open", description: "Opening procedures" },
+  { value: "during", label: "Daily Operations", description: "Mid-shift activities" },
+  { value: "close", label: "Close", description: "Closing procedures" },
+  { value: "handoff", label: "Shift Change", description: "Handoff procedures" },
+];
 
 export default function DailyReports() {
   const navigate = useNavigate();
@@ -41,6 +49,7 @@ export default function DailyReports() {
   const [facilityId, setFacilityId] = useState<string>("");
   
   const [reportDate] = useState(format(new Date(), "yyyy-MM-dd"));
+  const [selectedTab, setSelectedTab] = useState<string>("");
   const [shiftType, setShiftType] = useState<string>("");
   const [notes, setNotes] = useState("");
   
@@ -71,6 +80,18 @@ export default function DailyReports() {
     incompleteRequiredTabs 
   } = useTabSubmissionTracking(tabs, tabFormData, formTemplates);
 
+  // Get the currently selected tab object
+  const currentTab = tabs.find(t => t.id === selectedTab);
+
+  // Set initial tab from URL or first available
+  useEffect(() => {
+    if (tabs.length > 0 && !selectedTab) {
+      const tabFromUrl = searchParams.get('tab');
+      const matchingTab = tabFromUrl ? tabs.find(t => t.id === tabFromUrl) : null;
+      setSelectedTab(matchingTab?.id || tabs[0]?.id || "");
+    }
+  }, [tabs, selectedTab, searchParams]);
+
   useEffect(() => {
     checkAuth();
   }, []);
@@ -98,6 +119,12 @@ export default function DailyReports() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleTabSelect = (tabId: string) => {
+    setSelectedTab(tabId);
+    // Clear shift type when switching tabs for clean state
+    setShiftType("");
   };
 
   const handleTabFormDataChange = (tabId: string, data: Record<string, any>) => {
@@ -225,115 +252,232 @@ export default function DailyReports() {
   }
 
   const totals = calculateTotals();
-  const tabFromUrl = searchParams.get('tab');
-  const defaultTab = tabFromUrl || (tabs.length > 0 ? tabs[0].id : 'financials');
+
+  // Determine visible tabs (show first 4-5, rest in overflow)
+  const visibleTabCount = 5;
+  const visibleTabs = tabs.slice(0, visibleTabCount);
+  const overflowTabs = tabs.slice(visibleTabCount);
+
+  // Tab color classes
+  const getTabColorClasses = (index: number, isActive: boolean) => {
+    const colors = [
+      { bg: 'bg-violet-100 dark:bg-violet-900/30', active: 'bg-violet-500 text-white', border: 'border-violet-300 dark:border-violet-700' },
+      { bg: 'bg-orange-100 dark:bg-orange-900/30', active: 'bg-orange-500 text-white', border: 'border-orange-300 dark:border-orange-700' },
+      { bg: 'bg-cyan-100 dark:bg-cyan-900/30', active: 'bg-cyan-500 text-white', border: 'border-cyan-300 dark:border-cyan-700' },
+      { bg: 'bg-pink-100 dark:bg-pink-900/30', active: 'bg-pink-500 text-white', border: 'border-pink-300 dark:border-pink-700' },
+      { bg: 'bg-amber-100 dark:bg-amber-900/30', active: 'bg-amber-500 text-white', border: 'border-amber-300 dark:border-amber-700' },
+      { bg: 'bg-indigo-100 dark:bg-indigo-900/30', active: 'bg-indigo-500 text-white', border: 'border-indigo-300 dark:border-indigo-700' },
+      { bg: 'bg-rose-100 dark:bg-rose-900/30', active: 'bg-rose-500 text-white', border: 'border-rose-300 dark:border-rose-700' },
+      { bg: 'bg-teal-100 dark:bg-teal-900/30', active: 'bg-teal-500 text-white', border: 'border-teal-300 dark:border-teal-700' },
+      { bg: 'bg-purple-100 dark:bg-purple-900/30', active: 'bg-purple-500 text-white', border: 'border-purple-300 dark:border-purple-700' },
+    ];
+    const colorSet = colors[index % colors.length];
+    return isActive ? colorSet.active : `${colorSet.bg} ${colorSet.border} hover:opacity-80`;
+  };
 
   return (
     <div className="container mx-auto p-6">
       <ModuleHeader
         title="Daily Reports"
-        subtitle="Comprehensive daily task and financial reporting"
+        subtitle="Complete reports by work area and shift"
         icon={<ClipboardList className="h-8 w-8 text-primary" />}
       />
 
-      {/* Shift Type Selector */}
-      <Card className="mb-6">
-        <CardContent className="pt-6">
-          <div className="flex items-center gap-4">
-            <Label className="text-sm font-medium whitespace-nowrap">Shift Type</Label>
-            <Select value={shiftType} onValueChange={setShiftType}>
-              <SelectTrigger className="w-48">
-                <SelectValue placeholder="Select shift type" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="open">Open</SelectItem>
-                <SelectItem value="during">During</SelectItem>
-                <SelectItem value="close">Close</SelectItem>
-                <SelectItem value="handoff">Shift Handoff</SelectItem>
-              </SelectContent>
-            </Select>
-            {!shiftType && (
-              <span className="text-sm text-muted-foreground">Select a shift type to view checklists</span>
-            )}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Dynamic Tabs - Only show when shift type is selected */}
-      {!shiftType ? (
-        <Card className="mb-6">
-          <CardContent className="py-12 text-center">
-            <ClipboardList className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-            <h3 className="text-lg font-medium mb-2">Select Shift Type</h3>
-            <p className="text-muted-foreground">
-              Choose a shift type above to view and complete checklists.
-            </p>
-          </CardContent>
-        </Card>
-      ) : tabsLoading ? (
+      {/* Loading State */}
+      {tabsLoading ? (
         <div className="flex items-center justify-center py-12">
           <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-          <span className="ml-2 text-muted-foreground">Loading tabs...</span>
+          <span className="ml-2 text-muted-foreground">Loading work areas...</span>
         </div>
       ) : tabs.length === 0 ? (
         <Card className="mb-6">
           <CardContent className="py-12 text-center">
             <ClipboardList className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-            <h3 className="text-lg font-medium mb-2">No Tabs Available</h3>
+            <h3 className="text-lg font-medium mb-2">No Work Areas Available</h3>
             <p className="text-muted-foreground">
               {isAdmin 
                 ? "Configure daily report tabs in the admin settings."
-                : "No report tabs are assigned to your role. Contact an administrator."}
+                : "No report areas are assigned to your role. Contact an administrator."}
             </p>
           </CardContent>
         </Card>
       ) : (
-        <Tabs defaultValue={defaultTab} className="space-y-4">
-          <TabsList className="flex flex-wrap h-auto gap-1 bg-transparent p-0">
-            {tabs.map((tab, index) => {
-              const status = tabStatuses.find(s => s.tabId === tab.id);
-              // Dashboard-matching colors
-              const tabColors = [
-                'bg-violet-200 border-violet-400 text-violet-800 data-[state=active]:bg-violet-500 data-[state=active]:text-white data-[state=active]:border-violet-500',
-                'bg-orange-200 border-orange-400 text-orange-800 data-[state=active]:bg-orange-500 data-[state=active]:text-white data-[state=active]:border-orange-500',
-                'bg-cyan-200 border-cyan-400 text-cyan-800 data-[state=active]:bg-cyan-500 data-[state=active]:text-white data-[state=active]:border-cyan-500',
-                'bg-pink-200 border-pink-400 text-pink-800 data-[state=active]:bg-pink-500 data-[state=active]:text-white data-[state=active]:border-pink-500',
-                'bg-amber-200 border-amber-400 text-amber-800 data-[state=active]:bg-amber-500 data-[state=active]:text-white data-[state=active]:border-amber-500',
-                'bg-indigo-200 border-indigo-400 text-indigo-800 data-[state=active]:bg-indigo-500 data-[state=active]:text-white data-[state=active]:border-indigo-500',
-                'bg-rose-200 border-rose-400 text-rose-800 data-[state=active]:bg-rose-500 data-[state=active]:text-white data-[state=active]:border-rose-500',
-                'bg-teal-200 border-teal-400 text-teal-800 data-[state=active]:bg-teal-500 data-[state=active]:text-white data-[state=active]:border-teal-500',
-                'bg-purple-200 border-purple-400 text-purple-800 data-[state=active]:bg-purple-500 data-[state=active]:text-white data-[state=active]:border-purple-500',
-              ];
-              const colorClass = tabColors[index % tabColors.length];
-              return (
-                <TabsTrigger
-                  key={tab.id}
-                  value={tab.id}
-                  className={`px-4 py-2 text-sm font-medium gap-2 rounded-t-lg border-2 border-b-0 transition-all ${colorClass}`}
-                >
-                  {status?.isComplete ? (
-                    <CheckCircle2 className="h-4 w-4" />
-                  ) : status?.isRequired ? (
-                    <AlertCircle className="h-4 w-4" />
-                  ) : (
-                    <Circle className="h-4 w-4 opacity-50" />
+        <>
+          {/* Level 1: Work Area Tabs */}
+          <Card className="mb-4">
+            <CardContent className="py-4">
+              <Label className="text-sm font-medium text-muted-foreground mb-3 block">Select Work Area</Label>
+              
+              {/* Desktop: Horizontal Tabs */}
+              <div className="hidden md:flex flex-wrap gap-2">
+                {visibleTabs.map((tab, index) => {
+                  const status = tabStatuses.find(s => s.tabId === tab.id);
+                  const isActive = selectedTab === tab.id;
+                  
+                  return (
+                    <button
+                      key={tab.id}
+                      onClick={() => handleTabSelect(tab.id)}
+                      className={cn(
+                        "px-4 py-2.5 rounded-lg border text-sm font-medium transition-all flex items-center gap-2",
+                        getTabColorClasses(index, isActive)
+                      )}
+                    >
+                      {status?.isComplete ? (
+                        <CheckCircle2 className="h-4 w-4" />
+                      ) : status?.isRequired ? (
+                        <AlertCircle className="h-4 w-4" />
+                      ) : (
+                        <Circle className="h-4 w-4 opacity-50" />
+                      )}
+                      {tab.tab_name}
+                    </button>
+                  );
+                })}
+                
+                {/* Overflow Menu for additional tabs */}
+                {overflowTabs.length > 0 && (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <button className="px-4 py-2.5 rounded-lg border border-border bg-muted text-sm font-medium transition-all flex items-center gap-2 hover:bg-muted/80">
+                        <MoreHorizontal className="h-4 w-4" />
+                        More ({overflowTabs.length})
+                      </button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-56 bg-popover">
+                      {overflowTabs.map((tab, idx) => {
+                        const status = tabStatuses.find(s => s.tabId === tab.id);
+                        const isActive = selectedTab === tab.id;
+                        
+                        return (
+                          <DropdownMenuItem
+                            key={tab.id}
+                            onClick={() => handleTabSelect(tab.id)}
+                            className={cn(
+                              "flex items-center gap-2 cursor-pointer",
+                              isActive && "bg-accent"
+                            )}
+                          >
+                            {status?.isComplete ? (
+                              <CheckCircle2 className="h-4 w-4 text-green-600" />
+                            ) : status?.isRequired ? (
+                              <AlertCircle className="h-4 w-4 text-amber-500" />
+                            ) : (
+                              <Circle className="h-4 w-4 opacity-50" />
+                            )}
+                            {tab.tab_name}
+                          </DropdownMenuItem>
+                        );
+                      })}
+                      
+                      {/* Financials in overflow */}
+                      <DropdownMenuItem
+                        onClick={() => handleTabSelect("financials")}
+                        className={cn(
+                          "flex items-center gap-2 cursor-pointer",
+                          selectedTab === "financials" && "bg-accent"
+                        )}
+                      >
+                        <DollarSign className="h-4 w-4" />
+                        Financials
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                )}
+                
+                {/* Financials Tab - always visible on desktop if no overflow */}
+                {overflowTabs.length === 0 && (
+                  <button
+                    onClick={() => handleTabSelect("financials")}
+                    className={cn(
+                      "px-4 py-2.5 rounded-lg border text-sm font-medium transition-all flex items-center gap-2",
+                      selectedTab === "financials" 
+                        ? "bg-teal-500 text-white" 
+                        : "bg-teal-100 dark:bg-teal-900/30 border-teal-300 dark:border-teal-700 hover:opacity-80"
+                    )}
+                  >
+                    <DollarSign className="h-4 w-4" />
+                    Financials
+                  </button>
+                )}
+              </div>
+
+              {/* Mobile: Dropdown Select */}
+              <div className="md:hidden">
+                <Select value={selectedTab} onValueChange={handleTabSelect}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select work area" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-popover">
+                    {tabs.map((tab) => {
+                      const status = tabStatuses.find(s => s.tabId === tab.id);
+                      return (
+                        <SelectItem key={tab.id} value={tab.id}>
+                          <div className="flex items-center gap-2">
+                            {status?.isComplete ? (
+                              <CheckCircle2 className="h-4 w-4 text-green-600" />
+                            ) : status?.isRequired ? (
+                              <AlertCircle className="h-4 w-4 text-amber-500" />
+                            ) : (
+                              <Circle className="h-4 w-4 opacity-50" />
+                            )}
+                            {tab.tab_name}
+                          </div>
+                        </SelectItem>
+                      );
+                    })}
+                    <SelectItem value="financials">
+                      <div className="flex items-center gap-2">
+                        <DollarSign className="h-4 w-4" />
+                        Financials
+                      </div>
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Level 2: Shift Type Dropdown - Only shows when a work area tab is selected */}
+          {selectedTab && selectedTab !== "financials" && (
+            <Card className="mb-4">
+              <CardContent className="py-4">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+                  <div className="flex-1">
+                    <Label className="text-sm font-medium text-muted-foreground mb-2 block">Select Shift</Label>
+                    <Select value={shiftType} onValueChange={setShiftType}>
+                      <SelectTrigger className="w-full sm:w-64">
+                        <SelectValue placeholder="Choose shift type..." />
+                      </SelectTrigger>
+                      <SelectContent className="bg-popover">
+                        {SHIFT_OPTIONS.map((shift) => (
+                          <SelectItem key={shift.value} value={shift.value}>
+                            <div className="flex flex-col">
+                              <span className="font-medium">{shift.label}</span>
+                              <span className="text-xs text-muted-foreground">{shift.description}</span>
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  {shiftType && currentTab && (
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <CheckCircle2 className="h-4 w-4 text-green-600" />
+                      <span>
+                        {currentTab.tab_name} - {SHIFT_OPTIONS.find(s => s.value === shiftType)?.label}
+                      </span>
+                    </div>
                   )}
-                  {tab.tab_name}
-                </TabsTrigger>
-              );
-            })}
-            <TabsTrigger 
-              value="financials" 
-              className="px-4 py-2 text-sm font-medium rounded-t-lg border-2 border-b-0 transition-all bg-teal-200 border-teal-400 text-teal-800 data-[state=active]:bg-teal-500 data-[state=active]:text-white data-[state=active]:border-teal-500"
-            >
-              <DollarSign className="h-4 w-4 mr-1" />
-              Financials
-            </TabsTrigger>
-          </TabsList>
-          
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
           {/* Progress Overview */}
           {tabs.length > 0 && (
-            <Card className="bg-muted/30">
+            <Card className="mb-4 bg-muted/30">
               <CardContent className="py-4">
                 <OverallProgressIndicator
                   completed={overallProgress.completed}
@@ -345,153 +489,174 @@ export default function DailyReports() {
             </Card>
           )}
 
-          {/* Dynamic Tab Contents */}
-          {tabs.map((tab) => (
-            <TabsContent key={tab.id} value={tab.id}>
-              <DynamicTabContent
-                tab={tab}
-                formData={tabFormData}
-                onFormDataChange={handleTabFormDataChange}
-                shiftType={shiftType}
-              />
-            </TabsContent>
-          ))}
-
-          {/* Financials Tab */}
-          <TabsContent value="financials" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Financial Summary</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid gap-4 md:grid-cols-3">
-                  <div className="space-y-1">
-                    <p className="text-sm text-muted-foreground">Total Revenue</p>
-                    <p className="text-2xl font-bold text-green-600">${totals.revenue.toFixed(2)}</p>
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-sm text-muted-foreground">Total Expenses</p>
-                    <p className="text-2xl font-bold text-red-600">${totals.expenses.toFixed(2)}</p>
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-sm text-muted-foreground">Petty Cash Balance</p>
-                    <p className="text-2xl font-bold text-blue-600">${totals.pettyCash.toFixed(2)}</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Add Financial Entry</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                  <div className="space-y-2">
-                    <Label>Type</Label>
-                    <Select
-                      value={newFinancial.transaction_type}
-                      onValueChange={(value) => setNewFinancial({ ...newFinancial, transaction_type: value })}
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="revenue">Revenue</SelectItem>
-                        <SelectItem value="expense">Expense</SelectItem>
-                        <SelectItem value="petty_cash">Petty Cash</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label>Category</Label>
-                    <Input
-                      placeholder="e.g., Ice Time, Supplies"
-                      value={newFinancial.category}
-                      onChange={(e) => setNewFinancial({ ...newFinancial, category: e.target.value })}
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label>Amount</Label>
-                    <Input
-                      type="number"
-                      step="0.01"
-                      value={newFinancial.amount || ""}
-                      onChange={(e) => setNewFinancial({ ...newFinancial, amount: parseFloat(e.target.value) || 0 })}
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label>Payment Method</Label>
-                    <Select
-                      value={newFinancial.payment_method}
-                      onValueChange={(value) => setNewFinancial({ ...newFinancial, payment_method: value })}
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="cash">Cash</SelectItem>
-                        <SelectItem value="credit_card">Credit Card</SelectItem>
-                        <SelectItem value="debit_card">Debit Card</SelectItem>
-                        <SelectItem value="check">Check</SelectItem>
-                        <SelectItem value="other">Other</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="space-y-2 md:col-span-2">
-                    <Label>Description</Label>
-                    <Input
-                      placeholder="Transaction description"
-                      value={newFinancial.description}
-                      onChange={(e) => setNewFinancial({ ...newFinancial, description: e.target.value })}
-                    />
-                  </div>
-                </div>
-
-                <Button onClick={addFinancial} className="mt-4">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Entry
-                </Button>
-              </CardContent>
-            </Card>
-
-            {financials.length > 0 && (
+          {/* Level 3: Form Content - Only shows when both tab and shift are selected */}
+          {selectedTab === "financials" ? (
+            // Financials Tab Content
+            <div className="space-y-6">
               <Card>
                 <CardHeader>
-                  <CardTitle>Financial Entries</CardTitle>
+                  <CardTitle>Financial Summary</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-2">
-                    {financials.map((entry, index) => (
-                      <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
-                        <div className="flex-1 grid grid-cols-5 gap-4">
-                          <Badge variant={entry.transaction_type === "revenue" ? "default" : "secondary"}>
-                            {entry.transaction_type}
-                          </Badge>
-                          <span className="font-medium">{entry.category}</span>
-                          <span className="text-right font-bold">${entry.amount.toFixed(2)}</span>
-                          <span className="text-muted-foreground">{entry.payment_method}</span>
-                          <span className="text-muted-foreground text-sm">{entry.description}</span>
-                        </div>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => removeFinancial(index)}
-                        >
-                          <Trash2 className="h-4 w-4 text-destructive" />
-                        </Button>
-                      </div>
-                    ))}
+                  <div className="grid gap-4 md:grid-cols-3">
+                    <div className="space-y-1">
+                      <p className="text-sm text-muted-foreground">Total Revenue</p>
+                      <p className="text-2xl font-bold text-green-600">${totals.revenue.toFixed(2)}</p>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-sm text-muted-foreground">Total Expenses</p>
+                      <p className="text-2xl font-bold text-red-600">${totals.expenses.toFixed(2)}</p>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-sm text-muted-foreground">Petty Cash Balance</p>
+                      <p className="text-2xl font-bold text-blue-600">${totals.pettyCash.toFixed(2)}</p>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
-            )}
-          </TabsContent>
-        </Tabs>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Add Financial Entry</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                    <div className="space-y-2">
+                      <Label>Type</Label>
+                      <Select
+                        value={newFinancial.transaction_type}
+                        onValueChange={(value) => setNewFinancial({ ...newFinancial, transaction_type: value })}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent className="bg-popover">
+                          <SelectItem value="revenue">Revenue</SelectItem>
+                          <SelectItem value="expense">Expense</SelectItem>
+                          <SelectItem value="petty_cash">Petty Cash</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>Category</Label>
+                      <Input
+                        placeholder="e.g., Ice Time, Supplies"
+                        value={newFinancial.category}
+                        onChange={(e) => setNewFinancial({ ...newFinancial, category: e.target.value })}
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>Amount</Label>
+                      <Input
+                        type="number"
+                        step="0.01"
+                        value={newFinancial.amount || ""}
+                        onChange={(e) => setNewFinancial({ ...newFinancial, amount: parseFloat(e.target.value) || 0 })}
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>Payment Method</Label>
+                      <Select
+                        value={newFinancial.payment_method}
+                        onValueChange={(value) => setNewFinancial({ ...newFinancial, payment_method: value })}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent className="bg-popover">
+                          <SelectItem value="cash">Cash</SelectItem>
+                          <SelectItem value="credit_card">Credit Card</SelectItem>
+                          <SelectItem value="debit_card">Debit Card</SelectItem>
+                          <SelectItem value="check">Check</SelectItem>
+                          <SelectItem value="other">Other</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2 md:col-span-2">
+                      <Label>Description</Label>
+                      <Input
+                        placeholder="Transaction description"
+                        value={newFinancial.description}
+                        onChange={(e) => setNewFinancial({ ...newFinancial, description: e.target.value })}
+                      />
+                    </div>
+                  </div>
+
+                  <Button onClick={addFinancial} className="mt-4">
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Entry
+                  </Button>
+                </CardContent>
+              </Card>
+
+              {financials.length > 0 && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Financial Entries</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2">
+                      {financials.map((entry, index) => (
+                        <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
+                          <div className="flex-1 grid grid-cols-5 gap-4">
+                            <Badge variant={entry.transaction_type === "revenue" ? "default" : "secondary"}>
+                              {entry.transaction_type}
+                            </Badge>
+                            <span className="font-medium">{entry.category}</span>
+                            <span className="text-right font-bold">${entry.amount.toFixed(2)}</span>
+                            <span className="text-muted-foreground">{entry.payment_method}</span>
+                            <span className="text-muted-foreground text-sm">{entry.description}</span>
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => removeFinancial(index)}
+                          >
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+          ) : selectedTab && !shiftType ? (
+            // Prompt to select shift type
+            <Card>
+              <CardContent className="py-12 text-center">
+                <ClipboardList className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                <h3 className="text-lg font-medium mb-2">Select Shift Type</h3>
+                <p className="text-muted-foreground">
+                  Choose a shift type above to view and complete the {currentTab?.tab_name} checklist.
+                </p>
+              </CardContent>
+            </Card>
+          ) : selectedTab && shiftType && currentTab ? (
+            // Show the form for selected tab + shift
+            <DynamicTabContent
+              tab={currentTab}
+              formData={tabFormData}
+              onFormDataChange={handleTabFormDataChange}
+              shiftType={shiftType}
+            />
+          ) : (
+            // No tab selected
+            <Card>
+              <CardContent className="py-12 text-center">
+                <ClipboardList className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                <h3 className="text-lg font-medium mb-2">Select a Work Area</h3>
+                <p className="text-muted-foreground">
+                  Choose a work area tab above to start completing your daily report.
+                </p>
+              </CardContent>
+            </Card>
+          )}
+        </>
       )}
 
       {/* Additional Notes */}
