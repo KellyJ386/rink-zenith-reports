@@ -2550,6 +2550,7 @@ export type Database = {
     }
     Functions: {
       generate_incident_number: { Args: never; Returns: string }
+      get_user_facility_id: { Args: { _user_id: string }; Returns: string }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
