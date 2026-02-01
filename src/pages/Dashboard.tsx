@@ -148,15 +148,15 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-seahawks-light to-background">
-      <header className="border-b border-border/30">
+    <div className="min-h-screen bg-gradient-to-br from-background via-seahawks-light/50 to-background">
+      <header className="border-b border-border/20 bg-background/60 backdrop-blur-md sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4">
           {/* Logo centered at top */}
           <div className="flex flex-col items-center mb-4">
             <img 
               src={maxFacilityLogo} 
               alt="Max Facility" 
-              className="h-20 md:h-28 object-contain"
+              className="h-20 md:h-28 object-contain drop-shadow-sm"
             />
             <h1 className="font-bebas font-bold text-3xl md:text-5xl text-seahawks-navy dark:text-white tracking-wider mt-1">
               RINK REPORTS
@@ -164,13 +164,14 @@ const Dashboard = () => {
           </div>
           
           {/* Navigation row */}
-          <div className="flex justify-between items-center">
-            <p className="text-sm text-muted-foreground">
-              Welcome back, {user?.user_metadata?.name || user?.email}
+          <div className="flex justify-between items-center pt-2 border-t border-border/20">
+            <p className="text-sm text-muted-foreground font-medium">
+              Welcome back, <span className="text-foreground">{user?.user_metadata?.name || user?.email}</span>
             </p>
             <div className="flex items-center gap-2">
               <NotificationCenter />
               <ThemeToggle />
+              <div className="w-px h-6 bg-border/40 mx-1" />
               {(isAccountOwner || isAdmin) && (
                 <Button variant="outline" onClick={() => navigate("/account")}>
                   <Building2 className="h-4 w-4 mr-2" />
@@ -218,20 +219,22 @@ const Dashboard = () => {
                 return (
                   <Card
                     key={index}
-                    className={`group ${module.bgColor} text-white hover:shadow-xl transition-all duration-300 cursor-pointer hover:-translate-y-1 border-0`}
+                    className={`group ${module.bgColor} text-white hover:shadow-elevation-4 transition-all duration-300 cursor-pointer hover:-translate-y-1.5 border-0 overflow-hidden relative`}
                     onClick={() => module.path && navigate(module.path)}
                   >
-                    <CardHeader>
-                      <div className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center mb-3">
-                        <Icon className="h-6 w-6 text-white" />
+                    {/* Subtle shine effect */}
+                    <div className="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                    <CardHeader className="relative">
+                      <div className="w-12 h-12 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center mb-3 border border-white/10 shadow-inner-light group-hover:scale-105 transition-transform duration-300">
+                        <Icon className="h-6 w-6 text-white drop-shadow-sm" />
                       </div>
-                      <CardTitle className="text-xl text-white">{module.title}</CardTitle>
-                      <CardDescription className="text-white/80">{module.description}</CardDescription>
+                      <CardTitle className="text-xl text-white font-bold">{module.title}</CardTitle>
+                      <CardDescription className="text-white/85 font-medium">{module.description}</CardDescription>
                     </CardHeader>
-                    <CardContent>
+                    <CardContent className="relative">
                       <Button 
                         variant="secondary" 
-                        className="w-full bg-white/20 hover:bg-white/30 text-white border-0"
+                        className="w-full bg-white/20 hover:bg-white/30 text-white border border-white/10 backdrop-blur-sm font-semibold shadow-sm"
                         disabled={!module.path}
                       >
                         {module.path ? "Open Module" : "Coming Soon"}
@@ -249,43 +252,62 @@ const Dashboard = () => {
         </Tabs>
 
         <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Quick Stats</CardTitle>
+          <Card className="group hover:border-primary/20">
+            <CardHeader className="pb-3">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                  <BarChart3 className="h-5 w-5 text-primary" />
+                </div>
+                <CardTitle className="text-lg">Quick Stats</CardTitle>
+              </div>
             </CardHeader>
             <CardContent>
-              <div className="space-y-2">
-                <div className="flex justify-between">
+              <div className="space-y-3">
+                <div className="flex justify-between items-center py-2 px-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors">
                   <span className="text-sm text-muted-foreground">Today's Activities</span>
-                  <span className="font-semibold">0</span>
+                  <span className="font-bold text-lg text-primary">0</span>
                 </div>
-                <div className="flex justify-between">
+                <div className="flex justify-between items-center py-2 px-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors">
                   <span className="text-sm text-muted-foreground">Open Incidents</span>
-                  <span className="font-semibold">0</span>
+                  <span className="font-bold text-lg text-primary">0</span>
                 </div>
-                <div className="flex justify-between">
+                <div className="flex justify-between items-center py-2 px-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors">
                   <span className="text-sm text-muted-foreground">Staff Scheduled</span>
-                  <span className="font-semibold">0</span>
+                  <span className="font-bold text-lg text-primary">0</span>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Recent Activity</CardTitle>
+          <Card className="group hover:border-primary/20">
+            <CardHeader className="pb-3">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                  <ClipboardList className="h-5 w-5 text-primary" />
+                </div>
+                <CardTitle className="text-lg">Recent Activity</CardTitle>
+              </div>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-muted-foreground">No recent activities</p>
+              <div className="py-8 text-center">
+                <p className="text-sm text-muted-foreground">No recent activities</p>
+              </div>
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Notifications</CardTitle>
+          <Card className="group hover:border-primary/20">
+            <CardHeader className="pb-3">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                  <AlertCircle className="h-5 w-5 text-primary" />
+                </div>
+                <CardTitle className="text-lg">Notifications</CardTitle>
+              </div>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-muted-foreground">No new notifications</p>
+              <div className="py-8 text-center">
+                <p className="text-sm text-muted-foreground">No new notifications</p>
+              </div>
             </CardContent>
           </Card>
         </div>
