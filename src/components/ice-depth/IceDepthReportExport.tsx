@@ -7,7 +7,7 @@ import { Printer, FileText, Mail, Loader2, Download } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
-import html2pdf from "html2pdf.js";
+import { generatePdfFromHtml, escapeHtml } from "@/lib/pdfUtils";
 import { measurementPoints, MeasurementPoint } from "./measurementPoints";
 
 interface IceDepthReportExportProps {
@@ -140,8 +140,9 @@ export const IceDepthReportExport = ({ measurement }: IceDepthReportExportProps)
 
   const generateReportHTML = () => {
     const measurementData = measurement.measurements || {};
+    // Escape all user-controlled data to prevent XSS
     const pointsHtml = Object.entries(measurementData)
-      .map(([key, value]) => `<tr><td style="padding: 6px 8px; border: 1px solid #ddd;">${key}</td><td style="padding: 6px 8px; border: 1px solid #ddd; text-align: right;">${value.toFixed(3)}"</td></tr>`)
+      .map(([key, value]) => `<tr><td style="padding: 6px 8px; border: 1px solid #ddd;">${escapeHtml(key)}</td><td style="padding: 6px 8px; border: 1px solid #ddd; text-align: right;">${value.toFixed(3)}"</td></tr>`)
       .join("");
 
     const rinkSVG = generateRinkSVG();
@@ -190,7 +191,7 @@ export const IceDepthReportExport = ({ measurement }: IceDepthReportExportProps)
       <body>
         <div class="header">
           <div class="logo">Ice Depth Measurement Report</div>
-          <div class="report-title">${measurement.facilities?.name || "Facility"} - ${measurement.rinks?.name || "Rink"}</div>
+          <div class="report-title">${escapeHtml(measurement.facilities?.name) || "Facility"} - ${escapeHtml(measurement.rinks?.name) || "Rink"}</div>
         </div>
 
         <div class="info-grid">
@@ -263,7 +264,7 @@ export const IceDepthReportExport = ({ measurement }: IceDepthReportExportProps)
             ${measurement.profiles?.name ? `
               <div class="info-item" style="margin-top: 10px;">
                 <div class="info-label">Operator</div>
-                <div class="info-value">${measurement.profiles.name}</div>
+                <div class="info-value">${escapeHtml(measurement.profiles.name)}</div>
               </div>
             ` : ''}
           </div>
@@ -272,7 +273,7 @@ export const IceDepthReportExport = ({ measurement }: IceDepthReportExportProps)
         ${measurement.ai_analysis ? `
           <div class="analysis">
             <strong style="display: block; margin-bottom: 8px;">AI Analysis</strong>
-            ${measurement.ai_analysis.replace(/\n/g, '<br/>')}
+            ${escapeHtml(measurement.ai_analysis).replace(/\n/g, '<br/>')}
           </div>
         ` : ''}
 
@@ -296,10 +297,10 @@ export const IceDepthReportExport = ({ measurement }: IceDepthReportExportProps)
                   const [key2, val2] = entries[i + 1] || ['', null];
                   rows.push(`
                     <tr>
-                      <td style="padding: 4px 8px; border: 1px solid #ddd;">${key1}</td>
+                      <td style="padding: 4px 8px; border: 1px solid #ddd;">${escapeHtml(key1)}</td>
                       <td style="padding: 4px 8px; border: 1px solid #ddd; text-align: right;">${val1.toFixed(3)}"</td>
                       ${val2 !== null ? `
-                        <td style="padding: 4px 8px; border: 1px solid #ddd;">${key2}</td>
+                        <td style="padding: 4px 8px; border: 1px solid #ddd;">${escapeHtml(key2)}</td>
                         <td style="padding: 4px 8px; border: 1px solid #ddd; text-align: right;">${val2.toFixed(3)}"</td>
                       ` : '<td style="border: 1px solid #ddd;"></td><td style="border: 1px solid #ddd;"></td>'}
                     </tr>
@@ -338,28 +339,12 @@ export const IceDepthReportExport = ({ measurement }: IceDepthReportExportProps)
   const handleDownloadPDF = async () => {
     setGeneratingPdf(true);
     try {
-      const container = document.createElement('div');
-      container.innerHTML = generateReportHTML();
-      document.body.appendChild(container);
-
-      const filename = `ice-depth-report-${measurement.facilities?.name || 'facility'}-${format(new Date(measurement.measurement_date), "yyyy-MM-dd")}.pdf`;
-
-      await html2pdf()
-        .set({
-          margin: 10,
-          filename: filename,
-          image: { type: 'jpeg', quality: 0.98 },
-          html2canvas: { scale: 2 },
-          jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-        })
-        .from(container.querySelector('body') || container)
-        .save();
-
-      document.body.removeChild(container);
-      toast.success("PDF downloaded successfully");
-    } catch (error) {
+      const filename = `ice-depth-report-${escapeHtml(measurement.facilities?.name) || 'facility'}-${format(new Date(measurement.measurement_date), "yyyy-MM-dd")}.pdf`;
+      await generatePdfFromHtml(generateReportHTML(), filename);
+      toast.success("PDF download initiated - use 'Save as PDF' in the print dialog");
+    } catch (error: any) {
       console.error("PDF generation error:", error);
-      toast.error("Failed to generate PDF");
+      toast.error(error.message || "Failed to generate PDF");
     } finally {
       setGeneratingPdf(false);
     }
