@@ -1,84 +1,189 @@
 
-## Filter Daily Report Checklists by Shift Type
+# Professional UI Polish Plan
 
-### Overview
-Update the Daily Reports module so that when a shift type is selected from the dropdown (Open, During, Close, Shift Handoff), only the relevant checklist sections are displayed - not all sections from every tab.
+## Overview
+This plan enhances the visual professionalism of Rink Reports while preserving the Seattle Seahawks color scheme (navy blue and action green). The improvements focus on typography refinement, spacing consistency, subtle visual polish, and component enhancements that elevate the overall look without changing the brand identity.
 
-### Current Behavior (Problem)
-- User selects "Open" from the dropdown
-- All tabs appear with ALL their sections (Opening, During, Closing, Handoff)
-- This is confusing because the user only wants to see Opening-related tasks
+---
 
-### Expected Behavior (Solution)
-- User selects "Open" → Only "Opening Procedures" sections appear
-- User selects "During" → Only "During Operations" sections appear
-- User selects "Close" → Only "Closing Procedures" sections appear
-- User selects "Shift Handoff" → Only "Shift Handoff Notes" sections appear
+## Design Philosophy
+- **Keep**: The navy/green color palette, Bebas Neue branding font, gradient overlays
+- **Enhance**: Typography hierarchy, spacing consistency, shadow depth, border refinement, component polish
 
-### Implementation Changes
+---
 
-**1. Map Shift Types to Section IDs**
+## Phase 1: Typography and Font System
 
-Create a mapping between the dropdown values and the section IDs used in `dailyReportChecklists.ts`:
+### 1.1 Add a Professional Body Font
+Currently using system fonts. Add Inter or similar professional sans-serif for body text.
 
-```text
-Shift Type     →  Section IDs to Show
-─────────────────────────────────────────
-"open"         →  "opening", "pre", "daily"
-"during"       →  "during", "hourly", "operations"
-"close"        →  "closing", "post"
-"handoff"      →  "handoff", "special", "admin", "documentation"
-```
+**Changes:**
+- Update `index.html` to include Inter font from Google Fonts
+- Update `tailwind.config.ts` to add the font family
+- Apply the font globally in `index.css`
 
-**2. Update DynamicTabContent Component**
+### 1.2 Typography Hierarchy
+Refine text sizes and weights for clearer visual hierarchy.
 
-Modify `src/components/daily-reports/DynamicTabContent.tsx` to:
-- Accept the current `shiftType` as a prop
-- Filter checklist sections to only show those matching the selected shift type
-- Use the mapping to determine which sections are visible
+**Changes to `index.css`:**
+- Add base typography utilities for headings
+- Improve letter-spacing and line-height consistency
+- Add subtle text rendering improvements (antialiasing)
 
-**3. Update DailyReports Page**
+---
 
-Modify `src/pages/DailyReports.tsx` to:
-- Pass the `shiftType` value down to each `DynamicTabContent` component
-- This allows each tab to filter its content based on the selected shift
+## Phase 2: Card and Component Polish
 
-**4. Update SectionedChecklist Component**
+### 2.1 Enhanced Card Component
+Make cards feel more premium with refined styling.
 
-Modify `src/components/daily-reports/SectionedChecklist.tsx` to:
-- Accept an optional `visibleSectionIds` prop
-- Only render sections whose IDs are in the visible list
-- When no filter is provided, show all sections (backward compatibility)
+**Changes to `src/components/ui/card.tsx`:**
+- Slightly reduce border opacity for softer look
+- Add subtle backdrop blur for glassmorphism effect
+- Refine shadow to be more layered and professional
+- Add smooth transitions on all interactive states
 
-### Files to Modify
+### 2.2 Button Refinements
+Make buttons feel more substantial and clickable.
 
-| File | Change |
-|------|--------|
-| `src/pages/DailyReports.tsx` | Pass `shiftType` to `DynamicTabContent` |
-| `src/components/daily-reports/DynamicTabContent.tsx` | Accept `shiftType` prop, filter sections |
-| `src/components/daily-reports/SectionedChecklist.tsx` | Add section filtering logic |
-| `src/data/dailyReportChecklists.ts` | Add shift-to-section mapping constant (optional) |
+**Changes to `src/components/ui/button.tsx`:**
+- Add subtle text shadow for primary buttons
+- Increase font weight slightly
+- Add more refined hover/active states with scale transform
+- Improve focus ring styling
 
-### User Experience After Changes
+### 2.3 Input Field Polish
+Enhance form inputs for a more premium feel.
 
-1. User opens Daily Reports page
-2. User sees dropdown with shift types (Open, During, Close, Shift Handoff)
-3. User selects "Open"
-4. Only Opening-related checklist items appear in each tab
-5. User completes only the opening tasks
-6. If they need to do closing tasks, they select "Close" from dropdown
-7. The view updates to show only closing-related items
+**Changes to `src/components/ui/input.tsx`:**
+- Add subtle inner shadow for depth
+- Refine focus states with smoother transitions
+- Slightly increase padding for better proportions
 
-### Technical Details
+---
 
-**Section ID Mapping:**
-```typescript
-const SHIFT_SECTION_MAP: Record<string, string[]> = {
-  open: ['opening', 'pre', 'setup', 'daily'],
-  during: ['during', 'hourly', 'operations', 'readiness'],
-  close: ['closing', 'post', 'cleanup'],
-  handoff: ['handoff', 'special', 'admin', 'documentation', 'notes', 'inventory', 'safety', 'weekly'],
-};
-```
+## Phase 3: Global Design Token Refinements
 
-This ensures that each shift type shows only the relevant work for that time of day, preventing the confusion of seeing all shift types at once.
+### 3.1 Enhanced Shadows and Depth
+Create a more sophisticated shadow system.
+
+**Changes to `index.css`:**
+- Add multiple shadow layers for depth
+- Create elevation-based shadow variables
+- Softer, more diffused shadows that feel more natural
+
+### 3.2 Border and Divider Refinements
+Subtle borders that don't compete with content.
+
+**Changes to `index.css`:**
+- Slightly softer border colors
+- Add subtle gradient borders option
+- Improve separator styling
+
+### 3.3 Background Refinements
+More sophisticated background treatments.
+
+**Changes to `index.css`:**
+- Add subtle noise texture option
+- Refine gradient transitions
+- Add subtle pattern overlays for depth
+
+---
+
+## Phase 4: Page Layout Improvements
+
+### 4.1 Dashboard Header Refinement
+Make the header feel more substantial and organized.
+
+**Changes to `src/pages/Dashboard.tsx`:**
+- Add subtle backdrop blur to header
+- Improve spacing and visual rhythm
+- Refine button grouping with better visual separation
+- Add subtle divider lines
+
+### 4.2 Module Cards Enhancement
+Make the colorful module cards feel more premium.
+
+**Changes to `src/pages/Dashboard.tsx`:**
+- Add subtle gradient overlays to cards
+- Improve icon container styling with subtle borders
+- Add subtle shine/highlight effect on hover
+- Refine button styling within cards
+
+### 4.3 Stats Cards Improvement
+Make the quick stats section more visually appealing.
+
+**Changes to `src/pages/Dashboard.tsx`:**
+- Add subtle accent coloring to stat values
+- Improve card header styling with icon integration
+- Add subtle hover effects
+
+---
+
+## Phase 5: Module Header Polish
+
+### 5.1 Context Bar Enhancement
+Make the context bar more visually distinct.
+
+**Changes to `src/components/ModuleHeader.tsx`:**
+- Add subtle left accent border
+- Improve icon styling with rounded backgrounds
+- Add subtle dividers between items
+- Refine typography weights
+
+---
+
+## Phase 6: Table and List Polish
+
+### 6.1 Table Component Enhancement
+More professional data tables.
+
+**Changes to `src/components/ui/table.tsx`:**
+- Add subtle row striping option
+- Improve header styling with background tint
+- Add subtle left border accent on hover
+- Refine cell padding and typography
+
+---
+
+## Phase 7: Badge and Status Indicators
+
+### 7.1 Badge Refinements
+More polished status indicators.
+
+**Changes to `src/components/ui/badge.tsx`:**
+- Add subtle gradient backgrounds
+- Improve shadow for floating effect
+- Add ring/glow effect for active states
+
+---
+
+## Technical Summary
+
+### Files to Modify:
+1. `index.html` - Add Inter font
+2. `tailwind.config.ts` - Add font family and custom utilities
+3. `src/index.css` - Global typography, shadows, refinements
+4. `src/components/ui/card.tsx` - Card polish
+5. `src/components/ui/button.tsx` - Button refinements
+6. `src/components/ui/input.tsx` - Input polish
+7. `src/components/ui/table.tsx` - Table enhancements
+8. `src/components/ui/badge.tsx` - Badge polish
+9. `src/pages/Dashboard.tsx` - Layout and card improvements
+10. `src/components/ModuleHeader.tsx` - Header refinements
+
+### Key Enhancements:
+- Professional Inter font for body text
+- Refined shadow system with multiple layers
+- Subtle glassmorphism effects on cards
+- Improved typography hierarchy and spacing
+- Polished interactive states (hover, focus, active)
+- Better visual rhythm and consistency
+- Subtle animations and transitions
+
+### Preserved Elements:
+- Seattle Seahawks navy/green color palette
+- Bebas Neue branding font for headers
+- Overall layout structure
+- Gradient overlays and hero styling
+- All existing functionality
