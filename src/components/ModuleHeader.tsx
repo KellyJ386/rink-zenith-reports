@@ -105,11 +105,13 @@ const ModuleHeader = ({ title, subtitle, icon, actions, showBack = true }: Modul
       </div>
 
       {/* Context bar */}
-      <div className="bg-muted/50 border rounded-lg px-4 py-2.5">
-        <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm">
+      <div className="bg-muted/30 backdrop-blur-sm border border-border/40 rounded-xl px-5 py-3 shadow-sm">
+        <div className="flex flex-wrap items-center gap-x-1 gap-y-2 text-sm">
           {/* User */}
-          <div className="flex items-center gap-2 text-foreground">
-            <User className="h-4 w-4 text-muted-foreground" />
+          <div className="flex items-center gap-2.5 text-foreground px-3 py-1.5 rounded-lg hover:bg-muted/50 transition-colors">
+            <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center">
+              <User className="h-3.5 w-3.5 text-primary" />
+            </div>
             <span className="font-medium">
               {contextLoading ? (
                 <Loader2 className="h-3 w-3 animate-spin" />
@@ -119,9 +121,13 @@ const ModuleHeader = ({ title, subtitle, icon, actions, showBack = true }: Modul
             </span>
           </div>
 
+          <div className="w-px h-6 bg-border/60 mx-1 hidden sm:block" />
+
           {/* Facility */}
-          <div className="flex items-center gap-2 text-foreground">
-            <Building2 className="h-4 w-4 text-muted-foreground" />
+          <div className="flex items-center gap-2.5 text-foreground px-3 py-1.5 rounded-lg hover:bg-muted/50 transition-colors">
+            <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center">
+              <Building2 className="h-3.5 w-3.5 text-primary" />
+            </div>
             <span className="font-medium">
               {contextLoading ? (
                 <Loader2 className="h-3 w-3 animate-spin" />
@@ -131,25 +137,37 @@ const ModuleHeader = ({ title, subtitle, icon, actions, showBack = true }: Modul
             </span>
           </div>
 
+          <div className="w-px h-6 bg-border/60 mx-1 hidden sm:block" />
+
           {/* Date */}
-          <div className="flex items-center gap-2 text-foreground">
-            <Calendar className="h-4 w-4 text-muted-foreground" />
+          <div className="flex items-center gap-2.5 text-foreground px-3 py-1.5 rounded-lg hover:bg-muted/50 transition-colors">
+            <div className="w-7 h-7 rounded-full bg-muted flex items-center justify-center">
+              <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
+            </div>
             <span>{format(currentTime, "EEEE, MMMM d, yyyy")}</span>
           </div>
 
+          <div className="w-px h-6 bg-border/60 mx-1 hidden sm:block" />
+
           {/* Time */}
-          <div className="flex items-center gap-2 text-foreground">
-            <Clock className="h-4 w-4 text-muted-foreground" />
+          <div className="flex items-center gap-2.5 text-foreground px-3 py-1.5 rounded-lg hover:bg-muted/50 transition-colors">
+            <div className="w-7 h-7 rounded-full bg-muted flex items-center justify-center">
+              <Clock className="h-3.5 w-3.5 text-muted-foreground" />
+            </div>
             <span>{format(currentTime, "h:mm a")}</span>
           </div>
 
+          <div className="w-px h-6 bg-border/60 mx-1 hidden sm:block" />
+
           {/* Temperature */}
-          <div className="flex items-center gap-2 text-foreground">
-            <Thermometer className="h-4 w-4 text-muted-foreground" />
+          <div className="flex items-center gap-2.5 text-foreground px-3 py-1.5 rounded-lg hover:bg-muted/50 transition-colors">
+            <div className="w-7 h-7 rounded-full bg-muted flex items-center justify-center">
+              <Thermometer className="h-3.5 w-3.5 text-muted-foreground" />
+            </div>
             {weatherLoading ? (
               <Loader2 className="h-3 w-3 animate-spin" />
             ) : weather ? (
-              <span>{weather.temperatureF}°F</span>
+              <span className="font-medium">{weather.temperatureF}°F</span>
             ) : (
               <span className="text-muted-foreground">--°F</span>
             )}
