@@ -12,8 +12,8 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AlertCircle, Plus, Download, Filter, Search, FileText, Printer, Mail } from "lucide-react";
-import html2pdf from "html2pdf.js";
 import { format } from "date-fns";
+import { generatePdfFromHtml, escapeHtml } from "@/lib/pdfUtils";
 
 interface Incident {
   id: string;
@@ -161,19 +161,39 @@ export default function IncidentHistory() {
     window.print();
   };
 
-  const downloadPDF = () => {
+  const downloadPDF = async () => {
     const element = document.getElementById("incident-pdf-content");
     if (!element || !selectedIncident) return;
 
-    const opt = {
-      margin: 0.5,
-      filename: `incident-${selectedIncident.incident_number}.pdf`,
-      image: { type: "jpeg" as const, quality: 0.98 },
-      html2canvas: { scale: 2 },
-      jsPDF: { unit: "in" as const, format: "letter" as const, orientation: "portrait" as const },
-    };
-
-    html2pdf().set(opt).from(element).save();
+    try {
+      // Clone the element and generate a complete HTML document
+      const htmlContent = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>Incident Report - ${escapeHtml(selectedIncident.incident_number)}</title>
+          <style>
+            body { font-family: Arial, sans-serif; padding: 20px; max-width: 800px; margin: 0 auto; }
+            @media print {
+              @page { size: A4; margin: 1cm; }
+              body { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+            }
+          </style>
+        </head>
+        <body>
+          ${element.outerHTML}
+        </body>
+        </html>
+      `;
+      
+      await generatePdfFromHtml(htmlContent, `incident-${selectedIncident.incident_number}.pdf`);
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to generate PDF",
+        variant: "destructive",
+      });
+    }
   };
 
   const emailPDF = async () => {

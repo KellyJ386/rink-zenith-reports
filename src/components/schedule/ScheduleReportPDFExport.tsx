@@ -7,7 +7,7 @@ import { Printer, Mail, Loader2, Download } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
-import html2pdf from "html2pdf.js";
+import { generatePdfFromHtml, escapeHtml } from "@/lib/pdfUtils";
 
 interface ScheduleReportData {
   staffHours?: Array<{
@@ -70,15 +70,16 @@ export const ScheduleReportPDFExport = ({ data, startDate, endDate, facilityName
 
   const generateReportHTML = () => {
     const dateRange = `${format(startDate, 'MMM d, yyyy')} - ${format(endDate, 'MMM d, yyyy')}`;
+    const safeTitle = escapeHtml(facilityName);
     
-    // Staff Hours Table
+    // Staff Hours Table - with XSS protection
     const staffHoursRows = data.staffHours?.map(staff => `
       <tr>
-        <td style="padding: 8px; border: 1px solid #ddd;">${staff.staff_name}</td>
-        <td style="padding: 8px; border: 1px solid #ddd;">${staff.role_name}</td>
+        <td style="padding: 8px; border: 1px solid #ddd;">${escapeHtml(staff.staff_name)}</td>
+        <td style="padding: 8px; border: 1px solid #ddd;">${escapeHtml(staff.role_name)}</td>
         <td style="padding: 8px; border: 1px solid #ddd; text-align: right;">${staff.total_hours.toFixed(1)}</td>
         <td style="padding: 8px; border: 1px solid #ddd; text-align: right;">${staff.shift_count}</td>
-        <td style="padding: 8px; border: 1px solid #ddd;">${staff.areas_worked.join(', ')}</td>
+        <td style="padding: 8px; border: 1px solid #ddd;">${escapeHtml(staff.areas_worked.join(', '))}</td>
       </tr>
     `).join('') || '';
 
@@ -93,12 +94,12 @@ export const ScheduleReportPDFExport = ({ data, startDate, endDate, facilityName
       </tr>
     `).join('') || '';
 
-    // Role Distribution Table
+    // Role Distribution Table - with XSS protection
     const roleRows = data.roleDistribution?.map(role => `
       <tr>
         <td style="padding: 8px; border: 1px solid #ddd;">
-          <span style="display: inline-block; width: 12px; height: 12px; border-radius: 50%; background: ${role.color}; margin-right: 8px;"></span>
-          ${role.role_name}
+          <span style="display: inline-block; width: 12px; height: 12px; border-radius: 50%; background: ${escapeHtml(role.color)}; margin-right: 8px;"></span>
+          ${escapeHtml(role.role_name)}
         </td>
         <td style="padding: 8px; border: 1px solid #ddd; text-align: right;">${role.shift_count}</td>
         <td style="padding: 8px; border: 1px solid #ddd; text-align: right;">${role.total_hours.toFixed(1)}</td>
@@ -150,7 +151,7 @@ export const ScheduleReportPDFExport = ({ data, startDate, endDate, facilityName
       <body>
         <div class="header">
           <div class="logo">Schedule Report</div>
-          <div class="report-title">${facilityName} • ${dateRange}</div>
+          <div class="report-title">${safeTitle} • ${dateRange}</div>
         </div>
 
         <div class="stats-grid">
@@ -283,28 +284,12 @@ export const ScheduleReportPDFExport = ({ data, startDate, endDate, facilityName
   const handleDownloadPDF = async () => {
     setGeneratingPdf(true);
     try {
-      const container = document.createElement('div');
-      container.innerHTML = generateReportHTML();
-      document.body.appendChild(container);
-
       const filename = `schedule-report-${format(startDate, 'yyyy-MM-dd')}-to-${format(endDate, 'yyyy-MM-dd')}.pdf`;
-
-      await html2pdf()
-        .set({
-          margin: 10,
-          filename: filename,
-          image: { type: 'jpeg', quality: 0.98 },
-          html2canvas: { scale: 2 },
-          jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-        })
-        .from(container.querySelector('body') || container)
-        .save();
-
-      document.body.removeChild(container);
-      toast.success("PDF downloaded successfully");
-    } catch (error) {
+      await generatePdfFromHtml(generateReportHTML(), filename);
+      toast.success("PDF download initiated - use 'Save as PDF' in the print dialog");
+    } catch (error: any) {
       console.error("PDF generation error:", error);
-      toast.error("Failed to generate PDF");
+      toast.error(error.message || "Failed to generate PDF");
     } finally {
       setGeneratingPdf(false);
     }
