@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { Resend } from "https://esm.sh/resend@4.0.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.81.1";
+import { validateEmailArray, escapeHtmlForEmail } from "../_shared/email-validation.ts";
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
@@ -69,9 +70,35 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log("Sending incident notification:", incidentNumber);
 
+    // Validate recipient emails
+    if (!recipientEmails || !Array.isArray(recipientEmails) || recipientEmails.length === 0) {
+      return new Response(
+        JSON.stringify({ error: 'No recipient emails provided' }),
+        { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+
+    const { valid: validEmails, invalid: invalidEmails } = validateEmailArray(recipientEmails);
+    
+    if (validEmails.length === 0) {
+      return new Response(
+        JSON.stringify({ error: 'No valid email addresses provided', invalidEmails }),
+        { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+
     // Format incident type and location for display
     const formatText = (text: string) => 
-      text.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+      escapeHtmlForEmail(text.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' '));
+
+    // Escape user-provided content for XSS prevention in email
+    const safeIncidentNumber = escapeHtmlForEmail(incidentNumber);
+    const safeIncidentDate = escapeHtmlForEmail(incidentDate);
+    const safeIncidentTime = escapeHtmlForEmail(incidentTime);
+    const safeInjuredPersonName = escapeHtmlForEmail(injuredPersonName);
+    const safeIncidentDescription = escapeHtmlForEmail(incidentDescription);
+    const safeStaffName = escapeHtmlForEmail(staffName);
+    const safeFacilityName = escapeHtmlForEmail(facilityName);
 
     const severityColor = {
       minor: "#22c55e",
@@ -86,12 +113,12 @@ const handler = async (req: Request): Promise<Response> => {
         <head>
           <meta charset="utf-8">
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <title>Incident Report - ${incidentNumber}</title>
+          <title>Incident Report - ${safeIncidentNumber}</title>
         </head>
         <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
           <div style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: white; padding: 30px; border-radius: 12px 12px 0 0; text-align: center;">
             <h1 style="margin: 0; font-size: 28px; font-weight: bold;">⚠️ Incident Report</h1>
-            <p style="margin: 10px 0 0 0; font-size: 16px; opacity: 0.9;">${facilityName}</p>
+            <p style="margin: 10px 0 0 0; font-size: 16px; opacity: 0.9;">${safeFacilityName}</p>
           </div>
 
           <div style="background: #f9fafb; padding: 30px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 12px 12px;">
@@ -99,18 +126,18 @@ const handler = async (req: Request): Promise<Response> => {
               <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
                 <h2 style="margin: 0; font-size: 20px; color: #111827;">Incident Details</h2>
                 <span style="background: ${severityColor}; color: white; padding: 4px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; text-transform: uppercase;">
-                  ${severityLevel}
+                  ${escapeHtmlForEmail(severityLevel)}
                 </span>
               </div>
               
               <table style="width: 100%; border-collapse: collapse;">
                 <tr>
                   <td style="padding: 8px 0; color: #6b7280; font-weight: 500; width: 40%;">Incident Number:</td>
-                  <td style="padding: 8px 0; font-weight: 600; color: #111827;">${incidentNumber}</td>
+                  <td style="padding: 8px 0; font-weight: 600; color: #111827;">${safeIncidentNumber}</td>
                 </tr>
                 <tr>
-                  <td style="padding: 8px 0; color: #6b7280; font-weight: 500;">Date & Time:</td>
-                  <td style="padding: 8px 0; font-weight: 600; color: #111827;">${incidentDate} at ${incidentTime}</td>
+                  <td style="padding: 8px 0; color: #6b7280; font-weight: 500;">Date &amp; Time:</td>
+                  <td style="padding: 8px 0; font-weight: 600; color: #111827;">${safeIncidentDate} at ${safeIncidentTime}</td>
                 </tr>
                 <tr>
                   <td style="padding: 8px 0; color: #6b7280; font-weight: 500;">Location:</td>
@@ -122,7 +149,7 @@ const handler = async (req: Request): Promise<Response> => {
                 </tr>
                 <tr>
                   <td style="padding: 8px 0; color: #6b7280; font-weight: 500;">Injured Person:</td>
-                  <td style="padding: 8px 0; font-weight: 600; color: #111827;">${injuredPersonName}</td>
+                  <td style="padding: 8px 0; font-weight: 600; color: #111827;">${safeInjuredPersonName}</td>
                 </tr>
               </table>
             </div>
@@ -131,20 +158,20 @@ const handler = async (req: Request): Promise<Response> => {
               <h3 style="margin: 0 0 12px 0; font-size: 16px; color: #111827; border-bottom: 2px solid #e5e7eb; padding-bottom: 8px;">
                 Incident Description
               </h3>
-              <p style="margin: 0; color: #4b5563; white-space: pre-wrap;">${incidentDescription}</p>
+              <p style="margin: 0; color: #4b5563; white-space: pre-wrap;">${safeIncidentDescription}</p>
             </div>
 
             <div style="background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
               <h3 style="margin: 0 0 12px 0; font-size: 16px; color: #111827; border-bottom: 2px solid #e5e7eb; padding-bottom: 8px;">
                 Reported By
               </h3>
-              <p style="margin: 0; color: #4b5563; font-weight: 500;">${staffName}</p>
+              <p style="margin: 0; color: #4b5563; font-weight: 500;">${safeStaffName}</p>
             </div>
 
             ${severityLevel === 'critical' || severityLevel === 'serious' ? `
               <div style="background: #fef2f2; border: 2px solid #fecaca; padding: 16px; border-radius: 8px; margin-bottom: 20px;">
                 <p style="margin: 0; color: #991b1b; font-weight: 600; font-size: 14px;">
-                  🚨 This is a ${severityLevel} incident requiring immediate attention and follow-up action.
+                  🚨 This is a ${escapeHtmlForEmail(severityLevel)} incident requiring immediate attention and follow-up action.
                 </p>
               </div>
             ` : ''}
@@ -153,27 +180,23 @@ const handler = async (req: Request): Promise<Response> => {
               <p style="margin: 0 0 10px 0; color: #6b7280; font-size: 14px;">
                 Please review this incident report and take appropriate action.
               </p>
-              <a href="${supabaseUrl}" 
-                 style="display: inline-block; background: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: 600; margin-top: 10px;">
-                View in Dashboard
-              </a>
             </div>
           </div>
 
           <div style="text-align: center; padding: 20px; color: #9ca3af; font-size: 12px;">
-            <p style="margin: 0;">This is an automated notification from ${facilityName}</p>
+            <p style="margin: 0;">This is an automated notification from ${safeFacilityName}</p>
             <p style="margin: 5px 0 0 0;">Incident Management System</p>
           </div>
         </body>
       </html>
     `;
 
-    // Send to all recipients
-    const emailPromises = recipientEmails.map(email =>
+    // Send to all valid recipients
+    const emailPromises = validEmails.map(email =>
       resend.emails.send({
         from: "Incident Report <onboarding@resend.dev>",
         to: [email],
-        subject: `${severityLevel === 'critical' || severityLevel === 'serious' ? '🚨 URGENT - ' : ''}Incident Report: ${incidentNumber} - ${formatText(incidentType)}`,
+        subject: `${severityLevel === 'critical' || severityLevel === 'serious' ? '🚨 URGENT - ' : ''}Incident Report: ${safeIncidentNumber} - ${formatText(incidentType)}`,
         html: emailHtml,
       })
     );
@@ -182,7 +205,11 @@ const handler = async (req: Request): Promise<Response> => {
     console.log("Emails sent successfully:", results);
 
     return new Response(
-      JSON.stringify({ success: true, emailsSent: results.length }),
+      JSON.stringify({ 
+        success: true, 
+        emailsSent: results.length,
+        invalidEmails: invalidEmails.length > 0 ? invalidEmails : undefined
+      }),
       {
         status: 200,
         headers: {

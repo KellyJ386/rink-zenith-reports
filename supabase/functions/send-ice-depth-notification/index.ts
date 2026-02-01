@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.81.1";
+import { isValidEmail, escapeHtmlForEmail } from "../_shared/email-validation.ts";
 
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
 
@@ -96,19 +97,24 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    // Prepare email content
+    // Prepare email content with sanitized values
+    const safeFacilityName = escapeHtmlForEmail(measurement.facilities.name);
+    const safeRinkName = escapeHtmlForEmail(measurement.rinks.name);
+    const safeOperatorName = escapeHtmlForEmail(operatorName);
+    const safeStatus = escapeHtmlForEmail(measurement.status);
+
     const statusIcon = measurement.status === "critical" ? "🔴" : 
                        measurement.status === "warning" ? "⚠️" : "✅";
     
-    const emailSubject = `${statusIcon} Ice Depth Measurement Alert - ${measurement.facilities.name}`;
+    const emailSubject = `${statusIcon} Ice Depth Measurement Alert - ${safeFacilityName}`;
     
     const emailHtml = `
       <h2>New Ice Depth Measurement</h2>
-      <p><strong>Facility:</strong> ${measurement.facilities.name}</p>
-      <p><strong>Rink:</strong> ${measurement.rinks.name}</p>
-      <p><strong>Operator:</strong> ${operatorName}</p>
+      <p><strong>Facility:</strong> ${safeFacilityName}</p>
+      <p><strong>Rink:</strong> ${safeRinkName}</p>
+      <p><strong>Operator:</strong> ${safeOperatorName}</p>
       <p><strong>Date:</strong> ${new Date(measurement.measurement_date).toLocaleString()}</p>
-      <p><strong>Status:</strong> ${measurement.status.toUpperCase()}</p>
+      <p><strong>Status:</strong> ${safeStatus.toUpperCase()}</p>
       
       <h3>Measurements Summary</h3>
       <ul>
@@ -121,35 +127,46 @@ const handler = async (req: Request): Promise<Response> => {
       ${measurement.status !== "good" ? `
         <div style="background-color: #fff3cd; padding: 15px; border-left: 4px solid #ffc107; margin-top: 20px;">
           <strong>⚠️ Action Required:</strong><br/>
-          This measurement has been flagged as ${measurement.status}. Please review and take appropriate action.
+          This measurement has been flagged as ${safeStatus}. Please review and take appropriate action.
         </div>
       ` : ""}
     `;
 
-    // Send emails to all recipients using Resend API
-    const emailPromises = recipients
-      .filter(r => r.email)
-      .map(async (recipient) => {
-        const response = await fetch("https://api.resend.com/emails", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${RESEND_API_KEY}`,
-          },
-          body: JSON.stringify({
-            from: "Ice Depth Alert <onboarding@resend.dev>",
-            to: [recipient.email],
-            subject: emailSubject,
-            html: emailHtml,
-          }),
-        });
-        
-        if (!response.ok) {
-          throw new Error(`Failed to send email to ${recipient.email}`);
+    // Send emails to all recipients using Resend API, filtering invalid emails
+    const validRecipients = recipients.filter(r => r.email && isValidEmail(r.email));
+    
+    if (validRecipients.length === 0) {
+      console.log("No valid recipient emails found");
+      return new Response(
+        JSON.stringify({ message: "No valid recipient emails to notify" }),
+        {
+          status: 200,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
         }
-        
-        return response.json();
+      );
+    }
+
+    const emailPromises = validRecipients.map(async (recipient) => {
+      const response = await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${RESEND_API_KEY}`,
+        },
+        body: JSON.stringify({
+          from: "Ice Depth Alert <onboarding@resend.dev>",
+          to: [recipient.email],
+          subject: emailSubject,
+          html: emailHtml,
+        }),
       });
+      
+      if (!response.ok) {
+        throw new Error(`Failed to send email to ${recipient.email}`);
+      }
+      
+      return response.json();
+    });
 
     const results = await Promise.allSettled(emailPromises);
     
