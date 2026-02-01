@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.81.1";
+import { isValidEmail, sanitizeSubject } from "../_shared/email-validation.ts";
 
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
 
@@ -47,15 +48,29 @@ const handler = async (req: Request): Promise<Response> => {
 
     const { email, reportHtml, subject }: EmailRequest = await req.json();
 
-    console.log(`Sending ice depth report to: ${email}`);
-
-    if (!email || !reportHtml) {
-      throw new Error("Missing required fields: email and reportHtml");
+    // Validate email format
+    if (!email || !isValidEmail(email)) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid email address format' }),
+        { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
     }
+
+    if (!reportHtml) {
+      return new Response(
+        JSON.stringify({ error: 'Missing required field: reportHtml' }),
+        { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+
+    console.log(`Sending ice depth report to: ${email}`);
 
     if (!RESEND_API_KEY) {
       throw new Error("RESEND_API_KEY is not configured");
     }
+
+    // Sanitize subject to prevent header injection
+    const sanitizedSubject = sanitizeSubject(subject, "Ice Depth Measurement Report");
 
     const response = await fetch("https://api.resend.com/emails", {
       method: "POST",
@@ -66,7 +81,7 @@ const handler = async (req: Request): Promise<Response> => {
       body: JSON.stringify({
         from: "Ice Depth Report <onboarding@resend.dev>",
         to: [email],
-        subject: subject || "Ice Depth Measurement Report",
+        subject: sanitizedSubject,
         html: reportHtml,
       }),
     });

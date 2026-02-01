@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { Resend } from "https://esm.sh/resend@4.0.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.81.1";
+import { isValidEmail, escapeHtmlForEmail } from "../_shared/email-validation.ts";
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
@@ -178,6 +179,14 @@ serve(async (req) => {
 
     const request: TimeOffNotificationRequest = await req.json();
     console.log("Processing time off notification:", request);
+
+    // Validate email
+    if (!request.staffEmail || !isValidEmail(request.staffEmail)) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid staff email address' }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
 
     const { subject, html } = getEmailContent(request);
 
