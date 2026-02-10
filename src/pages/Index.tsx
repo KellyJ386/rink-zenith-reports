@@ -1,7 +1,9 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { SignUpModal } from "@/components/SignUpModal";
 import maxFacilityLogo from "@/assets/max-facility-logo.png";
 import {
   Snowflake,
@@ -19,6 +21,7 @@ import {
 import authRinkBg from "@/assets/auth-rink.jpg";
 
 const Index = () => {
+  const [signUpOpen, setSignUpOpen] = useState(false);
   const features = [
     {
       icon: Snowflake,
@@ -183,10 +186,8 @@ const Index = () => {
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <Button asChild size="lg" className="w-full">
-                    <Link to="/auth">
-                      Create Free Account <ArrowRight className="ml-2 h-5 w-5" />
-                    </Link>
+                  <Button size="lg" className="w-full" onClick={() => setSignUpOpen(true)}>
+                    Sign Up <ArrowRight className="ml-2 h-5 w-5" />
                   </Button>
                   <p className="text-sm text-center text-muted-foreground">
                     No credit card required
@@ -212,6 +213,7 @@ const Index = () => {
           </div>
         </div>
       </footer>
+      <SignUpModal open={signUpOpen} onOpenChange={setSignUpOpen} />
     </div>
   );
 };
