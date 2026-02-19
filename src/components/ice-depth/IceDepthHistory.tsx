@@ -39,9 +39,9 @@ const generateRinkSVGForExport = (measurement: any): string => {
     }));
   }
 
-  const width = 300;
-  const height = 520;
-  const cornerRadius = 38;
+  const width = 480;
+  const height = 720;
+  const cornerRadius = 60;
 
   const pointsMarkup = points.map((point) => {
     const key = `Point ${point.id}`;
@@ -52,8 +52,8 @@ const generateRinkSVGForExport = (measurement: any): string => {
     const y = (point.y / 100) * height;
     const color = getDepthColor(value);
     return `
-      <circle cx="${x}" cy="${y}" r="13" fill="${color}" stroke="white" stroke-width="1.5"/>
-      <text x="${x}" y="${y}" text-anchor="middle" dominant-baseline="central" fill="white" font-size="8.5" font-weight="bold">${Number(value).toFixed(2)}</text>
+      <circle cx="${x}" cy="${y}" r="18" fill="${color}" stroke="white" stroke-width="2"/>
+      <text x="${x}" y="${y}" text-anchor="middle" dominant-baseline="central" fill="white" font-size="11" font-weight="bold">${Number(value).toFixed(2)}</text>
     `;
   }).join('');
 
@@ -109,31 +109,31 @@ const generateQuickReportHTML = (measurement: any): string => {
 <head>
 <title>Ice Depth Report</title>
 <style>
-  @page { size: letter portrait; margin: 8mm; }
+  @page { size: letter portrait; margin: 6mm; }
   * { box-sizing: border-box; }
   body { font-family: Arial, sans-serif; font-size: 10px; color: #222; margin: 0; padding: 0; }
-  .header { display: flex; align-items: center; justify-content: space-between; border-bottom: 2.5px solid #0066cc; padding-bottom: 7px; margin-bottom: 8px; }
-  .header-title { font-size: 17px; font-weight: bold; color: #0066cc; }
+  .header { display: flex; align-items: center; justify-content: space-between; border-bottom: 2.5px solid #0066cc; padding-bottom: 6px; margin-bottom: 6px; }
+  .header-title { font-size: 16px; font-weight: bold; color: #0066cc; }
   .header-sub { font-size: 10px; color: #555; margin-top: 2px; }
   .badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-weight: bold; font-size: 10px; background: ${statusBg}; color: ${statusColor}; text-transform: uppercase; }
-  .stats-row { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 6px; margin-bottom: 8px; }
-  .stat-box { text-align: center; padding: 6px 4px; background: #e8f4fc; border-radius: 4px; }
-  .stat-value { font-size: 16px; font-weight: bold; color: #0066cc; }
+  .stats-row { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 5px; margin-bottom: 6px; }
+  .stat-box { text-align: center; padding: 5px 4px; background: #e8f4fc; border-radius: 4px; }
+  .stat-value { font-size: 15px; font-weight: bold; color: #0066cc; }
   .stat-label { font-size: 8px; color: #666; margin-top: 1px; }
-  .main { display: flex; gap: 10px; align-items: flex-start; }
-  .rink-col { flex: 0 0 310px; }
-  .right-col { flex: 1; display: flex; flex-direction: column; gap: 8px; }
-  .info-row { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
+  .rink-wrap { text-align: center; margin-bottom: 6px; }
+  .rink-wrap svg { display: block; margin: 0 auto; max-width: 100%; height: auto; }
+  .legend { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-top: 5px; }
+  .legend-item { display: flex; align-items: center; gap: 3px; font-size: 9px; color: #444; }
+  .legend-dot { width: 11px; height: 11px; border-radius: 50%; display: inline-block; }
+  .bottom-row { display: flex; gap: 10px; align-items: flex-start; }
+  .info-row { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 5px; margin-bottom: 6px; }
   .info-item { padding: 4px 6px; background: #f4f6f8; border-radius: 4px; }
   .info-label { font-size: 7.5px; color: #888; text-transform: uppercase; letter-spacing: 0.5px; }
   .info-value { font-size: 11px; font-weight: bold; margin-top: 1px; }
   .section-title { font-size: 10px; font-weight: bold; color: #333; margin-bottom: 3px; border-bottom: 1px solid #e0e0e0; padding-bottom: 2px; }
   table { width: 100%; border-collapse: collapse; }
   th { background: #0066cc; color: white; padding: 3px 5px; font-size: 8.5px; text-align: left; }
-  .legend { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 5px; }
-  .legend-item { display: flex; align-items: center; gap: 3px; font-size: 8px; color: #444; }
-  .legend-dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
-  .footer { text-align: center; margin-top: 8px; padding-top: 5px; border-top: 1px solid #ddd; font-size: 7.5px; color: #888; }
+  .footer { text-align: center; margin-top: 6px; padding-top: 4px; border-top: 1px solid #ddd; font-size: 7.5px; color: #888; }
   @media print {
     body { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
   }
@@ -158,43 +158,51 @@ const generateQuickReportHTML = (measurement: any): string => {
     <div class="stat-box"><div class="stat-value">${measurement.std_deviation}"</div><div class="stat-label">Std Dev</div></div>
   </div>
 
-  <div class="main">
-    <div class="rink-col">
-      ${rinkSVG}
-      <div class="legend">
-        <div class="legend-item"><span class="legend-dot" style="background:#ef4444;"></span>&lt;1.0" Critical</div>
-        <div class="legend-item"><span class="legend-dot" style="background:#22c55e;"></span>1.0–1.75" Good</div>
-        <div class="legend-item"><span class="legend-dot" style="background:#3b82f6;"></span>1.75–2.0" Monitor</div>
-        <div class="legend-item"><span class="legend-dot" style="background:#eab308;"></span>&gt;2.0" Warning</div>
-      </div>
-    </div>
+  <div class="info-row">
+    <div class="info-item"><div class="info-label">Date</div><div class="info-value">${dateFnsFormat(new Date(measurement.measurement_date), "PP")}</div></div>
+    <div class="info-item"><div class="info-label">Time</div><div class="info-value">${dateFnsFormat(new Date(measurement.measurement_date), "p")}</div></div>
+    <div class="info-item"><div class="info-label">Template</div><div class="info-value">${escapeHtml(measurement.template_type)}</div></div>
+    <div class="info-item"><div class="info-label">Operator</div><div class="info-value">${escapeHtml(measurement.profiles?.name) || "—"}</div></div>
+  </div>
 
-    <div class="right-col">
-      <div>
-        <div class="section-title">Details</div>
-        <div class="info-row">
-          <div class="info-item"><div class="info-label">Date</div><div class="info-value">${dateFnsFormat(new Date(measurement.measurement_date), "PP")}</div></div>
-          <div class="info-item"><div class="info-label">Time</div><div class="info-value">${dateFnsFormat(new Date(measurement.measurement_date), "p")}</div></div>
-          <div class="info-item"><div class="info-label">Template</div><div class="info-value">${escapeHtml(measurement.template_type)}</div></div>
-          <div class="info-item"><div class="info-label">Operator</div><div class="info-value">${escapeHtml(measurement.profiles?.name) || "—"}</div></div>
-        </div>
-      </div>
-
-      <div>
-        <div class="section-title">All Measurements</div>
-        <table>
-          <thead><tr><th>Point</th><th style="text-align:right;">Depth</th><th>Point</th><th style="text-align:right;">Depth</th></tr></thead>
-          <tbody>${tableRows.join('')}</tbody>
-        </table>
-      </div>
-
-      ${measurement.ai_analysis ? `
-      <div>
-        <div class="section-title">AI Analysis</div>
-        <div style="background:#f8f9fa;padding:6px;border-radius:4px;border-left:3px solid #0066cc;font-size:9px;line-height:1.5;">${escapeHtml(measurement.ai_analysis).replace(/\n/g,'<br/>')}</div>
-      </div>` : ''}
+  <div class="rink-wrap">
+    ${rinkSVG}
+    <div class="legend">
+      <div class="legend-item"><span class="legend-dot" style="background:#ef4444;"></span>&lt;1.0" Critical</div>
+      <div class="legend-item"><span class="legend-dot" style="background:#22c55e;"></span>1.0–1.75" Good</div>
+      <div class="legend-item"><span class="legend-dot" style="background:#3b82f6;"></span>1.75–2.0" Monitor</div>
+      <div class="legend-item"><span class="legend-dot" style="background:#eab308;"></span>&gt;2.0" Warning</div>
     </div>
   </div>
+
+  <div>
+    <div class="section-title">All Measurements</div>
+    <table>
+      <thead><tr><th>Point</th><th style="text-align:right;">Depth</th><th>Point</th><th style="text-align:right;">Depth</th><th>Point</th><th style="text-align:right;">Depth</th></tr></thead>
+      <tbody>${(() => {
+        const entries = Object.entries(measurementData);
+        const rows = [];
+        for (let i = 0; i < entries.length; i += 3) {
+          const [k1, v1] = entries[i];
+          const p2 = entries[i + 1];
+          const p3 = entries[i + 2];
+          rows.push(`<tr>
+            <td style="padding:3px 6px;border:1px solid #ddd;font-size:10px;">${escapeHtml(k1)}</td>
+            <td style="padding:3px 6px;border:1px solid #ddd;text-align:right;font-size:10px;font-weight:bold;color:${getDepthColor(Number(v1))}">${Number(v1).toFixed(3)}"</td>
+            ${p2 ? `<td style="padding:3px 6px;border:1px solid #ddd;font-size:10px;">${escapeHtml(p2[0])}</td><td style="padding:3px 6px;border:1px solid #ddd;text-align:right;font-size:10px;font-weight:bold;color:${getDepthColor(Number(p2[1]))}">${Number(p2[1]).toFixed(3)}"</td>` : '<td style="border:1px solid #ddd;"></td><td style="border:1px solid #ddd;"></td>'}
+            ${p3 ? `<td style="padding:3px 6px;border:1px solid #ddd;font-size:10px;">${escapeHtml(p3[0])}</td><td style="padding:3px 6px;border:1px solid #ddd;text-align:right;font-size:10px;font-weight:bold;color:${getDepthColor(Number(p3[1]))}">${Number(p3[1]).toFixed(3)}"</td>` : '<td style="border:1px solid #ddd;"></td><td style="border:1px solid #ddd;"></td>'}
+          </tr>`);
+        }
+        return rows.join('');
+      })()}</tbody>
+    </table>
+  </div>
+
+  ${measurement.ai_analysis ? `
+  <div style="margin-top:6px;">
+    <div class="section-title">AI Analysis</div>
+    <div style="background:#f8f9fa;padding:6px;border-radius:4px;border-left:3px solid #0066cc;font-size:9px;line-height:1.5;">${escapeHtml(measurement.ai_analysis).replace(/\n/g,'<br/>')}</div>
+  </div>` : ''}
 
   <div class="footer">Ice Depth Monitoring System</div>
 </body>
