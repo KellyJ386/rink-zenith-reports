@@ -39,9 +39,9 @@ const generateRinkSVGForExport = (measurement: any): string => {
     }));
   }
 
-  const width = 220;
-  const height = 380;
-  const cornerRadius = 28;
+  const width = 300;
+  const height = 520;
+  const cornerRadius = 38;
 
   const pointsMarkup = points.map((point) => {
     const key = `Point ${point.id}`;
@@ -52,12 +52,12 @@ const generateRinkSVGForExport = (measurement: any): string => {
     const y = (point.y / 100) * height;
     const color = getDepthColor(value);
     return `
-      <circle cx="${x}" cy="${y}" r="11" fill="${color}" stroke="white" stroke-width="1.5"/>
-      <text x="${x}" y="${y}" text-anchor="middle" dominant-baseline="central" fill="white" font-size="7" font-weight="bold">${Number(value).toFixed(2)}</text>
+      <circle cx="${x}" cy="${y}" r="13" fill="${color}" stroke="white" stroke-width="1.5"/>
+      <text x="${x}" y="${y}" text-anchor="middle" dominant-baseline="central" fill="white" font-size="8.5" font-weight="bold">${Number(value).toFixed(2)}</text>
     `;
   }).join('');
 
-  return `<svg viewBox="0 0 ${width} ${height}" width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
+  return `<svg viewBox="0 0 ${width} ${height}" width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;">
     <rect x="3" y="3" width="${width-6}" height="${height-6}" rx="${cornerRadius}" ry="${cornerRadius}" fill="#ddf0fa" stroke="#334155" stroke-width="1.5"/>
     <line x1="12" y1="32" x2="${width-12}" y2="32" stroke="#cc0000" stroke-width="1.2"/>
     <line x1="12" y1="${height-32}" x2="${width-12}" y2="${height-32}" stroke="#cc0000" stroke-width="1.2"/>
@@ -109,31 +109,31 @@ const generateQuickReportHTML = (measurement: any): string => {
 <head>
 <title>Ice Depth Report</title>
 <style>
-  @page { size: letter portrait; margin: 12mm; }
+  @page { size: letter portrait; margin: 8mm; }
   * { box-sizing: border-box; }
-  body { font-family: Arial, sans-serif; font-size: 11px; color: #222; margin: 0; padding: 0; }
-  .header { display: flex; align-items: center; justify-content: space-between; border-bottom: 2.5px solid #0066cc; padding-bottom: 8px; margin-bottom: 10px; }
-  .header-title { font-size: 18px; font-weight: bold; color: #0066cc; }
-  .header-sub { font-size: 11px; color: #555; margin-top: 2px; }
+  body { font-family: Arial, sans-serif; font-size: 10px; color: #222; margin: 0; padding: 0; }
+  .header { display: flex; align-items: center; justify-content: space-between; border-bottom: 2.5px solid #0066cc; padding-bottom: 7px; margin-bottom: 8px; }
+  .header-title { font-size: 17px; font-weight: bold; color: #0066cc; }
+  .header-sub { font-size: 10px; color: #555; margin-top: 2px; }
   .badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-weight: bold; font-size: 10px; background: ${statusBg}; color: ${statusColor}; text-transform: uppercase; }
-  .main { display: flex; gap: 14px; align-items: flex-start; }
-  .rink-col { flex: 0 0 auto; }
-  .right-col { flex: 1; display: flex; flex-direction: column; gap: 10px; }
-  .info-row { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
-  .info-item { padding: 5px 7px; background: #f4f6f8; border-radius: 4px; }
-  .info-label { font-size: 8px; color: #888; text-transform: uppercase; letter-spacing: 0.5px; }
-  .info-value { font-size: 12px; font-weight: bold; margin-top: 1px; }
-  .stats-row { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 6px; }
+  .stats-row { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 6px; margin-bottom: 8px; }
   .stat-box { text-align: center; padding: 6px 4px; background: #e8f4fc; border-radius: 4px; }
   .stat-value { font-size: 16px; font-weight: bold; color: #0066cc; }
   .stat-label { font-size: 8px; color: #666; margin-top: 1px; }
-  .section-title { font-size: 11px; font-weight: bold; color: #333; margin-bottom: 4px; border-bottom: 1px solid #e0e0e0; padding-bottom: 2px; }
+  .main { display: flex; gap: 10px; align-items: flex-start; }
+  .rink-col { flex: 0 0 310px; }
+  .right-col { flex: 1; display: flex; flex-direction: column; gap: 8px; }
+  .info-row { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
+  .info-item { padding: 4px 6px; background: #f4f6f8; border-radius: 4px; }
+  .info-label { font-size: 7.5px; color: #888; text-transform: uppercase; letter-spacing: 0.5px; }
+  .info-value { font-size: 11px; font-weight: bold; margin-top: 1px; }
+  .section-title { font-size: 10px; font-weight: bold; color: #333; margin-bottom: 3px; border-bottom: 1px solid #e0e0e0; padding-bottom: 2px; }
   table { width: 100%; border-collapse: collapse; }
-  th { background: #0066cc; color: white; padding: 4px 6px; font-size: 9px; text-align: left; }
-  .legend { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
-  .legend-item { display: flex; align-items: center; gap: 3px; font-size: 8.5px; color: #444; }
+  th { background: #0066cc; color: white; padding: 3px 5px; font-size: 8.5px; text-align: left; }
+  .legend { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 5px; }
+  .legend-item { display: flex; align-items: center; gap: 3px; font-size: 8px; color: #444; }
   .legend-dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
-  .footer { text-align: center; margin-top: 10px; padding-top: 6px; border-top: 1px solid #ddd; font-size: 8px; color: #888; }
+  .footer { text-align: center; margin-top: 8px; padding-top: 5px; border-top: 1px solid #ddd; font-size: 7.5px; color: #888; }
   @media print {
     body { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
   }
@@ -149,6 +149,13 @@ const generateQuickReportHTML = (measurement: any): string => {
       <div class="badge">${escapeHtml(measurement.status)}</div>
       <div style="font-size:9px;color:#888;margin-top:4px;">Generated ${dateFnsFormat(new Date(), "PP p")}</div>
     </div>
+  </div>
+
+  <div class="stats-row">
+    <div class="stat-box"><div class="stat-value">${measurement.min_depth}"</div><div class="stat-label">Min</div></div>
+    <div class="stat-box"><div class="stat-value">${measurement.max_depth}"</div><div class="stat-label">Max</div></div>
+    <div class="stat-box"><div class="stat-value">${measurement.avg_depth}"</div><div class="stat-label">Avg</div></div>
+    <div class="stat-box"><div class="stat-value">${measurement.std_deviation}"</div><div class="stat-label">Std Dev</div></div>
   </div>
 
   <div class="main">
@@ -174,16 +181,6 @@ const generateQuickReportHTML = (measurement: any): string => {
       </div>
 
       <div>
-        <div class="section-title">Statistics</div>
-        <div class="stats-row">
-          <div class="stat-box"><div class="stat-value">${measurement.min_depth}"</div><div class="stat-label">Min</div></div>
-          <div class="stat-box"><div class="stat-value">${measurement.max_depth}"</div><div class="stat-label">Max</div></div>
-          <div class="stat-box"><div class="stat-value">${measurement.avg_depth}"</div><div class="stat-label">Avg</div></div>
-          <div class="stat-box"><div class="stat-value">${measurement.std_deviation}"</div><div class="stat-label">Std Dev</div></div>
-        </div>
-      </div>
-
-      <div>
         <div class="section-title">All Measurements</div>
         <table>
           <thead><tr><th>Point</th><th style="text-align:right;">Depth</th><th>Point</th><th style="text-align:right;">Depth</th></tr></thead>
@@ -194,7 +191,7 @@ const generateQuickReportHTML = (measurement: any): string => {
       ${measurement.ai_analysis ? `
       <div>
         <div class="section-title">AI Analysis</div>
-        <div style="background:#f8f9fa;padding:8px;border-radius:4px;border-left:3px solid #0066cc;font-size:10px;line-height:1.5;">${escapeHtml(measurement.ai_analysis).replace(/\n/g,'<br/>')}</div>
+        <div style="background:#f8f9fa;padding:6px;border-radius:4px;border-left:3px solid #0066cc;font-size:9px;line-height:1.5;">${escapeHtml(measurement.ai_analysis).replace(/\n/g,'<br/>')}</div>
       </div>` : ''}
     </div>
   </div>
