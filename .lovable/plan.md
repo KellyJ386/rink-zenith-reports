@@ -1,60 +1,92 @@
 
-## Problem: Custom Template Points Don't Match in PDF Export
+## Root Cause: The PDF Uses the Wrong Coordinate System for Custom Templates
 
-### Root Cause (Two-Part)
+### What Was Discovered
 
-**Part 1 — Custom points not fetched at all:**
-The export function in `generateRinkSVGForExport` checks `measurementPoints[templateType]`. For `template_type = "custom"`, `measurementPoints["custom"]` is an empty array, so the code falls into a grid-layout fallback (lines 28–40) that auto-generates evenly-spaced points on a grid — completely ignoring the actual custom template point positions stored in the database.
+After fully reading the live app code, the bug is now completely clear.
 
-**Part 2 — Wrong coordinate space even if fetched:**
-The `custom_ice_templates` table stores point `x`/`y` coordinates as percentages clicked on the `rink-base.svg` portrait image (a plain image with no rotation). The PDF SVG applies `rotate(90, 170, 170)` to a `rinkLength=800, rinkWidth=340` coordinate space — the `USAHockeyRink` internal space. When points from the rink-base image space are fed into this rotated SVG, all dots land in wrong positions.
+**The live app renders custom templates using `USAHockeyRink.tsx`** — NOT the portrait `rink-base.svg`. The change happened in `InteractiveRinkDiagram.tsx` (line 534–543):
 
-From the database query, the custom template "NHL TEST" has its 43 points stored exactly as x/y percentages of the portrait rink-base image. The PDF needs to use those exact percentages to position dots on the same portrait-orientation rink.
+```tsx
+// ALL templates — including "custom" — now go through USAHockeyRink
+<USAHockeyRink 
+  showPoints={!devMode}
+  points={points}   // custom points with x,y percentages
+  ...
+/>
+```
+
+Inside `USAHockeyRink`, custom points are placed using:
+```
+svgX = (point.x / 100) * rinkLength   // rinkLength = 800
+svgY = (point.y / 100) * rinkWidth    // rinkWidth = 340
+```
+...inside a `rotate(90, 170, 170)` group. **This is how custom template dots appear in the live app.**
+
+**The PDF currently uses the wrong path:** When `template_type === 'custom'`, it calls `generatePortraitRinkSVGForExport` which places dots on a portrait `400×850` SVG at `(x/100)*400, (y/100)*850` — completely different coordinate space, no rotation, wrong rink. So every custom point lands in the wrong position.
 
 ### The Fix
 
-The PDF rink diagram should not use the rotated `USAHockeyRink` SVG for custom templates at all. Instead, it should:
+**Delete `generatePortraitRinkSVGForExport` entirely.** Custom template points must be placed using the exact same logic as standard templates — inside the rotated USA Hockey SVG.
 
-1. **Fetch the custom template points from the database** using the `custom_template_id` stored on the measurement record.
-2. **Render a portrait rink SVG** (no rotation) for custom templates, using a simple but accurate rink outline, and map points with `x%` / `y%` directly onto it — exactly matching how the app's `InteractiveRinkDiagram` renders custom templates using `rink-base.svg`.
+The only change needed in `generateRinkSVGForExport`: remove the special case that branches to portrait mode for custom templates. Instead, treat custom template points identically to standard templates — use `measurementPoints` or the passed-in custom points, and map them with `svgX = (x/100)*800`, `svgY = (y/100)*340`, inside the same `rotate(90,170,170)` rotated group.
+
+The function already does this correctly for standard templates. The bug is the `if (template_type === 'custom')` branch that sends custom points to the wrong portrait function.
+
+### Database Verification
+
+The custom template "NHL TEST" stored in the database has 43 points with x,y values like:
+- Point 1: `x: 5.1, y: 90` → In live app: `svgX = 5.1% * 800 = 40.8`, `svgY = 90% * 340 = 306` (placed near left end, inside the 90° rotated group)
+- Point 37: `x: 94.8, y: 89.4` → `svgX = 758.4`, `svgY = 303.96` (near right end)
+
+In the PDF (currently wrong): `svgX = 5.1% * 400 = 20.4`, `svgY = 90% * 850 = 765` — completely different.
 
 ### Technical Changes
 
 **File: `src/components/ice-depth/IceDepthHistory.tsx`**
 
-**1. Fetch custom template points before export:**
-The `handleExport` function (and the measurement details dialog) needs to fetch the custom template points from `custom_ice_templates` table using `measurement.custom_template_id` before calling `generateRinkSVGForExport`.
+**1. Remove `generatePortraitRinkSVGForExport` entirely** (lines 23–100 — the whole function).
 
-**2. Pass custom template points to the SVG generator:**
-Update `generateRinkSVGForExport(measurement, customTemplatePoints?)` signature to accept the fetched custom points.
-
-**3. New portrait-rink SVG for custom templates:**
-When custom template points are provided, render a simple portrait rink SVG (no rotation) using the same `rink-base.svg` proportions. Points are placed using percentage-based `left`/`top` equivalents in SVG: `svgX = (x / 100) * W`, `svgY = (y / 100) * H`.
-
-The portrait rink dimensions will match the aspect ratio of the rink-base image (approximately 1:2.35 width:height based on real NHL rink proportions — 85ft wide × 200ft long). Use `viewBox="0 0 340 800"` (same numbers as USAHockeyRink but NOT rotated).
-
-**4. Render rink markings in portrait orientation:**
-Draw the same markings (goal lines, blue lines, center line, center circle, faceoff circles) but without the `rotate(90)` transform — the rink is already portrait.
-
-**5. Key coordinate mapping for custom points (portrait, no rotation):**
-```
-svgX = (point.x / 100) * 340    // rinkWidth = 340 (horizontal axis = 85ft)
-svgY = (point.y / 100) * 800    // rinkLength = 800 (vertical axis = 200ft)
-```
-No counter-rotation needed on labels since the diagram is not rotated.
-
-### Data Flow
-
-```text
-handleExport(measurement)
-  → fetch custom_ice_templates WHERE id = measurement.custom_template_id
-  → extract points array [{id, x, y, label}]
-  → generateRinkSVGForExport(measurement, customPoints)
-      → if customPoints provided: render portrait SVG with percentage mapping
-      → else: render rotated USAHockeyRink SVG (standard templates)
-  → generateQuickReportHTML(measurement, rinkSVG)
+**2. Remove the custom-template early return in `generateRinkSVGForExport`** (lines 102–106):
+```typescript
+// DELETE THESE LINES:
+if (measurement.template_type === 'custom' && customTemplatePoints && customTemplatePoints.length > 0) {
+  return generatePortraitRinkSVGForExport(measurement, customTemplatePoints);
+}
 ```
 
-### No New Dependencies
+**3. Update the points selection logic** to use `customTemplatePoints` when provided (for custom templates), and fall through to the standard USA Hockey SVG rendering:
+```typescript
+// After removing the early return:
+let points: MeasurementPoint[] = [];
+if (customTemplatePoints && customTemplatePoints.length > 0) {
+  // Custom template — use the fetched points directly
+  points = customTemplatePoints.map(p => ({
+    id: typeof p.id === 'number' ? p.id : parseInt(p.id),
+    x: p.x,
+    y: p.y,
+    name: p.label || `Point ${p.id}`,
+    row: 1,
+  }));
+} else {
+  // Standard template — look up from measurementPoints
+  points = measurementPoints[templateType] || [];
+}
+```
 
-Pure SVG string generation using already-available data. The custom_ice_templates table is already populated with point coordinates.
+Everything else in the function stays the same — the rotated USA Hockey rink SVG, the `viewBox="-10 -10 360 820"`, the `rotate(90,170,170)` group, and the point placement at `svgX = (x/100)*800, svgY = (y/100)*340`.
+
+**4. No changes needed to `handleExportPDF`** — it already fetches custom template points from the database correctly. Those fetched points just need to flow into the unified (non-portrait) rink SVG.
+
+### Summary of What Changes
+
+```
+BEFORE:
+  custom template → generatePortraitRinkSVGForExport → 400×850 portrait, wrong coordinates
+
+AFTER:
+  custom template → generateRinkSVGForExport → rotated USAHockeyRink SVG, same coordinates as live app
+  standard template → generateRinkSVGForExport → rotated USAHockeyRink SVG (unchanged)
+```
+
+The result: every measurement dot in the exported PDF will land in **exactly the same position** it occupies on the live interactive rink diagram.
