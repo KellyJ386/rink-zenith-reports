@@ -20,24 +20,94 @@ const getDepthColor = (depthInches: number): string => {
   return "#eab308";
 };
 
-const generateRinkSVGForExport = (measurement: any): string => {
+// Portrait rink SVG using rink-base.svg proportions (400×850 viewBox) for custom templates
+const generatePortraitRinkSVGForExport = (measurement: any, customPoints: Array<{id: string|number, x: number, y: number, label?: string}>): string => {
+  const measurementData = measurement.measurements || {};
+
+  // rink-base.svg uses viewBox="0 0 400 850"
+  const W = 400;
+  const H = 850;
+
+  const pointsMarkup = customPoints.map((point) => {
+    const key = `Point ${point.id}`;
+    const altKey = point.id.toString();
+    const labelKey = point.label || '';
+    const value = measurementData[key] ?? measurementData[altKey] ?? measurementData[labelKey];
+    if (value === undefined || value === null) return '';
+    const svgX = (point.x / 100) * W;
+    const svgY = (point.y / 100) * H;
+    const color = getDepthColor(Number(value));
+    const label = Number(value).toFixed(2);
+    return `
+      <circle cx="${svgX}" cy="${svgY}" r="18" fill="${color}" stroke="white" stroke-width="2.5"/>
+      <text x="${svgX}" y="${svgY}" text-anchor="middle" dominant-baseline="central" fill="white" font-size="11" font-weight="bold">${label}</text>
+    `;
+  }).join('');
+
+  // Embed the rink-base.svg markup inline (portrait, no rotation needed)
+  return `<svg viewBox="0 0 400 850" width="340" height="722" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;">
+    <defs>
+      <linearGradient id="creaseGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%" style="stop-color:#b3d9ff;stop-opacity:0.6"/>
+        <stop offset="100%" style="stop-color:#87ceeb;stop-opacity:0.4"/>
+      </linearGradient>
+    </defs>
+    <rect width="400" height="850" fill="#f8fafc"/>
+    <rect x="10" y="10" width="380" height="830" rx="56" ry="56" fill="#e8f4fc" stroke="#1a365d" stroke-width="4"/>
+    <line x1="10" y1="425" x2="390" y2="425" stroke="#c53030" stroke-width="12"/>
+    <line x1="10" y1="285" x2="390" y2="285" stroke="#2b6cb0" stroke-width="10"/>
+    <line x1="10" y1="565" x2="390" y2="565" stroke="#2b6cb0" stroke-width="10"/>
+    <path d="M 45 70 L 355 70" stroke="#c53030" stroke-width="4" stroke-linecap="round"/>
+    <path d="M 45 780 L 355 780" stroke="#c53030" stroke-width="4" stroke-linecap="round"/>
+    <path d="M 165 70 L 165 100 Q 165 115, 200 115 Q 235 115, 235 100 L 235 70 Z" fill="url(#creaseGradient)" stroke="#c53030" stroke-width="2"/>
+    <path d="M 165 100 Q 200 140, 235 100" fill="none" stroke="#c53030" stroke-width="2"/>
+    <rect x="175" y="35" width="50" height="35" fill="none" stroke="#1a365d" stroke-width="3" rx="3"/>
+    <path d="M 165 780 L 165 750 Q 165 735, 200 735 Q 235 735, 235 750 L 235 780 Z" fill="url(#creaseGradient)" stroke="#c53030" stroke-width="2"/>
+    <path d="M 165 750 Q 200 710, 235 750" fill="none" stroke="#c53030" stroke-width="2"/>
+    <rect x="175" y="780" width="50" height="35" fill="none" stroke="#1a365d" stroke-width="3" rx="3"/>
+    <circle cx="200" cy="425" r="50" fill="none" stroke="#2b6cb0" stroke-width="3"/>
+    <circle cx="200" cy="425" r="6" fill="#2b6cb0"/>
+    <circle cx="110" cy="160" r="50" fill="none" stroke="#c53030" stroke-width="2"/>
+    <circle cx="110" cy="160" r="6" fill="#c53030"/>
+    <path d="M 60 145 L 60 130 L 75 130" fill="none" stroke="#c53030" stroke-width="3"/>
+    <path d="M 60 175 L 60 190 L 75 190" fill="none" stroke="#c53030" stroke-width="3"/>
+    <path d="M 145 130 L 160 130 L 160 145" fill="none" stroke="#c53030" stroke-width="3"/>
+    <path d="M 145 190 L 160 190 L 160 175" fill="none" stroke="#c53030" stroke-width="3"/>
+    <circle cx="290" cy="160" r="50" fill="none" stroke="#c53030" stroke-width="2"/>
+    <circle cx="290" cy="160" r="6" fill="#c53030"/>
+    <path d="M 340 145 L 340 130 L 325 130" fill="none" stroke="#c53030" stroke-width="3"/>
+    <path d="M 340 175 L 340 190 L 325 190" fill="none" stroke="#c53030" stroke-width="3"/>
+    <path d="M 255 130 L 240 130 L 240 145" fill="none" stroke="#c53030" stroke-width="3"/>
+    <path d="M 255 190 L 240 190 L 240 175" fill="none" stroke="#c53030" stroke-width="3"/>
+    <circle cx="110" cy="690" r="50" fill="none" stroke="#c53030" stroke-width="2"/>
+    <circle cx="110" cy="690" r="6" fill="#c53030"/>
+    <path d="M 60 675 L 60 660 L 75 660" fill="none" stroke="#c53030" stroke-width="3"/>
+    <path d="M 60 705 L 60 720 L 75 720" fill="none" stroke="#c53030" stroke-width="3"/>
+    <path d="M 145 660 L 160 660 L 160 675" fill="none" stroke="#c53030" stroke-width="3"/>
+    <path d="M 145 720 L 160 720 L 160 705" fill="none" stroke="#c53030" stroke-width="3"/>
+    <circle cx="290" cy="690" r="50" fill="none" stroke="#c53030" stroke-width="2"/>
+    <circle cx="290" cy="690" r="6" fill="#c53030"/>
+    <path d="M 340 675 L 340 660 L 325 660" fill="none" stroke="#c53030" stroke-width="3"/>
+    <path d="M 340 705 L 340 720 L 325 720" fill="none" stroke="#c53030" stroke-width="3"/>
+    <path d="M 255 660 L 240 660 L 240 675" fill="none" stroke="#c53030" stroke-width="3"/>
+    <path d="M 255 720 L 240 720 L 240 705" fill="none" stroke="#c53030" stroke-width="3"/>
+    <circle cx="110" cy="335" r="6" fill="#c53030"/>
+    <circle cx="290" cy="335" r="6" fill="#c53030"/>
+    <circle cx="110" cy="515" r="6" fill="#c53030"/>
+    <circle cx="290" cy="515" r="6" fill="#c53030"/>
+    ${pointsMarkup}
+  </svg>`;
+};
+
+const generateRinkSVGForExport = (measurement: any, customTemplatePoints?: Array<{id: string|number, x: number, y: number, label?: string}>): string => {
+  // For custom templates, use portrait rink (no rotation) with percentage-based mapping
+  if (measurement.template_type === 'custom' && customTemplatePoints && customTemplatePoints.length > 0) {
+    return generatePortraitRinkSVGForExport(measurement, customTemplatePoints);
+  }
+
   const measurementData = measurement.measurements || {};
   const templateType = measurement.template_type || "25-point";
   let points: MeasurementPoint[] = measurementPoints[templateType] || [];
-
-  if (templateType === "custom" || points.length === 0) {
-    const keys = Object.keys(measurementData);
-    const numPoints = keys.length;
-    const cols = Math.ceil(Math.sqrt(numPoints));
-    const rows = Math.ceil(numPoints / cols);
-    points = keys.map((key, index) => ({
-      id: index + 1,
-      x: 15 + ((index % cols) * (70 / Math.max(cols - 1, 1))),
-      y: 10 + (Math.floor(index / cols) * (80 / Math.max(rows - 1, 1))),
-      name: key,
-      row: Math.floor(index / cols) + 1,
-    }));
-  }
 
   // === Exact constants mirrored from USAHockeyRink.tsx ===
   const scale = 4;
@@ -183,9 +253,9 @@ const generateRinkSVGForExport = (measurement: any): string => {
   </svg>`;
 };
 
-const generateQuickReportHTML = (measurement: any): string => {
+const generateQuickReportHTML = (measurement: any, customTemplatePoints?: Array<{id: string|number, x: number, y: number, label?: string}>): string => {
   const measurementData = measurement.measurements || {};
-  const rinkSVG = generateRinkSVGForExport(measurement);
+  const rinkSVG = generateRinkSVGForExport(measurement, customTemplatePoints);
 
   // Build two-column measurement table
   const entries = Object.entries(measurementData);
@@ -376,8 +446,28 @@ export const IceDepthHistory = () => {
   const handleExportPDF = async (measurement: any) => {
     setExportingId(measurement.id);
     try {
+      let customTemplatePoints: Array<{id: string|number, x: number, y: number, label?: string}> | undefined;
+
+      if (measurement.template_type === 'custom' && measurement.custom_template_id) {
+        const { data: templateData } = await supabase
+          .from('custom_ice_templates')
+          .select('points')
+          .eq('id', measurement.custom_template_id)
+          .single();
+
+        if (templateData?.points) {
+          const rawPoints = Array.isArray(templateData.points) ? templateData.points : [];
+          customTemplatePoints = rawPoints.map((p: any) => ({
+            id: p.id ?? p.label ?? String(rawPoints.indexOf(p) + 1),
+            x: Number(p.x),
+            y: Number(p.y),
+            label: p.label,
+          }));
+        }
+      }
+
       const filename = `ice-depth-report-${measurement.facilities?.name || "facility"}-${dateFnsFormat(new Date(measurement.measurement_date), "yyyy-MM-dd")}.pdf`;
-      await generatePdfFromHtml(generateQuickReportHTML(measurement), filename);
+      await generatePdfFromHtml(generateQuickReportHTML(measurement, customTemplatePoints), filename);
     } catch (error: any) {
       toast({ title: "Error", description: error.message || "Failed to generate PDF", variant: "destructive" });
     } finally {
