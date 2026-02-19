@@ -1,55 +1,57 @@
 
-## Make the Rink Diagram Bigger in the Export PDF
+## Problem: Measurement Points Don't Match in PDF Export
 
-### Current State
+### Root Cause
 
-The rink SVG is generated at `width: 220, height: 380` (lines 42–43) and is placed in a left column (`.rink-col { flex: 0 0 auto; }`) beside a right column containing Details, Statistics, and the measurements table. The tight side-by-side layout constrains the rink to ~220px wide.
+The PDF export uses `generateRinkSVGForExport` — a hand-drawn, simplified rink SVG with approximate line positions. The app uses `USAHockeyRink.tsx`, a precisely scaled rink built from real USA Hockey dimensions (200ft × 85ft, with exact corner radii, blue lines at 64ft from goal, faceoff circles, etc.).
 
-### Problem
+The critical mismatch:
+- The real app rink is **rotated 90° clockwise** and uses `scale = 4` (1 foot = 4 units), giving a `rinkLength = 800`, `rinkWidth = 340` coordinate space.
+- Measurement point coordinates are **percentages** mapped into that rotated space: `svgX = (point.x / 100) * rinkLength`, `svgY = (point.y / 100) * rinkWidth`.
+- The export SVG ignores the rotation and maps points into a completely different 480×720 space with approximate lines, causing all dots to land in wrong positions.
 
-The rink diagram is relatively small because it shares horizontal space with the info panels. To make it noticeably larger, the layout needs to change — the rink should take up the dominant portion of the page.
+### Solution: Port the Exact Rink SVG to the PDF Generator
 
-### Proposed Solution
+Replace `generateRinkSVGForExport` with a function that produces the **same SVG markup** as `USAHockeyRink.tsx` — using identical math, scale, rotation, and coordinate system — then overlays the measurement dots using the exact same coordinate transformation.
 
-Switch from a side-by-side layout to a **stacked layout**:
-
-```text
-┌─────────────────────────────────────────────────────┐
-│  HEADER (title, facility, status badge, date)       │
-├─────────────────────────────────────────────────────┤
-│  STATS ROW  (Min | Max | Avg | Std Dev) — 4 boxes   │
-├──────────────────────┬──────────────────────────────┤
-│                      │  Details (date, op, template) │
-│   RINK DIAGRAM       ├──────────────────────────────┤
-│   (larger, centered) │  Measurements table           │
-│                      │  (scrollable right column)    │
-└──────────────────────┴──────────────────────────────┘
-│  Legend + AI Analysis + Footer                      │
-└─────────────────────────────────────────────────────┘
-```
-
-Actually a cleaner approach that gives the rink maximum visual space while still fitting one page:
-
-- **Rink SVG size**: increase from `220×380` → `300×520` (proportionally larger, ~36% bigger)
-- **Dot radius**: increase from `r="11"` → `r="13"` and font-size from `7` → `8.5` so labels stay readable at the larger size
-- **Corner radius**: scale from `28` → `38`
-- **Layout**: keep two-column but give the rink column a fixed width of `310px` (up from auto ~220px), and make the right column more compact (smaller fonts/padding) to compensate
-- **Page margin**: reduce from `12mm` → `8mm` to reclaim space
-- **Stats row**: move above the two-column section so it spans full width, freeing vertical space in the right column for the table
+This means:
+1. Same `scale = 4`, `rinkLength = 800`, `rinkWidth = 340` coordinate space
+2. Same `rotate(90, rinkWidth/2, rinkWidth/2)` transform on the rink group
+3. Same `viewBox="-10 -10 ${rinkWidth + 20} ${rinkLength + 20}"` (portrait orientation)
+4. Same percentage → SVG coordinate mapping for dots: `svgX = (point.x / 100) * rinkLength`, `svgY = (point.y / 100) * rinkWidth`
+5. Same text counter-rotation: `rotate(-90, svgX, svgY)` on point labels
+6. All rink features ported as inline SVG strings: rink outline path, goal lines, blue lines, center line, center circle, goal creases, faceoff circles, neutral zone spots
 
 ### Technical Changes
 
 **File: `src/components/ice-depth/IceDepthHistory.tsx`**
 
-1. **Lines 42–44** — `generateRinkSVGForExport`: Change `width = 220` → `300`, `height = 380` → `520`, `cornerRadius = 28` → `38`
-2. **Line 55** — dot radius `r="11"` → `r="13"`, `font-size="7"` → `font-size="8.5"`
-3. **Line 60** — SVG `width` and `height` attributes updated to match new dimensions
-4. **Lines 112–140** — CSS in `generateQuickReportHTML`:
-   - `@page` margin `12mm` → `8mm`
-   - `.rink-col { flex: 0 0 310px; }` (was `flex: 0 0 auto`)
-   - `.main { gap: 14px }` → `gap: 10px`
-   - Stats row moved above `.main` div as a full-width section
-   - Right column font sizes slightly reduced to fit the narrower space
-5. **Lines 154–200** — HTML body: Move the stats grid (`<div class="stats-row">`) above the `.main` flex container so it spans the full page width, giving the rink column clean vertical room
+Replace the entire `generateRinkSVGForExport` function with a new version that:
 
-No backend changes or new dependencies required.
+1. Mirrors the exact constants from `USAHockeyRink.tsx`:
+   - `scale = 4`, `rinkLength = 800`, `rinkWidth = 340`, `cornerRadius = 112`
+   - `goalLineFromBoards = 44`, `blueLineFromGoal = 256`
+   - All faceoff positions, circle radii, line widths
+
+2. Builds the rink path string with identical quadratic bezier corners
+
+3. Generates goal crease paths using the same arc math
+
+4. Generates all faceoff circles and neutral zone spots as SVG string elements
+
+5. Applies `transform="rotate(90, 170, 170)"` to the rink group (same as the React component)
+
+6. Maps measurement points using the same coordinate system:
+   ```
+   svgX = (point.x / 100) * rinkLength
+   svgY = (point.y / 100) * rinkWidth
+   ```
+   And places dots at those coordinates inside the rotated group, with counter-rotated labels
+
+7. Sets `viewBox="-10 -10 360 820"` to match the React component's viewBox
+
+The PDF layout stays the same (two-column split: rink on left, data on right), but the rink SVG will now be pixel-perfect to what the user sees in the app.
+
+### No New Dependencies
+
+This is a pure SVG string porting exercise — no new libraries needed. The math is already proven in `USAHockeyRink.tsx`.
