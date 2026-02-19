@@ -7,8 +7,60 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
-import { Eye, TrendingDown, TrendingUp } from "lucide-react";
+import { Eye, TrendingDown, TrendingUp, Download, Loader2 } from "lucide-react";
 import { IceDepthReportExport } from "./IceDepthReportExport";
+import { generatePdfFromHtml, escapeHtml } from "@/lib/pdfUtils";
+import { format as dateFnsFormat } from "date-fns";
+import { measurementPoints, MeasurementPoint } from "./measurementPoints";
+
+const getDepthColor = (depthInches: number): string => {
+  if (depthInches < 1.0) return "#ef4444";
+  if (depthInches <= 1.75) return "#22c55e";
+  if (depthInches <= 2.0) return "#3b82f6";
+  return "#eab308";
+};
+
+const generateQuickReportHTML = (measurement: any): string => {
+  const measurementData = measurement.measurements || {};
+  const pointsHtml = Object.entries(measurementData)
+    .map(([key, value]: [string, any]) => `<tr><td style="padding:4px 8px;border:1px solid #ddd;">${escapeHtml(key)}</td><td style="padding:4px 8px;border:1px solid #ddd;text-align:right;">${Number(value).toFixed(3)}"</td></tr>`)
+    .join("");
+  return `<!DOCTYPE html><html><head><title>Ice Depth Report</title>
+    <style>body{font-family:Arial,sans-serif;padding:20px;max-width:800px;margin:0 auto;}
+    .header{text-align:center;border-bottom:2px solid #333;padding-bottom:15px;margin-bottom:20px;}
+    .logo{font-size:22px;font-weight:bold;color:#0066cc;}
+    .info-grid{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:10px;margin-bottom:20px;}
+    .info-item{padding:8px;background:#f5f5f5;border-radius:4px;}
+    .info-label{font-size:10px;color:#666;text-transform:uppercase;}
+    .info-value{font-size:14px;font-weight:bold;margin-top:2px;}
+    .stats-grid{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;margin-bottom:20px;}
+    .stat-box{text-align:center;padding:12px;background:#e8f4fc;border-radius:6px;}
+    .stat-value{font-size:20px;font-weight:bold;color:#0066cc;}
+    .stat-label{font-size:10px;color:#666;margin-top:2px;}
+    table{width:100%;border-collapse:collapse;font-size:11px;}
+    th{background:#0066cc;color:white;padding:8px;text-align:left;}
+    .footer{text-align:center;margin-top:20px;padding-top:15px;border-top:1px solid #ddd;font-size:10px;color:#666;}
+    </style></head><body>
+    <div class="header">
+      <div class="logo">Ice Depth Measurement Report</div>
+      <div>${escapeHtml(measurement.facilities?.name) || "Facility"} - ${escapeHtml(measurement.rinks?.name) || "Rink"}</div>
+    </div>
+    <div class="info-grid">
+      <div class="info-item"><div class="info-label">Date</div><div class="info-value">${dateFnsFormat(new Date(measurement.measurement_date), "PP")}</div></div>
+      <div class="info-item"><div class="info-label">Time</div><div class="info-value">${dateFnsFormat(new Date(measurement.measurement_date), "p")}</div></div>
+      <div class="info-item"><div class="info-label">Template</div><div class="info-value">${escapeHtml(measurement.template_type)}</div></div>
+      <div class="info-item"><div class="info-label">Status</div><div class="info-value">${escapeHtml(measurement.status)}</div></div>
+    </div>
+    <div class="stats-grid">
+      <div class="stat-box"><div class="stat-value">${measurement.min_depth}"</div><div class="stat-label">Minimum</div></div>
+      <div class="stat-box"><div class="stat-value">${measurement.max_depth}"</div><div class="stat-label">Maximum</div></div>
+      <div class="stat-box"><div class="stat-value">${measurement.avg_depth}"</div><div class="stat-label">Average</div></div>
+      <div class="stat-box"><div class="stat-value">${measurement.std_deviation}"</div><div class="stat-label">Std Dev</div></div>
+    </div>
+    <table><thead><tr><th>Point</th><th>Depth</th></tr></thead><tbody>${pointsHtml}</tbody></table>
+    <div class="footer"><p>Generated on ${dateFnsFormat(new Date(), "PPP p")}</p><p>Ice Depth Monitoring System</p></div>
+    </body></html>`;
+};
 
 export const IceDepthHistory = () => {
   const { toast } = useToast();
@@ -16,6 +68,7 @@ export const IceDepthHistory = () => {
   const [loading, setLoading] = useState(true);
   const [selectedMeasurement, setSelectedMeasurement] = useState<any>(null);
   const [showDetails, setShowDetails] = useState(false);
+  const [exportingId, setExportingId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchMeasurements();
@@ -63,6 +116,18 @@ export const IceDepthHistory = () => {
   const handleViewDetails = (measurement: any) => {
     setSelectedMeasurement(measurement);
     setShowDetails(true);
+  };
+
+  const handleExportPDF = async (measurement: any) => {
+    setExportingId(measurement.id);
+    try {
+      const filename = `ice-depth-report-${measurement.facilities?.name || "facility"}-${dateFnsFormat(new Date(measurement.measurement_date), "yyyy-MM-dd")}.pdf`;
+      await generatePdfFromHtml(generateQuickReportHTML(measurement), filename);
+    } catch (error: any) {
+      toast({ title: "Error", description: error.message || "Failed to generate PDF", variant: "destructive" });
+    } finally {
+      setExportingId(null);
+    }
   };
 
   if (loading) {
@@ -120,14 +185,29 @@ export const IceDepthHistory = () => {
                           <span>Avg: {measurement.avg_depth}"</span>
                         </div>
                       </div>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleViewDetails(measurement)}
-                      >
-                        <Eye className="h-4 w-4 mr-2" />
-                        View Details
-                      </Button>
+                      <div className="flex gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleExportPDF(measurement)}
+                          disabled={exportingId === measurement.id}
+                        >
+                          {exportingId === measurement.id ? (
+                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          ) : (
+                            <Download className="h-4 w-4 mr-2" />
+                          )}
+                          Export PDF
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleViewDetails(measurement)}
+                        >
+                          <Eye className="h-4 w-4 mr-2" />
+                          View Details
+                        </Button>
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
