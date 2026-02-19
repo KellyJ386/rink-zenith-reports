@@ -39,48 +39,147 @@ const generateRinkSVGForExport = (measurement: any): string => {
     }));
   }
 
-  const width = 480;
-  const height = 720;
-  const cornerRadius = 60;
+  // === Exact constants mirrored from USAHockeyRink.tsx ===
+  const scale = 4;
+  const rinkLength = 200 * scale;   // 800
+  const rinkWidth = 85 * scale;     // 340
+  const cornerRadius = 28 * scale;  // 112
 
+  const goalLineFromBoards = 11 * scale; // 44
+  const blueLineFromGoal = 64 * scale;   // 256
+  const centerX = rinkLength / 2;        // 400
+  const centerY = rinkWidth / 2;         // 170
+
+  const faceoffFromCenter = 22 * scale;          // 88
+  const neutralFaceoffFromBlue = 5 * scale;      // 20
+  const endFaceoffFromGoal = 20 * scale;          // 80
+  const faceoffCircleRadius = 15 * scale;         // 60
+
+  const thinLine = 2;
+  const thickLine = scale; // 4
+
+  const redLine = '#c8102e';
+  const blueLine = '#003087';
+  const creaseBlue = '#a8d4f0';
+
+  // Goal line Y intersect with rounded corners (same math as USAHockeyRink.tsx)
+  const goalLineOffset = cornerRadius - goalLineFromBoards;
+  const goalLineIntersectOffset = Math.sqrt(cornerRadius * cornerRadius - goalLineOffset * goalLineOffset);
+  const goalLineYTop = cornerRadius - goalLineIntersectOffset;
+  const goalLineYBottom = rinkWidth - cornerRadius + goalLineIntersectOffset;
+
+  const leftGoalLine = goalLineFromBoards;
+  const rightGoalLine = rinkLength - goalLineFromBoards;
+  const leftBlueLine = goalLineFromBoards + blueLineFromGoal;
+  const rightBlueLine = rinkLength - goalLineFromBoards - blueLineFromGoal;
+
+  const neutralFaceoffX_left = leftBlueLine + neutralFaceoffFromBlue;
+  const neutralFaceoffX_right = rightBlueLine - neutralFaceoffFromBlue;
+  const endFaceoffX_left = leftGoalLine + endFaceoffFromGoal;
+  const endFaceoffX_right = rightGoalLine - endFaceoffFromGoal;
+  const faceoffY_top = centerY - faceoffFromCenter;
+  const faceoffY_bottom = centerY + faceoffFromCenter;
+
+  // Rink outline path (identical bezier corners)
+  const rinkPath = `M ${cornerRadius} 0 L ${rinkLength - cornerRadius} 0 Q ${rinkLength} 0 ${rinkLength} ${cornerRadius} L ${rinkLength} ${rinkWidth - cornerRadius} Q ${rinkLength} ${rinkWidth} ${rinkLength - cornerRadius} ${rinkWidth} L ${cornerRadius} ${rinkWidth} Q 0 ${rinkWidth} 0 ${rinkWidth - cornerRadius} L 0 ${cornerRadius} Q 0 0 ${cornerRadius} 0 Z`;
+
+  // Goal crease helper (same arc math)
+  const goalCreaseSVG = (x: number, direction: 'left' | 'right'): string => {
+    const creaseRadius = 6 * scale;
+    const creaseHalfWidth = 4 * scale;
+    const dir = direction === 'left' ? 1 : -1;
+    const sideLen = Math.sqrt(creaseRadius * creaseRadius - creaseHalfWidth * creaseHalfWidth);
+    const sweep = direction === 'left' ? 1 : 0;
+    return `
+      <path d="M ${x} ${centerY - creaseHalfWidth} L ${x + dir * sideLen} ${centerY - creaseHalfWidth} A ${creaseRadius} ${creaseRadius} 0 0 ${sweep} ${x + dir * sideLen} ${centerY + creaseHalfWidth} L ${x} ${centerY + creaseHalfWidth} Z" fill="${creaseBlue}" opacity="0.7"/>
+      <line x1="${x}" y1="${centerY - creaseHalfWidth}" x2="${x + dir * sideLen}" y2="${centerY - creaseHalfWidth}" stroke="${redLine}" stroke-width="${thinLine}"/>
+      <line x1="${x}" y1="${centerY + creaseHalfWidth}" x2="${x + dir * sideLen}" y2="${centerY + creaseHalfWidth}" stroke="${redLine}" stroke-width="${thinLine}"/>
+      <path d="M ${x + dir * sideLen} ${centerY - creaseHalfWidth} A ${creaseRadius} ${creaseRadius} 0 0 ${sweep} ${x + dir * sideLen} ${centerY + creaseHalfWidth}" fill="none" stroke="${redLine}" stroke-width="${thinLine}"/>
+    `;
+  };
+
+  // End zone faceoff circle helper
+  const endZoneCircleSVG = (cx: number, cy: number): string => {
+    const hashLen = 2 * scale;
+    const hashDist = 2 * scale;
+    const lLen = 4 * scale;
+    const lW = 3 * scale;
+    return `
+      <circle cx="${cx}" cy="${cy}" r="${faceoffCircleRadius}" fill="none" stroke="${redLine}" stroke-width="${thinLine}"/>
+      <circle cx="${cx}" cy="${cy}" r="${scale}" fill="${redLine}"/>
+      <line x1="${cx - hashDist}" y1="${cy + (faceoffCircleRadius + 1)}" x2="${cx - hashDist}" y2="${cy + (faceoffCircleRadius + hashLen + 1)}" stroke="${redLine}" stroke-width="${thinLine}"/>
+      <line x1="${cx + hashDist}" y1="${cy + (faceoffCircleRadius + 1)}" x2="${cx + hashDist}" y2="${cy + (faceoffCircleRadius + hashLen + 1)}" stroke="${redLine}" stroke-width="${thinLine}"/>
+      <line x1="${cx - hashDist}" y1="${cy - (faceoffCircleRadius + 1)}" x2="${cx - hashDist}" y2="${cy - (faceoffCircleRadius + hashLen + 1)}" stroke="${redLine}" stroke-width="${thinLine}"/>
+      <line x1="${cx + hashDist}" y1="${cy - (faceoffCircleRadius + 1)}" x2="${cx + hashDist}" y2="${cy - (faceoffCircleRadius + hashLen + 1)}" stroke="${redLine}" stroke-width="${thinLine}"/>
+      <line x1="${cx - 4}" y1="${cy + 8}" x2="${cx - 4 - lW}" y2="${cy + 8}" stroke="${redLine}" stroke-width="${thinLine}"/>
+      <line x1="${cx - 4}" y1="${cy + 8}" x2="${cx - 4}" y2="${cy + 8 + lLen}" stroke="${redLine}" stroke-width="${thinLine}"/>
+      <line x1="${cx + 4}" y1="${cy + 8}" x2="${cx + 4 + lW}" y2="${cy + 8}" stroke="${redLine}" stroke-width="${thinLine}"/>
+      <line x1="${cx + 4}" y1="${cy + 8}" x2="${cx + 4}" y2="${cy + 8 + lLen}" stroke="${redLine}" stroke-width="${thinLine}"/>
+      <line x1="${cx - 4}" y1="${cy - 8}" x2="${cx - 4 - lW}" y2="${cy - 8}" stroke="${redLine}" stroke-width="${thinLine}"/>
+      <line x1="${cx - 4}" y1="${cy - 8}" x2="${cx - 4}" y2="${cy - 8 - lLen}" stroke="${redLine}" stroke-width="${thinLine}"/>
+      <line x1="${cx + 4}" y1="${cy - 8}" x2="${cx + 4 + lW}" y2="${cy - 8}" stroke="${redLine}" stroke-width="${thinLine}"/>
+      <line x1="${cx + 4}" y1="${cy - 8}" x2="${cx + 4}" y2="${cy - 8 - lLen}" stroke="${redLine}" stroke-width="${thinLine}"/>
+    `;
+  };
+
+  // Neutral zone faceoff spot
+  const neutralSpotSVG = (cx: number, cy: number): string => `
+    <circle cx="${cx}" cy="${cy}" r="${scale}" fill="${redLine}"/>
+    <circle cx="${cx}" cy="${cy}" r="${scale * 1.5}" fill="none" stroke="${redLine}" stroke-width="${thinLine}"/>
+  `;
+
+  // Measurement points — same coordinate mapping as USAHockeyRink.tsx
   const pointsMarkup = points.map((point) => {
     const key = `Point ${point.id}`;
     const altKey = point.id.toString();
     const value = measurementData[key] ?? measurementData[altKey] ?? measurementData[point.name];
     if (value === undefined || value === null) return '';
-    const x = (point.x / 100) * width;
-    const y = (point.y / 100) * height;
+    const svgX = (point.x / 100) * rinkLength;
+    const svgY = (point.y / 100) * rinkWidth;
     const color = getDepthColor(value);
+    const label = Number(value).toFixed(2);
     return `
-      <circle cx="${x}" cy="${y}" r="18" fill="${color}" stroke="white" stroke-width="2"/>
-      <text x="${x}" y="${y}" text-anchor="middle" dominant-baseline="central" fill="white" font-size="11" font-weight="bold">${Number(value).toFixed(2)}</text>
+      <circle cx="${svgX}" cy="${svgY}" r="14" fill="${color}" stroke="white" stroke-width="2"/>
+      <text x="${svgX}" y="${svgY}" text-anchor="middle" dominant-baseline="central" fill="white" font-size="9" font-weight="bold" transform="rotate(-90,${svgX},${svgY})">${label}</text>
     `;
   }).join('');
 
-  return `<svg viewBox="0 0 ${width} ${height}" width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;">
-    <rect x="3" y="3" width="${width-6}" height="${height-6}" rx="${cornerRadius}" ry="${cornerRadius}" fill="#ddf0fa" stroke="#334155" stroke-width="1.5"/>
-    <line x1="12" y1="32" x2="${width-12}" y2="32" stroke="#cc0000" stroke-width="1.2"/>
-    <line x1="12" y1="${height-32}" x2="${width-12}" y2="${height-32}" stroke="#cc0000" stroke-width="1.2"/>
-    <line x1="12" y1="${height*0.33}" x2="${width-12}" y2="${height*0.33}" stroke="#0055cc" stroke-width="2.5"/>
-    <line x1="12" y1="${height*0.67}" x2="${width-12}" y2="${height*0.67}" stroke="#0055cc" stroke-width="2.5"/>
-    <line x1="12" y1="${height/2}" x2="${width-12}" y2="${height/2}" stroke="#cc0000" stroke-width="1.8"/>
-    <circle cx="${width/2}" cy="${height/2}" r="24" fill="none" stroke="#0055cc" stroke-width="1.2"/>
-    <circle cx="${width/2}" cy="${height/2}" r="2.5" fill="#0055cc"/>
-    <circle cx="${width*0.3}" cy="58" r="20" fill="none" stroke="#cc0000" stroke-width="1.2"/>
-    <circle cx="${width*0.7}" cy="58" r="20" fill="none" stroke="#cc0000" stroke-width="1.2"/>
-    <circle cx="${width*0.3}" cy="${height-58}" r="20" fill="none" stroke="#cc0000" stroke-width="1.2"/>
-    <circle cx="${width*0.7}" cy="${height-58}" r="20" fill="none" stroke="#cc0000" stroke-width="1.2"/>
-    <circle cx="${width*0.3}" cy="58" r="2.5" fill="#cc0000"/>
-    <circle cx="${width*0.7}" cy="58" r="2.5" fill="#cc0000"/>
-    <circle cx="${width*0.3}" cy="${height-58}" r="2.5" fill="#cc0000"/>
-    <circle cx="${width*0.7}" cy="${height-58}" r="2.5" fill="#cc0000"/>
-    <circle cx="${width*0.25}" cy="${height*0.4}" r="2.5" fill="#cc0000"/>
-    <circle cx="${width*0.75}" cy="${height*0.4}" r="2.5" fill="#cc0000"/>
-    <circle cx="${width*0.25}" cy="${height*0.6}" r="2.5" fill="#cc0000"/>
-    <circle cx="${width*0.75}" cy="${height*0.6}" r="2.5" fill="#cc0000"/>
-    <path d="M ${width/2-15} 32 Q ${width/2-15} 48, ${width/2} 48 Q ${width/2+15} 48, ${width/2+15} 32" fill="#bbddf5" stroke="#cc0000" stroke-width="0.8"/>
-    <path d="M ${width/2-15} ${height-32} Q ${width/2-15} ${height-48}, ${width/2} ${height-48} Q ${width/2+15} ${height-48}, ${width/2+15} ${height-32}" fill="#bbddf5" stroke="#cc0000" stroke-width="0.8"/>
-    ${pointsMarkup}
+  // viewBox matches React component: "-10 -10 {rinkWidth+20} {rinkLength+20}" = "-10 -10 360 820"
+  // The rink group is rotated 90° clockwise around (rinkWidth/2, rinkWidth/2) = (170, 170)
+  return `<svg viewBox="-10 -10 360 820" width="340" height="800" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;">
+    <defs>
+      <linearGradient id="iceGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#f0f7fc"/>
+        <stop offset="50%" stop-color="#e8f4fc"/>
+        <stop offset="100%" stop-color="#dceef8"/>
+      </linearGradient>
+    </defs>
+    <g transform="rotate(90,170,170)">
+      <path d="${rinkPath}" fill="url(#iceGrad)"/>
+      <path d="${rinkPath}" fill="none" stroke="#000000" stroke-width="6"/>
+      <line x1="${leftGoalLine}" y1="${goalLineYTop}" x2="${leftGoalLine}" y2="${goalLineYBottom}" stroke="${redLine}" stroke-width="${thinLine}"/>
+      <line x1="${rightGoalLine}" y1="${goalLineYTop}" x2="${rightGoalLine}" y2="${goalLineYBottom}" stroke="${redLine}" stroke-width="${thinLine}"/>
+      <rect x="${leftBlueLine - thickLine / 2}" y="0" width="${thickLine}" height="${rinkWidth}" fill="${blueLine}"/>
+      <rect x="${rightBlueLine - thickLine / 2}" y="0" width="${thickLine}" height="${rinkWidth}" fill="${blueLine}"/>
+      <rect x="${centerX - thickLine / 2}" y="0" width="${thickLine}" height="${rinkWidth}" fill="${redLine}"/>
+      <circle cx="${centerX}" cy="${centerY}" r="${faceoffCircleRadius}" fill="none" stroke="${blueLine}" stroke-width="${thinLine}"/>
+      <circle cx="${centerX}" cy="${centerY}" r="${scale / 2}" fill="${blueLine}"/>
+      ${goalCreaseSVG(leftGoalLine, 'left')}
+      ${goalCreaseSVG(rightGoalLine, 'right')}
+      <circle cx="${leftGoalLine}" cy="${centerY - 3 * scale}" r="2" fill="${redLine}"/>
+      <circle cx="${leftGoalLine}" cy="${centerY + 3 * scale}" r="2" fill="${redLine}"/>
+      <circle cx="${rightGoalLine}" cy="${centerY - 3 * scale}" r="2" fill="${redLine}"/>
+      <circle cx="${rightGoalLine}" cy="${centerY + 3 * scale}" r="2" fill="${redLine}"/>
+      ${endZoneCircleSVG(endFaceoffX_left, faceoffY_top)}
+      ${endZoneCircleSVG(endFaceoffX_left, faceoffY_bottom)}
+      ${endZoneCircleSVG(endFaceoffX_right, faceoffY_top)}
+      ${endZoneCircleSVG(endFaceoffX_right, faceoffY_bottom)}
+      ${neutralSpotSVG(neutralFaceoffX_left, faceoffY_top)}
+      ${neutralSpotSVG(neutralFaceoffX_left, faceoffY_bottom)}
+      ${neutralSpotSVG(neutralFaceoffX_right, faceoffY_top)}
+      ${neutralSpotSVG(neutralFaceoffX_right, faceoffY_bottom)}
+      ${pointsMarkup}
+    </g>
   </svg>`;
 };
 
