@@ -111,29 +111,32 @@ const generateQuickReportHTML = (measurement: any): string => {
 <style>
   @page { size: letter portrait; margin: 6mm; }
   * { box-sizing: border-box; }
-  body { font-family: Arial, sans-serif; font-size: 10px; color: #222; margin: 0; padding: 0; }
-  .header { display: flex; align-items: center; justify-content: space-between; border-bottom: 2.5px solid #0066cc; padding-bottom: 6px; margin-bottom: 6px; }
-  .header-title { font-size: 16px; font-weight: bold; color: #0066cc; }
-  .header-sub { font-size: 10px; color: #555; margin-top: 2px; }
+  body { font-family: Arial, sans-serif; font-size: 10px; color: #222; margin: 0; padding: 0; height: 100%; }
+  .header { display: flex; align-items: center; justify-content: space-between; border-bottom: 2.5px solid #0066cc; padding-bottom: 5px; margin-bottom: 6px; }
+  .header-title { font-size: 15px; font-weight: bold; color: #0066cc; }
+  .header-sub { font-size: 9px; color: #555; margin-top: 2px; }
   .badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-weight: bold; font-size: 10px; background: ${statusBg}; color: ${statusColor}; text-transform: uppercase; }
-  .stats-row { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 5px; margin-bottom: 6px; }
-  .stat-box { text-align: center; padding: 5px 4px; background: #e8f4fc; border-radius: 4px; }
-  .stat-value { font-size: 15px; font-weight: bold; color: #0066cc; }
-  .stat-label { font-size: 8px; color: #666; margin-top: 1px; }
-  .rink-wrap { text-align: center; margin-bottom: 6px; }
-  .rink-wrap svg { display: block; margin: 0 auto; max-width: 100%; height: auto; }
-  .legend { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-top: 5px; }
-  .legend-item { display: flex; align-items: center; gap: 3px; font-size: 9px; color: #444; }
-  .legend-dot { width: 11px; height: 11px; border-radius: 50%; display: inline-block; }
-  .bottom-row { display: flex; gap: 10px; align-items: flex-start; }
-  .info-row { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 5px; margin-bottom: 6px; }
-  .info-item { padding: 4px 6px; background: #f4f6f8; border-radius: 4px; }
-  .info-label { font-size: 7.5px; color: #888; text-transform: uppercase; letter-spacing: 0.5px; }
-  .info-value { font-size: 11px; font-weight: bold; margin-top: 1px; }
-  .section-title { font-size: 10px; font-weight: bold; color: #333; margin-bottom: 3px; border-bottom: 1px solid #e0e0e0; padding-bottom: 2px; }
+  .split { display: flex; gap: 8px; align-items: flex-start; }
+  .left-col { flex: 0 0 48%; display: flex; flex-direction: column; align-items: center; }
+  .right-col { flex: 1; display: flex; flex-direction: column; gap: 5px; }
+  .rink-wrap { width: 100%; text-align: center; }
+  .rink-wrap svg { display: block; margin: 0 auto; width: 100%; height: auto; }
+  .legend { display: flex; flex-wrap: wrap; gap: 5px; justify-content: center; margin-top: 5px; }
+  .legend-item { display: flex; align-items: center; gap: 3px; font-size: 8px; color: #444; }
+  .legend-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
+  .stats-row { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 4px; }
+  .stat-box { text-align: center; padding: 4px 2px; background: #e8f4fc; border-radius: 4px; }
+  .stat-value { font-size: 13px; font-weight: bold; color: #0066cc; }
+  .stat-label { font-size: 7px; color: #666; margin-top: 1px; }
+  .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
+  .info-item { padding: 3px 5px; background: #f4f6f8; border-radius: 4px; }
+  .info-label { font-size: 7px; color: #888; text-transform: uppercase; letter-spacing: 0.4px; }
+  .info-value { font-size: 10px; font-weight: bold; margin-top: 1px; }
+  .section-title { font-size: 9px; font-weight: bold; color: #333; margin-bottom: 2px; border-bottom: 1px solid #e0e0e0; padding-bottom: 2px; }
   table { width: 100%; border-collapse: collapse; }
-  th { background: #0066cc; color: white; padding: 3px 5px; font-size: 8.5px; text-align: left; }
-  .footer { text-align: center; margin-top: 6px; padding-top: 4px; border-top: 1px solid #ddd; font-size: 7.5px; color: #888; }
+  th { background: #0066cc; color: white; padding: 3px 4px; font-size: 8px; text-align: left; }
+  td { padding: 2px 4px; border: 1px solid #ddd; font-size: 9px; }
+  .footer { text-align: center; margin-top: 5px; padding-top: 3px; border-top: 1px solid #ddd; font-size: 7px; color: #888; }
   @media print {
     body { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
   }
@@ -147,62 +150,68 @@ const generateQuickReportHTML = (measurement: any): string => {
     </div>
     <div style="text-align:right;">
       <div class="badge">${escapeHtml(measurement.status)}</div>
-      <div style="font-size:9px;color:#888;margin-top:4px;">Generated ${dateFnsFormat(new Date(), "PP p")}</div>
+      <div style="font-size:8px;color:#888;margin-top:3px;">Generated ${dateFnsFormat(new Date(), "PP p")}</div>
     </div>
   </div>
 
-  <div class="stats-row">
-    <div class="stat-box"><div class="stat-value">${measurement.min_depth}"</div><div class="stat-label">Min</div></div>
-    <div class="stat-box"><div class="stat-value">${measurement.max_depth}"</div><div class="stat-label">Max</div></div>
-    <div class="stat-box"><div class="stat-value">${measurement.avg_depth}"</div><div class="stat-label">Avg</div></div>
-    <div class="stat-box"><div class="stat-value">${measurement.std_deviation}"</div><div class="stat-label">Std Dev</div></div>
-  </div>
+  <div class="split">
+    <!-- LEFT: Rink Diagram -->
+    <div class="left-col">
+      <div class="rink-wrap">
+        ${rinkSVG}
+      </div>
+      <div class="legend">
+        <div class="legend-item"><span class="legend-dot" style="background:#ef4444;"></span>&lt;1.0" Critical</div>
+        <div class="legend-item"><span class="legend-dot" style="background:#22c55e;"></span>1.0–1.75" Good</div>
+        <div class="legend-item"><span class="legend-dot" style="background:#3b82f6;"></span>1.75–2.0" Monitor</div>
+        <div class="legend-item"><span class="legend-dot" style="background:#eab308;"></span>&gt;2.0" Warning</div>
+      </div>
+    </div>
 
-  <div class="info-row">
-    <div class="info-item"><div class="info-label">Date</div><div class="info-value">${dateFnsFormat(new Date(measurement.measurement_date), "PP")}</div></div>
-    <div class="info-item"><div class="info-label">Time</div><div class="info-value">${dateFnsFormat(new Date(measurement.measurement_date), "p")}</div></div>
-    <div class="info-item"><div class="info-label">Template</div><div class="info-value">${escapeHtml(measurement.template_type)}</div></div>
-    <div class="info-item"><div class="info-label">Operator</div><div class="info-value">${escapeHtml(measurement.profiles?.name) || "—"}</div></div>
-  </div>
+    <!-- RIGHT: Stats + Info + Measurements -->
+    <div class="right-col">
+      <div class="stats-row">
+        <div class="stat-box"><div class="stat-value">${measurement.min_depth}"</div><div class="stat-label">Min</div></div>
+        <div class="stat-box"><div class="stat-value">${measurement.max_depth}"</div><div class="stat-label">Max</div></div>
+        <div class="stat-box"><div class="stat-value">${measurement.avg_depth}"</div><div class="stat-label">Avg</div></div>
+        <div class="stat-box"><div class="stat-value">${measurement.std_deviation}"</div><div class="stat-label">Std Dev</div></div>
+      </div>
 
-  <div class="rink-wrap">
-    ${rinkSVG}
-    <div class="legend">
-      <div class="legend-item"><span class="legend-dot" style="background:#ef4444;"></span>&lt;1.0" Critical</div>
-      <div class="legend-item"><span class="legend-dot" style="background:#22c55e;"></span>1.0–1.75" Good</div>
-      <div class="legend-item"><span class="legend-dot" style="background:#3b82f6;"></span>1.75–2.0" Monitor</div>
-      <div class="legend-item"><span class="legend-dot" style="background:#eab308;"></span>&gt;2.0" Warning</div>
+      <div class="info-grid">
+        <div class="info-item"><div class="info-label">Date</div><div class="info-value">${dateFnsFormat(new Date(measurement.measurement_date), "PP")}</div></div>
+        <div class="info-item"><div class="info-label">Time</div><div class="info-value">${dateFnsFormat(new Date(measurement.measurement_date), "p")}</div></div>
+        <div class="info-item"><div class="info-label">Template</div><div class="info-value">${escapeHtml(measurement.template_type)}</div></div>
+        <div class="info-item"><div class="info-label">Operator</div><div class="info-value">${escapeHtml(measurement.profiles?.name) || "—"}</div></div>
+      </div>
+
+      <div>
+        <div class="section-title">All Measurements</div>
+        <table>
+          <thead><tr><th>Point</th><th style="text-align:right;">Depth</th><th>Point</th><th style="text-align:right;">Depth</th></tr></thead>
+          <tbody>${(() => {
+            const entries = Object.entries(measurementData);
+            const rows = [];
+            for (let i = 0; i < entries.length; i += 2) {
+              const [k1, v1] = entries[i];
+              const p2 = entries[i + 1];
+              rows.push(`<tr>
+                <td>${escapeHtml(k1)}</td>
+                <td style="text-align:right;font-weight:bold;color:${getDepthColor(Number(v1))}">${Number(v1).toFixed(3)}"</td>
+                ${p2 ? `<td>${escapeHtml(p2[0])}</td><td style="text-align:right;font-weight:bold;color:${getDepthColor(Number(p2[1]))}">${Number(p2[1]).toFixed(3)}"</td>` : '<td></td><td></td>'}
+              </tr>`);
+            }
+            return rows.join('');
+          })()}</tbody>
+        </table>
+      </div>
+
+      ${measurement.ai_analysis ? `
+      <div>
+        <div class="section-title">AI Analysis</div>
+        <div style="background:#f8f9fa;padding:5px;border-radius:4px;border-left:3px solid #0066cc;font-size:8px;line-height:1.5;">${escapeHtml(measurement.ai_analysis).replace(/\n/g,'<br/>')}</div>
+      </div>` : ''}
     </div>
   </div>
-
-  <div>
-    <div class="section-title">All Measurements</div>
-    <table>
-      <thead><tr><th>Point</th><th style="text-align:right;">Depth</th><th>Point</th><th style="text-align:right;">Depth</th><th>Point</th><th style="text-align:right;">Depth</th></tr></thead>
-      <tbody>${(() => {
-        const entries = Object.entries(measurementData);
-        const rows = [];
-        for (let i = 0; i < entries.length; i += 3) {
-          const [k1, v1] = entries[i];
-          const p2 = entries[i + 1];
-          const p3 = entries[i + 2];
-          rows.push(`<tr>
-            <td style="padding:3px 6px;border:1px solid #ddd;font-size:10px;">${escapeHtml(k1)}</td>
-            <td style="padding:3px 6px;border:1px solid #ddd;text-align:right;font-size:10px;font-weight:bold;color:${getDepthColor(Number(v1))}">${Number(v1).toFixed(3)}"</td>
-            ${p2 ? `<td style="padding:3px 6px;border:1px solid #ddd;font-size:10px;">${escapeHtml(p2[0])}</td><td style="padding:3px 6px;border:1px solid #ddd;text-align:right;font-size:10px;font-weight:bold;color:${getDepthColor(Number(p2[1]))}">${Number(p2[1]).toFixed(3)}"</td>` : '<td style="border:1px solid #ddd;"></td><td style="border:1px solid #ddd;"></td>'}
-            ${p3 ? `<td style="padding:3px 6px;border:1px solid #ddd;font-size:10px;">${escapeHtml(p3[0])}</td><td style="padding:3px 6px;border:1px solid #ddd;text-align:right;font-size:10px;font-weight:bold;color:${getDepthColor(Number(p3[1]))}">${Number(p3[1]).toFixed(3)}"</td>` : '<td style="border:1px solid #ddd;"></td><td style="border:1px solid #ddd;"></td>'}
-          </tr>`);
-        }
-        return rows.join('');
-      })()}</tbody>
-    </table>
-  </div>
-
-  ${measurement.ai_analysis ? `
-  <div style="margin-top:6px;">
-    <div class="section-title">AI Analysis</div>
-    <div style="background:#f8f9fa;padding:6px;border-radius:4px;border-left:3px solid #0066cc;font-size:9px;line-height:1.5;">${escapeHtml(measurement.ai_analysis).replace(/\n/g,'<br/>')}</div>
-  </div>` : ''}
 
   <div class="footer">Ice Depth Monitoring System</div>
 </body>
