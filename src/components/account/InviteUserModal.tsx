@@ -55,22 +55,28 @@ export const InviteUserModal = ({
     setLoading(true);
 
     try {
-      // For now, we'll create a placeholder profile that will be linked when the user signs up
-      // In a production app, you'd send an invitation email here
-      const { error } = await supabase.from("profiles").insert({
-        id: crypto.randomUUID(),
-        user_id: crypto.randomUUID(), // Placeholder - will be updated when user accepts invite
+      const { data: authData } = await supabase.auth.getUser();
+      const invitedBy = authData?.user?.id;
+      if (!invitedBy) throw new Error("Not authenticated");
+
+      // Record invitation in pending_invitations (no orphaned profile row).
+      // Profile is created when the invitee signs up and their account is linked.
+      const { error } = await supabase.from("pending_invitations").insert({
+        email: formData.email.trim().toLowerCase(),
         name: formData.name,
         facility_id: facilityId,
         job_title: formData.jobTitle || null,
-        account_status: "invited",
+        role: formData.role,
+        notes: formData.notes || null,
+        invited_by: invitedBy,
+        status: "pending",
       });
 
       if (error) throw error;
 
       toast({
         title: "User Invited",
-        description: `Invitation sent to ${formData.email}. They will receive an email to complete their registration.`,
+        description: `Invitation recorded for ${formData.email}. Ask them to sign up with this email to join ${facilityName}.`,
       });
 
       setFormData({ email: "", name: "", role: "staff", jobTitle: "", notes: "" });
@@ -87,6 +93,7 @@ export const InviteUserModal = ({
       setLoading(false);
     }
   };
+
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

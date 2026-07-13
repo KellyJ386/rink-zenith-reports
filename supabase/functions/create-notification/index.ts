@@ -65,8 +65,31 @@ serve(async (req) => {
     }
 
     const notifications = [];
+    const callerUserId = claimsData.claims.sub as string;
 
     if (broadcast_to_facility && facility_id) {
+      // Verify caller belongs to the target facility (or is admin) before broadcasting
+      const { data: callerProfile, error: callerErr } = await supabase
+        .from("profiles")
+        .select("facility_id")
+        .eq("user_id", callerUserId)
+        .maybeSingle();
+
+      const { data: roleRow } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", callerUserId)
+        .eq("role", "admin")
+        .maybeSingle();
+
+      const isAdmin = !!roleRow;
+      if (callerErr || (!isAdmin && callerProfile?.facility_id !== facility_id)) {
+        return new Response(
+          JSON.stringify({ error: "Forbidden: cannot broadcast to another facility" }),
+          { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
       const { data: profiles, error: profilesError } = await supabase
         .from("profiles")
         .select("user_id")
@@ -85,6 +108,7 @@ serve(async (req) => {
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
+
 
     const { data: inserted, error } = await supabase.from("notifications").insert(notifications).select();
     if (error) throw error;
