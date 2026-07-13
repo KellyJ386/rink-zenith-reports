@@ -1561,6 +1561,59 @@ export type Database = {
           },
         ]
       }
+      pending_invitations: {
+        Row: {
+          created_at: string
+          email: string
+          expires_at: string
+          facility_id: string
+          id: string
+          invited_by: string
+          job_title: string | null
+          name: string
+          notes: string | null
+          role: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          expires_at?: string
+          facility_id: string
+          id?: string
+          invited_by: string
+          job_title?: string | null
+          name: string
+          notes?: string | null
+          role?: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          expires_at?: string
+          facility_id?: string
+          id?: string
+          invited_by?: string
+          job_title?: string | null
+          name?: string
+          notes?: string | null
+          role?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pending_invitations_facility_id_fkey"
+            columns: ["facility_id"]
+            isOneToOne: false
+            referencedRelation: "facilities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       permission_templates: {
         Row: {
           created_at: string | null
